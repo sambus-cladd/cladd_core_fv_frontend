@@ -1,0 +1,10 @@
+.titulo{
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 2.5rem;
+    text-shadow: 0 0 0px #fff, 0 0 0px #fff, 0 0 0px #0467c3, 0 0 20px #0467c3,
+    0 0 10px #0467c3, 0 0 10px #0467c3, 0 0 10px #0467c3;
+    color: white;
+    font-family: 'Poppins', sans-serif; 
+}

@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Muli&display=swap');
+
+.machineDatos{
+    list-style: none;
+    font-size: 0.7rem;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.backblanco {
+    transform: scale(1.2);
+    box-shadow: 0.1em 0.1em #333; /*0 0 10px #222;*/
+    width: 250px;
+    background: rgb(255, 255, 255);
+    border-radius: 0.8rem; 
+    color: #0F1012;
+    float: left;
+  }
+
+.backencabezado {
+    display: block;
+    width: 250px;
+    margin-top: 1px;  
+    background: #c6b165;
+    border-top-left-radius: 0.8rem;
+    border-top-right-radius: 0.8rem;
+    color: black;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .maquinista{
+    color: #115393;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    /* box-shadow: 0.1em 0.1em #333; */
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estado{
+    color: #fafcff;;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #1680ea;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadogris{
+    color: #161616;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #b4b6b4;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadorojo{
+    color: #fafcff;;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #d63c09;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadoverde{
+    color: #161616;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #0de32d;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadocian{
+    color: #161616;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #00FFFF;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .proxlote{
+    color: #fafcff;;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #434445;
+    border-bottom-left-radius: 0.8rem;
+    border-bottom-right-radius: 0.8rem;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadorojoflash {
+    animation: flash 1s infinite;
+  }
+  
+  @keyframes flash {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .estadoverdeflash {
+    animation: flash 1s infinite;
+  }
+  
+  @keyframes flash {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .sin-maquinista {
+    animation: blinker 1.3s linear infinite;
+    color: #d63c09;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  @keyframes blinker {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .sin-lote {
+    animation: blinker 1s linear infinite;
+    color: #f8ed19;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  @keyframes blinker {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .estadoamarillo{
+    /* color: #d63c09;;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif; */
+    background: #f8ed19;
+    border-radius: 0.8rem;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadorojoalarma{
+    color: #fafcff;;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #d63c09;
+    border-radius: 0.8rem;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .estadomaquina{
+    color: #fafcff;;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    background: #4d4c4b;
+    border-radius: 0.8rem;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .encabezadotabla{
+    color: #fafcff;;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    background: #4d4c4b;
+    /* text-shadow: 1px 1px rgb(81, 78, 78); */
+  }
+
+  .alarma {
+    animation: blinker 2s linear infinite;
+    color: #d63c09;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  @keyframes blinker {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }

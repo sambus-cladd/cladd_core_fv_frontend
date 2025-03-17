@@ -1,0 +1,12 @@
+.MachineGrid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 250px);
+    column-gap: 60px;
+    row-gap: 35px;
+    /* grid-template-rows: 300px; */
+    /* gap: 10px;
+    column-gap: 40PX;
+    row-gap: 40px;
+    padding: 10px;  */
+    justify-content: center; 
+}

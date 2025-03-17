@@ -1,0 +1,44 @@
+/* DualListBoxCustom.css */
+
+.react-dual-listbox__controls button {
+    background: none; /* Eliminar el fondo */
+    border: none; /* Eliminar bordes */
+    cursor: pointer; /* Cambiar el cursor al pasar sobre el botón */
+  }
+  
+  .react-dual-listbox__controls button.move-left::before {
+    content: '←'; /* Icono de mover a la izquierda */
+    font-size: 20px; /* Tamaño del icono */
+    color: #333; /* Color del icono */
+  }
+  
+  .react-dual-listbox__controls button.move-right::before {
+    content: '→'; /* Icono de mover a la derecha */
+    font-size: 20px; /* Tamaño del icono */
+    color: #333; /* Color del icono */
+  }
+  
+  .react-dual-listbox__controls button.move-all-left::before {
+    content: '⇐'; /* Icono de mover todo a la izquierda */
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .react-dual-listbox__controls button.move-all-right::before {
+    content: '⇒'; /* Icono de mover todo a la derecha */
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .react-dual-listbox__controls button.move-up::before {
+    content: '↑'; /* Icono de mover hacia arriba */
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .react-dual-listbox__controls button.move-down::before {
+    content: '↓'; /* Icono de mover hacia abajo */
+    font-size: 20px;
+    color: #333;
+  }
+  

@@ -1,0 +1,113 @@
+.LoadingYellow:before
+{
+  content:'';
+  position:absolute;
+  display: 'flex';
+  align-items:"center";
+  justify-content:"center";
+  top:-3px;
+  left:-3px;
+  width:100%;
+  height:100%;
+ 
+ 
+  border-top:3px solid #fff000;
+  border-right:3px solid #fff000;
+  border-bottom: 3px solid transparent;
+  border-left: 3px solid transparent;
+  border-radius:50%;
+  animation:animateC 2s linear infinite;
+
+ 
+} 
+
+.LoadingCyan:before
+{
+    display: 'flex';
+    /* align:"center"; */
+    align-items:"center";
+    justify-content:"center";
+  content:'';
+  position:absolute;
+  top:-3px;
+  left:-3px;
+  width:100%;
+  height:100%;
+  
+  /*   border-top:3px solid #fff000;
+  border-right:3px solid #fff000;
+   */
+   border-top:3px solid rgba(0, 255, 255, 0.9);
+   border-right:3px solid rgba(0, 255, 255, 0.9);
+   border-bottom: 3px solid transparent;
+   border-left: 3px solid transparent;
+ 
+  border-radius:50%;
+  animation:animateC 2s linear infinite;
+} 
+
+.LoadingGreen:before
+{
+ 
+  content:'';
+  position:absolute;
+ 
+  width:100%;
+  height:100%;
+  
+  border-top:3px solid rgba(47, 255, 0, 0.9);
+  border-right:3px solid rgba(47, 255, 0, 0.9);
+  border-bottom: 3px solid transparent;
+  border-left: 3px solid transparent;
+ 
+  border-radius:50%;
+  animation:animateC 2s linear infinite;
+} 
+
+.LoadingBlue:before
+{
+ 
+  content:'';
+  position:absolute;
+ 
+  width:100%;
+  height:100%;
+  
+  border-top:3px solid rgba(0, 0, 255, 0.9);
+  border-right:3px solid rgba(0, 0, 255, 0.9);
+  border-bottom: 3px solid transparent;
+  border-left: 3px solid transparent;
+ 
+  border-radius:50%;
+  animation:animateC 2s linear infinite;
+} 
+
+.LoadingCyan2:before
+{
+ 
+  content:'';
+  position:absolute;
+ 
+  width:100%;
+  height:100%;
+  
+  border-top:3px solid rgba(15, 178, 242,0.9);
+  border-right:3px solid rgba(15, 178, 242,0.9);
+  border-bottom: 3px solid transparent;
+  border-left: 3px solid transparent;
+ 
+  border-radius:50%;
+  animation:animateC 2s linear infinite;
+} 
+
+@keyframes animateC
+{
+  0%
+  {
+    transform:rotate(0deg);
+  }
+  100%
+  {
+    transform:rotate(360deg);
+  }
+}
