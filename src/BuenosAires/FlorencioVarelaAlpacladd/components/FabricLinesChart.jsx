@@ -11,7 +11,7 @@ const FabricLinesChart = ({ data }) => {
 
   return (
     <Box sx={{ textAlign: "center", mt: 3 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#a7c2b0" }}>
         Distribución por Línea
       </Typography>
       <PieChart width={600} height={400}>

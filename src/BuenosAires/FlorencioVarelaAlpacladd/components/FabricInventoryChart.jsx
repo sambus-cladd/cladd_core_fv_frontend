@@ -6,7 +6,7 @@ const COLORS = ["#a7c2b0", "#8ea995", "#4A7B8D", "#3b6778"];
 const FabricInventoryChart = ({ data }) => {
   return (
     <Box sx={{ textAlign: "center", mt: 3 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#a7c2b0" }}>
         Distribución de Inventario de Tela
       </Typography>
       <PieChart width={600} height={400}>

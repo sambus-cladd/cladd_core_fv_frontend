@@ -1,224 +1,159 @@
-import * as React from 'react';
-import Link       from '@mui/material/Link';
-import AppBar     from '@mui/material/AppBar';
-import Box        from '@mui/material/Box';
-import Toolbar    from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu       from '@mui/material/Menu';
-import MenuIcon   from '@mui/icons-material/Menu';
-import Container  from '@mui/material/Container';
-import Button     from '@mui/material/Button';
-import MenuItem   from '@mui/material/MenuItem';
-import Grid from '@mui/material/Unstable_Grid2';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { purple } from '@mui/material/colors';
+import * as React from "react";
+import { useState } from "react";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Button,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useNavigate } from "react-router-dom";
 
-import CladdLogo from '../../assets/Images/claddLogo.png'
+// Imágenes
+import CladdCore from "../../assets/Images/CLADDCORE.png";
 
-const Navbar = ({ Titulo, Routes, color, plantaLogo }) =>  
-{
-  const theme = createTheme({
-    palette: {
-      cladd: {
-        // Purple and green play nicely together.
-        main: "#45474e",
-      },
-      enod: {
-        // This is green.A700 as hex.
-        main: '#4C7766',
-      },
-      alpacladd: {
-        // This is green.A700 as hex.
-        main: '#1A4862',
-      },
-    },
-  });
+const Navbar = ({ Titulo, Routes, color }) => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
+  const handleNavigation = (href) => {
+    if (href.startsWith("http")) {
+      window.open(href, "_blank");
+    } else {
+      navigate(href);
+    }
+    setDrawerOpen(false);
+  };
 
-    const [anchorElNav, setAnchorElNav] = React.useState(null);
-    const [anchorElUser, setAnchorElUser] = React.useState(null);
-  
-    const handleOpenNavMenu = (event) => {
-      setAnchorElNav(event.currentTarget);
-    };
-    const handleCloseNavMenu = () => {
-      setAnchorElNav(null);
-    };
   return (
-    <ThemeProvider theme={theme}>
-      <AppBar position="static" color={color}>
-      {/* <Container maxWidth="xl">
-        <Toolbar disableGutters> */}
+    <AppBar position="static" sx={{ backgroundColor: getColor(color) }}>
+      {/* Desktop Navbar */}
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+          display: { xs: "none", md: "flex" },
+        }}
+      >
+        <Typography
+          variant="h3"
+          sx={{
+            fontFamily: "Poppins",
+            fontWeight: 700,
+            color: "#ffffff",
+            letterSpacing: "0.1rem",
+            flexGrow: 1,
+            textAlign: "center",
+          }}
+        >
+          {Titulo}
+        </Typography>
 
-          {/* PAGINAS EN DISPOSITIVOS MOVILES VERTICAL*/}
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <Grid container columnSpacing={4} sx={{  width:"100%",}} >
-              <Grid xs={2} sm={2} >
-                <IconButton
-                  size="large"
-                  aria-label="account of current user"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleOpenNavMenu}
-                  color="inherit"
-                >
-                <MenuIcon />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorElNav}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                  }}
-                  open={Boolean(anchorElNav)}
-                  onClose={handleCloseNavMenu}
-                  sx={{
-                    display: { xs: 'block', md: 'none' },
-                  }}
-                >
-                  {Routes.map((route) => (
-                    <MenuItem key={route.key} onClick={handleCloseNavMenu}>
-                      <Link key={route.key} href={route.route} target="_self" underline="none">
-                        <Typography textAlign="center" fontFamily="Script/Handwritten">
-                          {route.name}
-                        </Typography>
-                      </Link>
-                    </MenuItem>
-                     ))}
-                </Menu>
-              </Grid>
-              <Grid xs={10} sm={10}>
-                            {/* LOGO EN DISPOSITIVOS MOVILES VERTICAL */}
-                <Typography
-                  variant="h6"
-                  noWrap
-                  sx={{
-                    marginTop:1,
-                    flexGrow: 1,
-                    // fontFamily: 'monospace',
-                    fontWeight: 700,
-                    letterSpacing: '.3rem',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                    fontFamily: 'Script/Handwritten',
-                  }}
-                >
-                    {Titulo}
-                </Typography>
-
-              </Grid>
-            </Grid>
-          </Box>
-          
-
-          {/* PAGINAS */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'block' } }}>
-          <Grid container columnSpacing={1}>
-            <Grid xs={12} sm={12} md={12} display={"flex"}>
-            <img src= { CladdLogo } alt="logo" width="130" height = "65" style = {{paddingLeft:  '0.5em', paddingTop:  '0.5em'}}/>
-              <Typography
-              variant="h3"
+        {/* Menú de escritorio */}
+        <Box>
+          {Routes.map((route) => (
+            <Button
+              key={route.key}
+              onClick={() => handleNavigation(route.route)}
               sx={{
-                display: { xs: 'none', md: 'flex' },
-                mt:2,
-                flexGrow: 1,
-                justifyContent: "center",
-                //fontFamily: 'monospace',
-                fontFamily: 'Script/Handwritten',
-                letterSpacing: '0.1rem',
-                color: '#ffffff',
-                textDecoration: 'none',
+                color: "white",
+                fontFamily: "Poppins",
+                fontSize: "0.8rem",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  color: "#FFD700", // Un dorado suave
+                  transform: "scale(1.05)", // Efecto leve de zoom
+                },
               }}
             >
-              {Titulo}
-            </Typography>
-              {  
-                LogoPlanta(plantaLogo)                          
-              }
-            </Grid>
-            <Grid xs={12} sm={12} md={12}>
-              <Box sx={{ flexGrow: 1,display: "flex" ,backgroundColor:"rgba(0,0,0,0.3)",justifyContent: "center", display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-              {Routes.map((route) => (
-                <Link key={route.key} href={route.route} target={route.target} underline="none">
-                  <Button key={route.key} onClick={handleCloseNavMenu} sx={{ my: 0.5, color: 'white', display: 'block' }}>
-                  <Typography
-                    variant="p"
-                    sx={{
-                      display: { xs: 'none', md: 'flex' },
-                      flexGrow: 1,
-                      color: 'inherit',
-                      textDecoration: 'none',
-                      fontFamily: 'Poppins',
-                      letterSpacing: '0.1rem',
-                      fontSize: { md: '0.7rem' },
-                        }}
-                    >
-                    {route.name}
-                  </Typography>
-                 
-                  </Button>
-                </Link>
-              ))}
-              </Box>
-            </Grid>
-          </Grid>
+              {route.name}
+            </Button>
+          ))}
+        </Box>
+      </Toolbar>
 
-          {/* <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+      {/* Mobile Navbar */}
+      <Toolbar
+        sx={{
+          display: { xs: "flex", md: "none" },
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton
+          edge="start"
+          color="inherit"
+          onClick={() => setDrawerOpen(true)}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: "Poppins",
+            fontWeight: 700,
+            color: "white",
+            flexGrow: 1,
+            textAlign: "center",
+          }}
+        >
+          {Titulo}
+        </Typography>
+      </Toolbar>
+
+      {/* Drawer para móvil */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
+        <Box sx={{ width: 250, textAlign: "center", pt: 2 }}>
+          <img
+            src={CladdCore}
+            alt="Logo CladdCore"
+            style={{ width: "120px", marginBottom: "16px" }}
+          />
+          <Divider sx={{ mb: 1 }} />
+          <List>
             {Routes.map((route) => (
-              <Link key={route.key} href={route.route} target={route.target} underline="none">
-                <Button key={route.key} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}>
-                <Typography
-            variant="p"
-            sx={{
-               display: { xs: 'none', md: 'flex' },
-              flexGrow: 1,
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-          {route.name}
-          </Typography>
-                  
-                </Button>
-              </Link>
+              <ListItemButton
+                key={route.key}
+                onClick={() => handleNavigation(route.route)}
+              >
+                <ListItemText primary={route.name} />
+              </ListItemButton>
             ))}
-            </Box> */}
-          </Box>
+          </List>
+        </Box>
+      </Drawer>
+    </AppBar>
+  );
+};
 
-        {/* </Toolbar>
-      </Container> */}
-      </AppBar>
-    </ThemeProvider>
-);
-  
-}
-
-function LogoPlanta(plantaLogo)  
-{
-  if(plantaLogo!==null)
-    return <img src= { plantaLogo } alt="logo" width="150" height = "60" style = {{paddingRight:  '0.5em', paddingTop:  '0.7em', paddingBottom:  '0.3em'}}/>
- 
+function getColor(colorName) {
+  const colors = {
+    cladd: "#45474e",
+    enod: "#4C7766",
+    alpacladd: "#1A4862",
+  };
+  return colors[colorName] || colors.cladd;
 }
 
 Navbar.defaultProps = {
-  plantaLogo:null,
-  Routes:  [{
-    name: " ",
-    key: " ",
-    // icon: <TrendingUpIcon fontSize="small"/>,
-    route: " ",
-    target:" ",
-    // component: <Efficiencyscrean />// <Efficiencyscrean />,
-  }],
- 
+  Routes: [
+    {
+      name: " ",
+      key: " ",
+      route: " ",
+      target: " ",
+    },
+  ],
 };
 
-
-export default Navbar
+export default Navbar;

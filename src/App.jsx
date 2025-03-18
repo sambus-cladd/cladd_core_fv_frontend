@@ -27,6 +27,7 @@ import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Term
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
 
 import RequireAuth from "./BuenosAires/FlorencioVarelaAlpacladd/components/RequireAuth";
+import Articulos from "./components/Componentes/Articulos";
 
 function App() {
   return (
@@ -106,10 +107,10 @@ function App() {
         path="/BuenosAires/FlorencioVarela/Terminacion/Etiqueta"
         element={<PaginaEtiqueta />}
       />
-      {/* <Route
+      <Route
         path="/BuenosAires/FlorencioVarela/Terminacion/FichaTecnica"
         element={<Articulos rol={"fv"} />}
-      /> */}
+      />
 
       {/* LABORATORIO */}
       {/* rutas protegidas bs as */}

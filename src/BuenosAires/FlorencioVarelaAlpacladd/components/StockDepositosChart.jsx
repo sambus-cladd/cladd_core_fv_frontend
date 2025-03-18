@@ -16,7 +16,7 @@ const StockDepositosChart = ({ data }) => {
 
   return (
     <Box sx={{ textAlign: "center", mt: 3 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#a7c2b0" }}>
         Distribución de Stock por Depósito
       </Typography>
       <PieChart width={600} height={400}>
