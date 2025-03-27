@@ -61,5 +61,3 @@ const FabricProgress = ({ crudoValue, denimValue, totalCrudo, totalDenim }) => {
 }
 
 export default FabricProgress
-
-

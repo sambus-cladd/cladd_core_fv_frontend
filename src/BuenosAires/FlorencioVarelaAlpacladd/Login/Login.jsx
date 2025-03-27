@@ -36,7 +36,7 @@ const LoginLabFV = () => {
 
   const onSubmit = async () => {
     try {
-      const { data } = await axios.post("http://192.168.40.95:4300/auth/login", body)
+      const { data } = await axios.post("http://192.168.0.18:4300/auth/login", body)
       const token = data.tokenSession
       const rol = data.data.role
       const usuario = data.data.usuario

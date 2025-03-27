@@ -1,7 +1,7 @@
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Box, Typography } from "@mui/material";
 
-const COLORS = ["#a7c2b0", "#3b6778", "#4A7B8D", "#3b6778"];
+const COLORS = ["#5c7063", "#1f3c47"];
 
 const FabricLinesChart = ({ data }) => {
   const formattedData = data.map((item) => ({
@@ -10,29 +10,33 @@ const FabricLinesChart = ({ data }) => {
   }));
 
   return (
-    <Box sx={{ textAlign: "center", mt: 3 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#a7c2b0" }}>
-        Distribución por Línea
+    <Box sx={{ textAlign: "center", mt: 3, width: "100%", maxWidth: 600, mx: "auto" }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+        Distribución por Línea de Revisado
       </Typography>
-      <PieChart width={600} height={400}>
-        <Pie
-          data={formattedData}
-          cx="50%"
-          cy="50%"
-          innerRadius={80}
-          outerRadius={120}
-          fill="#8884d8"
-          paddingAngle={5}
-          dataKey="value"
-          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-        >
-          {formattedData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(value) => `${value} km`} />
-        <Legend />
-      </PieChart>
+
+      {/* Contenedor Responsivo */}
+      <ResponsiveContainer width="100%" height={350}>
+        <PieChart>
+          <Pie
+            data={formattedData}
+            cx="50%"
+            cy="40%"
+            innerRadius="40%"
+            outerRadius="60%"
+            fill="#8884d8"
+            paddingAngle={5}
+            dataKey="value"
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+          >
+            {formattedData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip formatter={(value) => `${value} km`} />
+          <Legend verticalAlign="bottom" height={50} />
+        </PieChart>
+      </ResponsiveContainer>
     </Box>
   );
 };

@@ -87,7 +87,7 @@ export const GantProgramacionFV = () => {
                     <Navbar Titulo="GANTT PROGRAMACIÓN" color="alpacladd" plantaLogo={AlpaLogo} />
 
                     <Box sx={{ width: '100%', bgcolor: " #d3d3d3", display: 'flex', overflow: 'auto', justifyContent: 'center', alignItems: 'center' }}>
-                        <Tabs value={value} onChange={handleChange} centered={true} variant='scrollable' scrollButtons="on" allowScrollButtonsMobile>
+                        <Tabs value={value} onChange={handleChange} variant='scrollable' scrollButtons="on" allowScrollButtonsMobile>
                             <Tab label="Home" icon={<HomeIcon />} />
                             <Tab label="" disabled />
                             <Tab label="Grafico Producción" icon={<DvrIcon />} />

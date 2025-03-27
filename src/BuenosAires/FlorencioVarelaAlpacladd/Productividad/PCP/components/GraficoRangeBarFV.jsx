@@ -10,6 +10,9 @@ function GraficoRangeBarFV({ Serie }) {
   const [forceUpdate, setForceUpdate] = useState(0);
   var es = require("apexcharts/dist/locales/es.json");
 
+  console.log(es);
+  
+
   useEffect(() => {
     const CargarColores = async () => {
       try {
