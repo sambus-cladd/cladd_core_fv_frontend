@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import Chart from 'react-apexcharts';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 import { GetTABLACOLORES } from '../API/APIFunctions';
 
@@ -9,9 +9,6 @@ function GraficoRangeBarFV({ Serie }) {
   const [colores, setColores] = useState([]);
   const [forceUpdate, setForceUpdate] = useState(0);
   var es = require("apexcharts/dist/locales/es.json");
-
-  console.log(es);
-  
 
   useEffect(() => {
     const CargarColores = async () => {
@@ -26,7 +23,8 @@ function GraficoRangeBarFV({ Serie }) {
   }, []);
 
   useEffect(() => {
-    if (Serie.length > 0) {
+    if (Serie && Serie.length > 0) {
+      console.log('Datos recibidos:', Serie);
       setForceUpdate(prev => prev + 1);
     }
   }, [Serie]);
@@ -45,26 +43,75 @@ function GraficoRangeBarFV({ Serie }) {
 
   const machineOrder = ["108", "GIRO LENTO", "120", "130", "20", "124", "123", "146", "149", "150", "10", "160"];
 
-  const seriesData = Serie.map((item) => {
+  const parseDate = (dateStr) => {
+    if (!dateStr) {
+      console.error('Fecha no definida');
+      return new Date();
+    }
+
+    try {
+      // Intentar parsear como ISO
+      const date = parseISO(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    } catch (error) {
+      console.error('Error al parsear fecha ISO:', error);
+    }
+
+    // Si falla, intentar con Date directamente
+    try {
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    } catch (error) {
+      console.error('Error al crear fecha con Date:', error);
+    }
+
+    console.error('No se pudo parsear la fecha:', dateStr);
+    return new Date();
+  };
+
+  if (!Serie || !Array.isArray(Serie) || Serie.length === 0) {
+    console.log('Serie no válida:', Serie);
+    return <Box p={1} textAlign="center">No hay datos disponibles</Box>;
+  }
+
+  // Asegurarse de que Serie sea un array plano
+  const flatSerie = Array.isArray(Serie[0]) ? Serie[0] : Serie;
+
+  const seriesData = flatSerie.map((item, index) => {
+    if (!item) {
+      console.error(`Item ${index} es undefined`);
+      return null;
+    }
+
+    console.log(`Procesando item ${index}:`, item);
+    
     const colorSeleccionado = item.proceso === 'LINEA COLOR'
       ? colores.find(color => color.color === item.color)?.color_hex || '#000000'
       : machineColors[item.proceso] || '#000000';
 
+    const horaInicio = parseDate(item.hora_inicio);
+    const horaFin = parseDate(item.hora_fin);
+
     return {
-      x: item.maquina,
-      y: [new Date(item.hora_inicio).getTime(), new Date(item.hora_fin).getTime()],
+      x: item.maquina || 'Sin máquina',
+      y: [horaInicio.getTime(), horaFin.getTime()],
       fillColor: colorSeleccionado,
-      orden: item.orden,
-      procmaquina: item.maquina_proceso,
-      proceso: item.proceso,
-      articulo: item.articulo,
-      color: item.color,
-      metros: item.metros,
-      horas_total: item.horas_total,
-      hora_inicio: item.hora_inicio,
-      hora_fin: item.hora_fin
+      orden: item.orden || 'Sin orden',
+      procmaquina: item.maquina_proceso || 'Sin proceso',
+      proceso: item.proceso || 'Sin proceso',
+      articulo: item.articulo || 'Sin artículo',
+      color: item.color || 'Sin color',
+      metros: item.metros || 0,
+      horas_total: item.horas_total || 0,
+      hora_inicio: item.hora_inicio || 'Sin hora inicio',
+      hora_fin: item.hora_fin || 'Sin hora fin'
     };
-  }).sort((a, b) => machineOrder.indexOf(a.x) - machineOrder.indexOf(b.x));
+  }).filter(item => item !== null)
+    .sort((a, b) => machineOrder.indexOf(a.x) - machineOrder.indexOf(b.x));
 
   // Obtener el máximo y mínimo tiempo
   const maxTime = Math.max(...Serie.map(item => new Date(item.hora_fin).getTime()));

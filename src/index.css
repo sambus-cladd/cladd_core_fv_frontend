@@ -33,6 +33,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(252, 250, 239);
+  color: #222;
   /* overflow-y: hidden; */
 }
 

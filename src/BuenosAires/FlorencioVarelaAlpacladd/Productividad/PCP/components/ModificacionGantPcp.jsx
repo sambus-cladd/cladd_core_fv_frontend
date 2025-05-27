@@ -216,12 +216,67 @@ function FormularioGantPcp() {
     };
 
     function TablaOrdenes({ Serie }) {
-
         const [rows, setRows] = useState([]);
         const [idOrden, setIdOrden] = useState(null);
         const [openModal, setOpenModal] = useState(false);
 
-    
+        useEffect(() => {
+            console.log('Datos recibidos en TablaOrdenes:', Serie);
+            const datos = Array.isArray(Serie[0]) ? Serie[0] : Serie;
+            if (datos && datos.length !== 0) {
+                const filas = datos.map((item, index) => {
+                    // Asegurarse de que cada fila tenga un ID único
+                    const id = item.id || `row-${index}`;
+                    
+                    // Formatear las fechas correctamente
+                    const horaInicio = item.hora_inicio ? new Date(item.hora_inicio) : new Date();
+                    const horaFin = item.hora_fin ? new Date(item.hora_fin) : new Date();
+                    const fechaRegistro = item.fecha_registro ? new Date(item.fecha_registro) : new Date();
+
+                    return {
+                        id: id,
+                        orden: item.orden || '',
+                        articulo: item.articulo || '',
+                        maquina: item.maquina || '',
+                        maquinaProceso: item.maquina_proceso || '',
+                        proceso: item.proceso || '',
+                        metros: item.metros || '',
+                        horasTotal: item.horas_total || '',
+                        horaInicio: formathours(horaInicio),
+                        horaFin: formathours(horaFin),
+                        horaInicioCompleto: dayjs(horaInicio),
+                        horaFinCompleto: dayjs(horaFin),
+                        color: item.color || '',
+                        fechaRegistro: formatDate(fechaRegistro)
+                    };
+                });
+                setRows(filas);
+            } else {
+                setRows([]);
+            }
+        }, [Serie]);
+
+        // Formateo de fecha a "dd/mm/yy"
+        function formatDate(date) {
+            if (!(date instanceof Date) || isNaN(date)) {
+                return 'Fecha inválida';
+            }
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear().toString().slice(-2);
+            return `${day}/${month}/${year}`;
+        }
+
+        // Formateo de horas a HH:mm
+        function formathours(date) {
+            if (!(date instanceof Date) || isNaN(date)) {
+                return 'Hora inválida';
+            }
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
         const hanldeOpenModal = (idOrden) => {
             setIdOrden(idOrden);
             setOpenModal(true);
@@ -257,32 +312,6 @@ function FormularioGantPcp() {
             boxShadow: 24,
             p: 4,
         };
-    
-        useEffect(() => {
-            if (Serie && Serie.length !== 0) {
-                const filas = Serie.map((item) => {
-                    return {
-                        id: item.id,
-                        orden: item.orden,
-                        articulo: item.articulo,
-                        maquina: item.maquina,
-                        maquinaProceso: item.maquina_proceso,
-                        proceso: item.proceso,
-                        metros: item.metros,
-                        horasTotal: item.horas_total,
-                        horaInicio: formathours(item.hora_inicio),
-                        horaFin: formathours(item.hora_fin),
-                        horaInicioCompleto: (dayjs(item.hora_inicio)),
-                        horaFinCompleto: (dayjs(item.hora_fin)),
-                        color: item.color,
-                        fechaRegistro: formatDate(item.fecha_registro)
-                    };
-                });
-                setRows(filas);
-            } else {
-                setRows([]);
-            }
-        }, [Serie]);
     
         const columns = [
             { field: 'id', headerName: 'id' },
@@ -325,32 +354,6 @@ function FormularioGantPcp() {
             { field: 'horaFin', headerName: 'Hs Fin', sortable: false, filterable: true, flex: 0.2, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
             { field: 'fechaRegistro', headerName: 'Registro', flex: 0.2, sortable: false, filterable: true, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center'}
         ];
-        // Formateo de fecha a "dd/mm/yy HH:mm"
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const day = date.getDate();
-            const month = date.getMonth() + 1; // getMonth va del 0 al 11
-            const year = date.getFullYear().toString().slice(-2); // Obtiene los dos últimos dígitos del año
-
-            // Agrega ceros para días, meses, horas o minutos del 1 al 9
-            const formattedDay = day < 10 ? '0' + day : day;
-            const formattedMonth = month < 10 ? '0' + month : month;
-            // Formato final "dd/mm/yy HH:mm"
-            const fecha_formateada = `${formattedDay}/${formattedMonth}/${year}`;
-            return fecha_formateada;
-        }
-        // Fornateo de horas a HH:mm
-        function formathours(hoursString){
-            const hours = new Date(hoursString);
-
-            const horas = hours.getHours();
-            const minutos = hours.getMinutes();
-
-            const formattedHours = horas < 10 ? '0' + horas : horas;
-            const formattedMinutes = minutos < 10 ? '0' + minutos : minutos;
-            const hora_formateada = `${formattedHours}:${formattedMinutes}`
-            return hora_formateada;
-        }
         return (
             <>
                         <DataGrid
@@ -425,6 +428,9 @@ function FormularioGantPcp() {
     const handleCloseModalTabla = () => {
         setOpenModalTabla(false);
     }
+
+    // Log para depuración de codmaquinas
+    console.log('codmaquinas:', codmaquinas);
 
     return (
         <>
@@ -532,12 +538,15 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {codmaquinas.map((maquina, index) => (
-                                        <MenuItem key={index} value={maquina.cod_maquina}>
+                                    {Array.isArray(codmaquinas[0]) ? codmaquinas[0].map((maquina, index) => (
+                                        <MenuItem 
+                                            key={index} 
+                                            value={maquina.cod_maquina}
+                                            style={{ color: '#222' }}
+                                        >
                                             {maquina.cod_maquina}
                                         </MenuItem>
-                                    ))
-                                    }
+                                    )) : null}
                                 </TextField>
                             </Grid>
 
@@ -558,12 +567,11 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {maquinasprocfil.map((maquina, index) => (
+                                    {Array.isArray(maquinasprocfil[0]) ? maquinasprocfil[0].map((maquina, index) => (
                                         <MenuItem key={index} value={maquina.proceso}>
                                             {maquina.proceso}
                                         </MenuItem>
-                                    ))
-                                    }
+                                    )) : null}
                                 </TextField>
                             </Grid>
 
@@ -635,12 +643,11 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {procesosfil.map((proceso, index) => (
+                                    {Array.isArray(procesosfil[0]) ? procesosfil[0].map((proceso, index) => (
                                         <MenuItem key={index} value={proceso.proceso}>
                                             {proceso.proceso}
                                         </MenuItem>
-                                    ))
-                                    }
+                                    )) : null}
                                 </TextField>
                             </Grid>
 

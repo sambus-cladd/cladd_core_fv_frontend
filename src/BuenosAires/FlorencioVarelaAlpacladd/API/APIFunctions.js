@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const URL_SERVIDOR = "http://192.168.0.18";
+const URL_SERVIDOR = "http://localhost";
 const PUERTO_FV_LABORATORIO = ":4300/";
 const PUERTO_FV_PRODUCTIVIDAD = ":4300/";
 const STOCK_TERMINA_FV = ":4300/";

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 /* BUENOS AIRES - FLORENCIO VARELA */
 import ReportesProductividad from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/components/ReportesProductividad";
@@ -32,6 +32,9 @@ import Articulos from "./components/Componentes/Articulos";
 function App() {
   return (
     <Routes>
+      {/* Ruta raíz */}
+      <Route path="/" element={<Navigate to="/BuenosAires/FlorencioVarela/AlpacladdHome" replace />} />
+
       {/* BuenosAires SanMartin */}
       {/* <Route path="/BuenosAires/CladdSanMartin" element={<CladdSanMartin />} /> */}
 

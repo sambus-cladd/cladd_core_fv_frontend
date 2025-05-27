@@ -1,4 +1,3 @@
-
 import { React, useState, useEffect } from "react";
 import Grid from '@mui/material/Grid';
 import dayjs from 'dayjs';
@@ -40,11 +39,22 @@ const TablaGantt = ({handleChange}) => {
   );
 }
 
+function getDatosValidos(serie) {
+  if (Array.isArray(serie)) {
+    if (Array.isArray(serie[0])) {
+      return serie[0];
+    }
+    return serie;
+  }
+  return [];
+}
+
 function TablaHistoricoGantt({ Serie, handleChange }) {
   let fila, filas = [];
+  const datos = getDatosValidos(Serie);
 
-  if (Serie.length !== 0) {
-    Serie.map((elemento, index) => {
+  if (datos.length !== 0) {
+    datos.map((elemento, index) => {
       fila = {
         id: index,
         Orden: elemento.orden,

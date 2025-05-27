@@ -1,4 +1,3 @@
-
 import { React, useState, useEffect } from "react";
 import Grid from '@mui/material/Grid';
 import dayjs from 'dayjs';
@@ -43,18 +42,19 @@ const MetrosXArticulos = () => {
 }
 
 function TablaMetrosXArticulos({ Serie }) {
-  let fila, filas = [];
-  
-  if (Serie.length !== 0) {
-        Serie.filter(elemento => elemento.articulo && elemento.metros > 0)
-            .map((elemento, index) => {
-                filas.push({
-                    id: index,
-                    Articulo: elemento.articulo,
-                    Metros: elemento.metros 
-                });
-            });
-    }
+  let filas = [];
+  const datos = Array.isArray(Serie[0]) ? Serie[0] : Serie;
+
+  if (datos.length !== 0) {
+    datos.filter(elemento => elemento.articulo && elemento.metros > 0)
+      .map((elemento, index) => {
+        filas.push({
+          id: index,
+          Articulo: elemento.articulo,
+          Metros: elemento.metros 
+        });
+      });
+  }
  
     const columns = [
       { 
@@ -99,156 +99,155 @@ function TablaMetrosXArticulos({ Serie }) {
 }
 
 function GraficoMetrosxArticulo({ Serie }) {
-    if (!Serie || !Array.isArray(Serie)) {
-      return (
-        <Box p={2} textAlign="center">
-          <p>Esperando datos para mostrar gráfico...</p>
-        </Box>
-      );
-    }
-
-    let DatosGrafico = [];
-  
-    Serie.forEach(elemento => {
-      const obj = {
-        x: elemento.articulo,
-        y: elemento.metros
-      };
-      DatosGrafico.unshift(obj); // Agregar al inicio para invertir el orden
-  
-    });
-  
-    // Configuración de los datos del gráfico
-    const data = {
-      options: {
-        fill: {
-          opacity: [0.85, 0.85, 1],
-        },
-        animations: {
-            enabled: true,
-            easing: 'linear',
-            dynamicAnimation: {
-                speed: 1000,
-            },
-        },
-        markers: {
-          size: 3,
-          strokeColors: 'rgba(155, 155, 155, 0.8)',
-          strokeWidth: 2,
-          strokeOpacity: 0.9,
-          fillOpacity: 0.9,
-          shape: "circle",
-          hover: {
-            size: 3,
-            sizeOffset: 3
-          }
-        },
-        title: {
-          text: 'Metros',
-          align: 'left',
-          offsetX: 110,
-          style: {
-            fontSize: '18px'
-          }
-        },
-        forecastDataPoints: {
-          count: 0,
-          fillOpacity: 0.5,
-          strokeWidth: 2,
-          dashArray: 4,
-        },
-        dataLabels: {
-          enabled: true,
-          enabledOnSeries: [0, 1],
-          formatter: function(val) {
-            return Number(val).toLocaleString();
-          },
-          offsetY: -10,
-          offsetX: -3, 
-          style: {
-            fontSize: "12px",
-            zIndex: 0 
-          }
-        },
-        stroke: {
-          width: [3, 3],
-          curve: 'smooth'
-        },
-        xaxis: {
-          position: 'bottom',
-          labels: {
-            show: true,
-            rotateAlways: true,
-            offsetY: 0,
-            style: {
-              colors: '#000000',
-            },
-          },
-          axisBorder: {
-            show: true
-          },
-          axisTicks: {
-            show: true
-          }
-        },
-        yaxis: [
-          {
-            opposite: false,
-            axisBorder: {
-              show: true,
-              color: '#0B6477'
-            },
-            axisTicks: {
-              show: true
-            },
-            labels: {
-              show: true,
-              offsetX: -10,
-              formatter: function(val) {
-                return Number(val).toLocaleString();
-              },
-              style: {
-                colors: '#0B6477',
-              },
-            },
-            forceNiceScale: true,
-          }
-        ],
-        series: [
-          {
-            name: "Metros x Articulos",
-            type: 'line',
-            color: '#0B6477',
-            data: DatosGrafico
-          },
-        ],
-        tooltip: {
-          enabled: true,
-          shared: true,
-          intersect: false,
-          y: {
-            formatter: function(val) {
-              return Number(val).toLocaleString();
-            }
-          }
-        },
-        noData: {
-          text: 'Esperando Datos...'
-        }
-      }
-    };
-  
+  const datos = Array.isArray(Serie[0]) ? Serie[0] : Serie;
+  if (!datos || !Array.isArray(datos)) {
     return (
-      <Box p={1} textAlign="center">
-        <Chart
-          options={data.options}
-          series={data.options.series}
-          type="line"
-          height="400" 
-        />
+      <Box p={2} textAlign="center">
+        <p>Esperando datos para mostrar gráfico...</p>
       </Box>
     );
   }
+
+  let DatosGrafico = [];
+  datos.forEach(elemento => {
+    const obj = {
+      x: elemento.articulo,
+      y: elemento.metros
+    };
+    DatosGrafico.unshift(obj); // Agregar al inicio para invertir el orden
+  });
+  
+  // Configuración de los datos del gráfico
+  const data = {
+    options: {
+      fill: {
+        opacity: [0.85, 0.85, 1],
+      },
+      animations: {
+          enabled: true,
+          easing: 'linear',
+          dynamicAnimation: {
+              speed: 1000,
+          },
+      },
+      markers: {
+        size: 3,
+        strokeColors: 'rgba(155, 155, 155, 0.8)',
+        strokeWidth: 2,
+        strokeOpacity: 0.9,
+        fillOpacity: 0.9,
+        shape: "circle",
+        hover: {
+          size: 3,
+          sizeOffset: 3
+        }
+      },
+      title: {
+        text: 'Metros',
+        align: 'left',
+        offsetX: 110,
+        style: {
+          fontSize: '18px'
+        }
+      },
+      forecastDataPoints: {
+        count: 0,
+        fillOpacity: 0.5,
+        strokeWidth: 2,
+        dashArray: 4,
+      },
+      dataLabels: {
+        enabled: true,
+        enabledOnSeries: [0, 1],
+        formatter: function(val) {
+          return Number(val).toLocaleString();
+        },
+        offsetY: -10,
+        offsetX: -3, 
+        style: {
+          fontSize: "12px",
+          zIndex: 0 
+        }
+      },
+      stroke: {
+        width: [3, 3],
+        curve: 'smooth'
+      },
+      xaxis: {
+        position: 'bottom',
+        labels: {
+          show: true,
+          rotateAlways: true,
+          offsetY: 0,
+          style: {
+            colors: '#000000',
+          },
+        },
+        axisBorder: {
+          show: true
+        },
+        axisTicks: {
+          show: true
+        }
+      },
+      yaxis: [
+        {
+          opposite: false,
+          axisBorder: {
+            show: true,
+            color: '#0B6477'
+          },
+          axisTicks: {
+            show: true
+          },
+          labels: {
+            show: true,
+            offsetX: -10,
+            formatter: function(val) {
+              return Number(val).toLocaleString();
+            },
+            style: {
+              colors: '#0B6477',
+            },
+          },
+          forceNiceScale: true,
+        }
+      ],
+      series: [
+        {
+          name: "Metros x Articulos",
+          type: 'line',
+          color: '#0B6477',
+          data: DatosGrafico
+        },
+      ],
+      tooltip: {
+        enabled: true,
+        shared: true,
+        intersect: false,
+        y: {
+          formatter: function(val) {
+            return Number(val).toLocaleString();
+          }
+        }
+      },
+      noData: {
+        text: 'Esperando Datos...'
+      }
+    }
+  };
+  
+  return (
+    <Box p={1} textAlign="center">
+      <Chart
+        options={data.options}
+        series={data.options.series}
+        type="line"
+        height="400" 
+      />
+    </Box>
+  );
+}
 
 
 

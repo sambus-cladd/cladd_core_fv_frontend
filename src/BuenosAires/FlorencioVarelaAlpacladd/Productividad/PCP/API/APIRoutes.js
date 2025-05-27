@@ -1,5 +1,5 @@
 
-const APIURL = "http://192.168.0.18:4300/";
+const APIURL = "http://localhost:4300/";
 
 const CargaGantFV       = APIURL+"AlpacladdFVProductividadREGISTROGANT"
 const DatosGantFV       = APIURL+"AlpacladdFVProductividadDATOSGANT"

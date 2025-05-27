@@ -222,9 +222,14 @@ function FormularioGantPcp() {
         const CargaMaquinas = async () => {
             try {
                 const response = await GetTABLAMAQUINAS();
-                setMaquinaProc(response.Dato);
-
+                console.log("Respuesta de GetTABLAMAQUINAS:", response);
+                if (response && response.Dato && Array.isArray(response.Dato[0])) {
+                    setMaquinaProc(response.Dato[0]);
+                } else {
+                    console.error("La respuesta no tiene el formato esperado:", response);
+                }
             } catch (error) {
+                console.error("Error al obtener las maquinas:", error);
                 setMensaje("Error al obtener las maquinas");
                 toggleOpenErrorWithDelay();
             }
@@ -238,9 +243,14 @@ function FormularioGantPcp() {
         const CargaCodMaquinas = async () => {
             try {
                 const response = await GetTABLACODMAQUINAS();
-                setCodMaquinas(response.Dato);
-
+                console.log("Respuesta de GetTABLACODMAQUINAS:", response);
+                if (response && response.Dato && Array.isArray(response.Dato[0])) {
+                    setCodMaquinas(response.Dato[0]);
+                } else {
+                    console.error("La respuesta no tiene el formato esperado:", response);
+                }
             } catch (error) {
+                console.error("Error al obtener los codigos de maquinas:", error);
                 setMensaje("Error al obtener los codigos de maquinas:");
                 toggleOpenErrorWithDelay();
             }
@@ -261,11 +271,17 @@ function FormularioGantPcp() {
         const CargaProcesos = async () => {
             try {
                 const response = await GetTABLAPROCESOS();
-                const lineaColor = response.Dato.find(p => p.proceso === 'LINEA COLOR');
-                const colores = lineaColor ? lineaColor.color.split(',') : [];
-                setColores(colores)
-                setProcesos(response.Dato)
+                console.log("Respuesta de GetTABLAPROCESOS:", response);
+                if (response && response.Dato && Array.isArray(response.Dato[0])) {
+                    const lineaColor = response.Dato[0].find(p => p.proceso === 'LINEA COLOR');
+                    const colores = lineaColor ? lineaColor.color.split(',') : [];
+                    setColores(colores);
+                    setProcesos(response.Dato[0]);
+                } else {
+                    console.error("La respuesta no tiene el formato esperado:", response);
+                }
             } catch (error) {
+                console.error("Error al obtener los procesos:", error);
                 setMensaje("Error al obtener los procesos");
                 toggleOpenErrorWithDelay();
             }
@@ -276,6 +292,7 @@ function FormularioGantPcp() {
 
     useEffect(() => {
         if (Maquina) {
+            console.log("Máquina seleccionada:", Maquina);
             filterProcMaq(Maquina);
             filterProc();
         }
@@ -287,15 +304,22 @@ function FormularioGantPcp() {
     };
 
     const filterProcMaq = (CodMaquina) => {
+        console.log("Filtrando procesos de máquina para:", CodMaquina);
+        console.log("Datos disponibles en maquinasproc:", maquinasproc);
         const procesomaq = maquinasproc.filter(m => m.cod_maquina === CodMaquina);
-        setMaquinaProcFil(procesomaq)
+        console.log("Procesos filtrados:", procesomaq);
+        setMaquinaProcFil(procesomaq);
     }
 
     const filterProc = () => {
+        console.log("Filtrando procesos para máquina:", Maquina);
+        console.log("Datos disponibles en procesos:", procesos);
         if (Maquina === "108" || Maquina === "GIRO LENTO") {
             const procesosFiltrados = procesos.filter(proceso => proceso.proceso !== "LINEA COLOR");
+            console.log("Procesos filtrados:", procesosFiltrados);
             setProcesosFil(procesosFiltrados);
         } else {
+            console.log("Usando todos los procesos");
             setProcesosFil(procesos);
         }
     };
@@ -375,6 +399,18 @@ function FormularioGantPcp() {
             toggleOpenErrorWithDelay();
         }
     };
+
+    // Logs de depuración antes del return principal
+    console.log('Orden:', Orden);
+    console.log('Maquina:', Maquina);
+    console.log('Articulo:', Articulo);
+    console.log('codmaquinas:', codmaquinas);
+    console.log('maquinasprocfil:', maquinasprocfil);
+    console.log('procesosfil:', procesosfil);
+    console.log('colores:', colores);
+    console.log('options (rollos):', options);
+    console.log('selected (rollos seleccionados):', selected);
+
     return (
         <>
             {/* contenedor principal */}
