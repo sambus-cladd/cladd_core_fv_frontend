@@ -17,8 +17,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
+
 import  { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp } from '../API/APIFunctions'
 import { set } from 'date-fns';
+
 
 function FormularioGantPcp() {
     dayjs.extend(duration);
@@ -47,6 +49,7 @@ function FormularioGantPcp() {
 
     const [openDialog, setopenDialog] = useState(false);
     const [openError, setopenError] = useState(false);
+    const [mensaje, setMensaje] = useState("");
 
     async function toggleOpenErrorWithDelay() {
         setopenError(true); // Establecer openError en true
@@ -179,11 +182,15 @@ function FormularioGantPcp() {
                 };
 
                 let respuesta = await PutModificacionGantFV(DatosGant)
+console.log("respuesta:", respuesta);
 
-                if (respuesta.serverStatus === 34) {
+                //if (respuesta.serverStatus === 34) 
+                if (respuesta.affectedRows > 0){
+                    setMensaje('Orden modificada correctamente');
                     toggleOpenDialogWithDelay();
                     vaciarForm();
                 } else { 
+                    setMensaje('Error al modificar orden');
                     toggleOpenErrorWithDelay();
                 }
 
