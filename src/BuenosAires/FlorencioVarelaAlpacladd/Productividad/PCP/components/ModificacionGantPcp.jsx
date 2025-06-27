@@ -1,5 +1,5 @@
 import { useEffect, useState, React } from 'react';
-import { Box, Card, Modal, Alert,  MenuItem, TextField, Button, Dialog,  DialogTitle } from '@mui/material';
+import { Box, Card, Modal, Alert, MenuItem, TextField, Button, Dialog, DialogTitle } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import Grid from '@mui/material/Grid';
 import { Typography } from "@mui/material";
@@ -18,7 +18,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 
-import  { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp } from '../API/APIFunctions'
+import { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp } from '../API/APIFunctions'
 import { set } from 'date-fns';
 
 
@@ -64,7 +64,7 @@ function FormularioGantPcp() {
     }
 
     const [alertt, setAlert] = useState(null);
-    
+
     useEffect(() => {
         if (alertt !== null) {
             const timer = setTimeout(() => {
@@ -112,7 +112,7 @@ function FormularioGantPcp() {
                 const response = await GetTABLACODMAQUINAS();
                 setCodMaquinas(response.Dato);
                 // console.log("Codigo Maquinas: ", response.Dato);
-    
+
             } catch (error) {
                 console.error("Error al obtener los codigos de maquinas:", error);
             }
@@ -123,7 +123,7 @@ function FormularioGantPcp() {
 
     /* --- INICIO TABLA PROCESOS --- */
     useEffect(() => {
-        const CargaProcesos = async () =>{
+        const CargaProcesos = async () => {
             try {
                 const response = await GetTABLAPROCESOS();
                 const lineaColor = response.Dato.find(p => p.proceso === 'LINEA COLOR');
@@ -131,7 +131,7 @@ function FormularioGantPcp() {
                 setColores(colores)
                 setProcesos(response.Dato)
                 // console.log("Procesos: ", response.Dato);
-            } catch(error) {
+            } catch (error) {
                 console.error("Error al obtener los procesos:", error);
             }
         }
@@ -142,7 +142,7 @@ function FormularioGantPcp() {
     useEffect(() => {
         if (Maquina) {
             filterProcMaq(Maquina);
-            filterProc();  
+            filterProc();
         }
     }, [Maquina]);
 
@@ -150,7 +150,7 @@ function FormularioGantPcp() {
         const procesomaq = maquinasproc.filter(m => m.cod_maquina === CodMaquina);
         setMaquinaProcFil(procesomaq)
         // console.log("Procesos por maquina select", procesomaq);
-        
+
     }
 
     const filterProc = () => {
@@ -165,46 +165,46 @@ function FormularioGantPcp() {
     //INICIO - BOTON REGISTRAR
     const handleButton = async (datos) => {
         // console.log("datos: ", datos);
-        
-            try {
-                let DatosGant = {
-                    IdOrden: datos.IdOrden,
-                    Orden: datos.Orden,
-                    Maquina: datos.Maquina,
-                    MaquinaProc: datos.MaquinaProc,
-                    Proceso: datos.Proceso,
-                    Color: datos.Color,
-                    Articulo: datos.Articulo,
-                    Metros: datos.Metros,
-                    HorasT: datos.HorasT,
-                    InicioHora: datos.InicioHora.format('YYYY/MM/DD HH:mm') ,
-                    FinHora: datos.FinHora.format('YYYY/MM/DD HH:mm')
-                };
 
-                let respuesta = await PutModificacionGantFV(DatosGant)
-console.log("respuesta:", respuesta);
+        try {
+            let DatosGant = {
+                IdOrden: datos.IdOrden,
+                Orden: datos.Orden,
+                Maquina: datos.Maquina,
+                MaquinaProc: datos.MaquinaProc,
+                Proceso: datos.Proceso,
+                Color: datos.Color,
+                Articulo: datos.Articulo,
+                Metros: datos.Metros,
+                HorasT: datos.HorasT,
+                InicioHora: datos.InicioHora.format('YYYY/MM/DD HH:mm'),
+                FinHora: datos.FinHora.format('YYYY/MM/DD HH:mm')
+            };
 
-                //if (respuesta.serverStatus === 34) 
-                if (respuesta.affectedRows > 0){
-                    setMensaje('Orden modificada correctamente');
-                    toggleOpenDialogWithDelay();
-                    vaciarForm();
-                } else { 
-                    setMensaje('Error al modificar orden');
-                    toggleOpenErrorWithDelay();
-                }
+            let respuesta = await PutModificacionGantFV(DatosGant)
+            console.log("respuesta:", respuesta);
 
-                // console.log("respuesta: ", respuesta, DatosGant)
-
-                // window.location.reload('/Hilanderia'); // Recargar la página
-            } catch (error) {
-                console.error('Error en handleButtonEnviar:', error);
+            //if (respuesta.serverStatus === 34) 
+            if (respuesta.affectedRows > 0) {
+                setMensaje('Orden modificada correctamente');
+                toggleOpenDialogWithDelay();
+                vaciarForm();
+            } else {
+                setMensaje('Error al modificar orden');
+                toggleOpenErrorWithDelay();
             }
+
+            // console.log("respuesta: ", respuesta, DatosGant)
+
+            // window.location.reload('/Hilanderia'); // Recargar la página
+        } catch (error) {
+            console.error('Error en handleButtonEnviar:', error);
+        }
     };
     //FIN - BOTON REGISTRAR
 
-    async function GetDatosProd(Orden){
-        if(Orden){
+    async function GetDatosProd(Orden) {
+        if (Orden) {
             let dataRAW = []
             dataRAW = await GetProdxOrden(Orden);
             // console.log("dataRAW", dataRAW)
@@ -214,7 +214,7 @@ console.log("respuesta:", respuesta);
 
     const handleButtonBuscar = () => {
         // GetDatosProd(Orden);
-        if ( ordenes.length > 0){
+        if (ordenes.length > 0) {
             // TablaOrdenes(ordenes);
             setOpenModalTabla(true);
         } else {
@@ -234,7 +234,7 @@ console.log("respuesta:", respuesta);
                 const filas = datos.map((item, index) => {
                     // Asegurarse de que cada fila tenga un ID único
                     const id = item.id || `row-${index}`;
-                    
+
                     // Formatear las fechas correctamente
                     const horaInicio = item.hora_inicio ? new Date(item.hora_inicio) : new Date();
                     const horaFin = item.hora_fin ? new Date(item.hora_fin) : new Date();
@@ -288,12 +288,12 @@ console.log("respuesta:", respuesta);
             setIdOrden(idOrden);
             setOpenModal(true);
         }
-    
+
         const handleCloseModal = () => {
             setIdOrden(null);
             setOpenModal(false);
         }
-    
+
         const handleConfirm = async () => {
             const response = await DeleteOrdenPcp(idOrden);
             if (response.serverStatus === 34) {
@@ -307,7 +307,7 @@ console.log("respuesta:", respuesta);
                 setAlert(2);
             }
         };
-    
+
         const style = {
             position: 'absolute',
             top: '50%',
@@ -319,38 +319,42 @@ console.log("respuesta:", respuesta);
             boxShadow: 24,
             p: 4,
         };
-    
+
         const columns = [
             { field: 'id', headerName: 'id' },
-            { field: 'eliminar', headerName: '...', flex: 0.1,align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center', renderCell: (params) => (
-                <DeleteForeverIcon sx={{ color: '#ff4a29'}} onClick={() => hanldeOpenModal(params.row.id)} />
-            )},
-            { field: 'orden', headerName: 'Orden', filterable: false, flex: 0.3, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center', renderCell: (params) =>(
-                <div
-                    onClick={() => {
-                        // Establece los valores en los estados correspondientes
-                        setIdOrdenPcp(params.row.id);
-                        setMaquina(params.row.maquina);
-                        setMaquinaProceso(params.row.maquinaProceso);
-                        setArticulo(params.row.articulo);
-                        setMetros(params.row.metros);
-                        setHoraT(params.row.horasTotal);
-                        setProceso(params.row.proceso)
-                        setInicioHora(params.row.horaInicioCompleto);
-                        setFinHora(params.row.horaFinCompleto);
-                        setColor(params.row.color);
+            {
+                field: 'eliminar', headerName: '...', flex: 0.1, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center', renderCell: (params) => (
+                    <DeleteForeverIcon sx={{ color: '#ff4a29' }} onClick={() => hanldeOpenModal(params.row.id)} />
+                )
+            },
+            {
+                field: 'orden', headerName: 'Orden', filterable: false, flex: 0.3, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center', renderCell: (params) => (
+                    <div
+                        onClick={() => {
+                            // Establece los valores en los estados correspondientes
+                            setIdOrdenPcp(params.row.id);
+                            setMaquina(params.row.maquina);
+                            setMaquinaProceso(params.row.maquinaProceso);
+                            setArticulo(params.row.articulo);
+                            setMetros(params.row.metros);
+                            setHoraT(params.row.horasTotal);
+                            setProceso(params.row.proceso)
+                            setInicioHora(params.row.horaInicioCompleto);
+                            setFinHora(params.row.horaFinCompleto);
+                            setColor(params.row.color);
 
-                        setOpenModalTabla(false)
+                            setOpenModalTabla(false)
 
-                        // console.log("datos:", params.row.orden, params.row.maquinaProceso, params.row.articulo, params.row.horaInicio, params.row.horaFin);
-                        
-                        
-                    }}
-                    style={{ cursor: 'pointer', width: '100%', textAlign: 'center' }}
-                >
-                    {params.row.orden}
-                </div>
-            )},
+                            // console.log("datos:", params.row.orden, params.row.maquinaProceso, params.row.articulo, params.row.horaInicio, params.row.horaFin);
+
+
+                        }}
+                        style={{ cursor: 'pointer', width: '100%', textAlign: 'center' }}
+                    >
+                        {params.row.orden}
+                    </div>
+                )
+            },
             { field: 'articulo', headerName: 'Articulo', flex: 0.2, sortable: false, filterable: true, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
             { field: 'maquina', headerName: 'Maquina', flex: 0.2, sortable: false, filterable: true, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
             { field: 'maquinaProceso', headerName: 'Proceso Maq.', sortable: false, filterable: true, flex: 0.3, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
@@ -359,64 +363,64 @@ console.log("respuesta:", respuesta);
             { field: 'horasTotal', headerName: 'Hs Total', sortable: false, filterable: true, flex: 0.2, type: 'number', align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
             { field: 'horaInicio', headerName: 'Hs Inicio', sortable: false, filterable: true, flex: 0.2, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
             { field: 'horaFin', headerName: 'Hs Fin', sortable: false, filterable: true, flex: 0.2, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' },
-            { field: 'fechaRegistro', headerName: 'Registro', flex: 0.2, sortable: false, filterable: true, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center'}
+            { field: 'fechaRegistro', headerName: 'Registro', flex: 0.2, sortable: false, filterable: true, align: "center", headerClassName: 'super-app-theme--header', headerAlign: 'center' }
         ];
         return (
             <>
-                        <DataGrid
-                            rows={rows}
-                            columns={columns}
-                            headerHeight={35} 
-                            disableRowSelectionOnClick
-                            getRowHeight={() => 40}
-                            initialState={{
-                                columns: {
-                                    columnVisibilityModel: {
-                                        id: false
-                                    },
-                                },
-                            }}
-                            sx={{
-                                fontFamily: "Poppins", 
-                                fontSize: "0.8rem",
-                                fontWeight: 650,
-                                margin: "0rem",
-                                backgroundColor: "#f4f4f4",
-                                '& .super-app-theme--header': {
-                                    backgroundColor: '#BABABA', // Cambia el color de fondo a azul
-                                    color: 'white', // Cambia el color de texto a blanco
-                                    fontFamily: 'Poppins',
-                                    fontSize: "0.9rem",
-                                    fontWeight: 700,
-                                },
-                            }}
-                            disableColumnFilter
-                            disableColumnSelector
-                            disableDensitySelector
-                        />
-                        <Modal open={openModal} onClose={handleCloseModal}>
-                            <Box sx={style}>
-                                <Box display='flex' justifyContent='center' alignItems='center'>
-                                    <WarningAmberIcon sx={{ fontSize: 90, color: '#FFBA08' }}/>
-                                </Box>
-                                <Box display='flex' justifyContent='center' alignItems='center'>
-                                    <Typography variant='h6' component='h2' fontFamily={"Poppins"} fontWeight={400}> 
-                                        ¿ Seguro que desea Eliminar esta Orden ? 
-                                    </Typography>
-                                </Box>
-                                <Box mt={2} display='flex' justifyContent="center" alignItems='center'> {/* Agrega margen superior para el botón */}
-    
-                                    <Button variant="contained" onClick={handleCloseModal} sx={{ marginRight: 4, backgroundColor: '#757575', '&:hover' : {backgroundColor: '#424242'}}}>
-                                        Cancelar
-                                    </Button>
-                                    <Button variant="contained" onClick={handleConfirm} color='error'>
-                                        Eliminar
-                                    </Button>
-                                </Box>
-                            </Box>
-                        </Modal>
-                       
-            </>            
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    headerHeight={35}
+                    disableRowSelectionOnClick
+                    getRowHeight={() => 40}
+                    initialState={{
+                        columns: {
+                            columnVisibilityModel: {
+                                id: false
+                            },
+                        },
+                    }}
+                    sx={{
+                        fontFamily: "Poppins",
+                        fontSize: "0.8rem",
+                        fontWeight: 650,
+                        margin: "0rem",
+                        backgroundColor: "#f4f4f4",
+                        '& .super-app-theme--header': {
+                            backgroundColor: '#BABABA', // Cambia el color de fondo a azul
+                            color: 'white', // Cambia el color de texto a blanco
+                            fontFamily: 'Poppins',
+                            fontSize: "0.9rem",
+                            fontWeight: 700,
+                        },
+                    }}
+                    disableColumnFilter
+                    disableColumnSelector
+                    disableDensitySelector
+                />
+                <Modal open={openModal} onClose={handleCloseModal}>
+                    <Box sx={style}>
+                        <Box display='flex' justifyContent='center' alignItems='center'>
+                            <WarningAmberIcon sx={{ fontSize: 90, color: '#FFBA08' }} />
+                        </Box>
+                        <Box display='flex' justifyContent='center' alignItems='center'>
+                            <Typography variant='h6' component='h2' fontFamily={"Poppins"} fontWeight={400}>
+                                ¿ Seguro que desea Eliminar esta Orden ?
+                            </Typography>
+                        </Box>
+                        <Box mt={2} display='flex' justifyContent="center" alignItems='center'> {/* Agrega margen superior para el botón */}
+
+                            <Button variant="contained" onClick={handleCloseModal} sx={{ marginRight: 4, backgroundColor: '#757575', '&:hover': { backgroundColor: '#424242' } }}>
+                                Cancelar
+                            </Button>
+                            <Button variant="contained" onClick={handleConfirm} color='error'>
+                                Eliminar
+                            </Button>
+                        </Box>
+                    </Box>
+                </Modal>
+
+            </>
         );
     }
 
@@ -478,13 +482,13 @@ console.log("respuesta:", respuesta);
                             {/* BOTON BUSCAR */}
                             <Grid item xs={12} sm={1} md={1} padding={0.5}>
                                 <Button
-                                    id='Button-Buscar' 
+                                    id='Button-Buscar'
                                     fullWidth
-                                    variant="contained" 
+                                    variant="contained"
                                     style={{ color: 'white' }}
                                     onClick={handleButtonBuscar}
                                 >
-                                    <SearchIcon/>
+                                    <SearchIcon />
                                 </Button>
                             </Grid>
 
@@ -496,7 +500,23 @@ console.log("respuesta:", respuesta);
                             {/* HORA INICIO */}
                             <Grid item xs={12} sm={3} md={3} padding={0.5}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='es' >
+
                                     <DateTimePicker
+                                        label="Hora Inicio"
+                                        value={InicioHora}
+                                        onChange={(newValue) => {
+                                            setInicioHora(newValue);
+                                            if (newValue && HorasT) {
+                                                const duracion = parseFloat(HorasT);
+                                                if (!isNaN(duracion)) {
+                                                    const nuevaFin = newValue.add(duracion, 'hour');
+                                                    setFinHora(nuevaFin);
+                                                }
+                                            }
+                                        }}
+                                        renderInput={(params) => <TextField {...params} />}
+                                    />
+                                    {/* <DateTimePicker
                                         fullWidth
                                         label="Inicio"
                                         value={InicioHora}
@@ -506,13 +526,13 @@ console.log("respuesta:", respuesta);
                                             setInicioHora(newHoraInicio);
                                         }}
                                         renderInput={(params) => <TextField {...params} />}
-                                    />
+                                    /> */}
                                 </LocalizationProvider>
                             </Grid>
 
                             {/* HORA FINAL */}
                             <Grid item xs={12} sm={3} md={3} padding={0.5}>
-                                
+
                                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='es' >
                                     <DateTimePicker
                                         fullWidth
@@ -528,8 +548,8 @@ console.log("respuesta:", respuesta);
                                 </LocalizationProvider>
                             </Grid>
 
-                             {/* Maquina */}
-                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
+                            {/* Maquina */}
+                            <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
                                     id="outlined-basic"
@@ -539,15 +559,15 @@ console.log("respuesta:", respuesta);
                                     value={Maquina}
                                     onChange={(event) => {
                                         const maquina = event.target.value
-                                        setMaquina(maquina);                             
+                                        setMaquina(maquina);
                                     }}
                                 >
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
                                     {Array.isArray(codmaquinas[0]) ? codmaquinas[0].map((maquina, index) => (
-                                        <MenuItem 
-                                            key={index} 
+                                        <MenuItem
+                                            key={index}
                                             value={maquina.cod_maquina}
                                             style={{ color: '#222' }}
                                         >
@@ -586,117 +606,117 @@ console.log("respuesta:", respuesta);
 
                         {/* SEGUNDA FILA */}
                         <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1} >
-                        {(Proceso !== 'MANTENIMIENTO' && Proceso !== 'LIMPIEZA') && (
-                            <>
-                            {/* Articulo*/}
-                            <Grid item xs={12} sm={3} md={3} padding={0.5} >
-                                <TextField
-                                    fullWidth
-                                    id="outlined-basic"
-                                    label="Articulo"
-                                    variant="outlined"
-                                    value={Articulo}
-                                    onChange={(event) => {
-                                        setArticulo(event.target.value);
-                                    }}
-                                >
-                                </TextField>
-                            </Grid>
+                            {(Proceso !== 'MANTENIMIENTO' && Proceso !== 'LIMPIEZA') && (
+                                <>
+                                    {/* Articulo*/}
+                                    <Grid item xs={12} sm={3} md={3} padding={0.5} >
+                                        <TextField
+                                            fullWidth
+                                            id="outlined-basic"
+                                            label="Articulo"
+                                            variant="outlined"
+                                            value={Articulo}
+                                            onChange={(event) => {
+                                                setArticulo(event.target.value);
+                                            }}
+                                        >
+                                        </TextField>
+                                    </Grid>
 
-                            {/* Metros */}
-                            <Grid item xs={12} sm={3} md={3} padding={0.5} >
-                                <TextField
-                                    fullWidth
-                                    label="Metros"
-                                    variant='outlined'
-                                    type='number'
-                                    value={Metros}
-                                    onChange={(event)=> {
-                                        const metros = event.target.value
-                                        setMetros(metros);
-                                    }}
-                                />
-                            </Grid>
+                                    {/* Metros */}
+                                    <Grid item xs={12} sm={3} md={3} padding={0.5} >
+                                        <TextField
+                                            fullWidth
+                                            label="Metros"
+                                            variant='outlined'
+                                            type='number'
+                                            value={Metros}
+                                            onChange={(event) => {
+                                                const metros = event.target.value
+                                                setMetros(metros);
+                                            }}
+                                        />
+                                    </Grid>
 
-                            {/* Horas Total */}
-                            <Grid xs={12} sm={3} md={3} padding={0.5}>
-                                <TextField
-                                    fullWidth
-                                    type='number'
-                                    variant='outlined'
-                                    label='Horas Total'
-                                    value={HorasT}
-                                    onChange={(event) =>{
-                                        const horas = event.target.value
-                                        setHoraT(horas)
-                                    }}
-                                />
-                            </Grid>
+                                    {/* Horas Total */}
+                                    <Grid xs={12} sm={3} md={3} padding={0.5}>
+                                        <TextField
+                                            fullWidth
+                                            type='number'
+                                            variant='outlined'
+                                            label='Horas Total'
+                                            value={HorasT}
+                                            onChange={(event) => {
+                                                const horas = event.target.value
+                                                setHoraT(horas)
+                                            }}
+                                        />
+                                    </Grid>
 
-                            {/* Proceso */}
-                            <Grid item xs={12} sm={3} md={3} padding={0.5} >
-                                <TextField
-                                    fullWidth
-                                    id="outlined-basic"
-                                    label="Proceso"
-                                    variant="outlined"
-                                    value={Proceso}
-                                    select
-                                    onChange={(event) => {
-                                        setProceso(event.target.value);
-                                        setColor("");
-                                    }}
-                                >
-                                    <MenuItem value="">
-                                        <em>Seleccionar:</em>
-                                    </MenuItem>
-                                    {Array.isArray(procesosfil[0]) ? procesosfil[0].map((proceso, index) => (
-                                        <MenuItem key={index} value={proceso.proceso}>
-                                            {proceso.proceso}
-                                        </MenuItem>
-                                    )) : null}
-                                </TextField>
-                            </Grid>
-
-                            {/* Selección de color si el proceso es "COLOR" */}
-                            {Proceso === "LINEA COLOR" && (
-                                <Grid item xs={12} sm={3} md={3} padding={0.5} >
-                                    <TextField
-                                        fullWidth
-                                        id="outlined-basic"
-                                        label="Color"
-                                        variant="outlined"
-                                        value={Color}
-                                        select
-                                        onChange={(event) => setColor(event.target.value)}
-                                        required
-                                    >
-                                        {colores.map((color, index) => (
-                                            <MenuItem key={index} value={color}>
-                                                {color}
+                                    {/* Proceso */}
+                                    <Grid item xs={12} sm={3} md={3} padding={0.5} >
+                                        <TextField
+                                            fullWidth
+                                            id="outlined-basic"
+                                            label="Proceso"
+                                            variant="outlined"
+                                            value={Proceso}
+                                            select
+                                            onChange={(event) => {
+                                                setProceso(event.target.value);
+                                                setColor("");
+                                            }}
+                                        >
+                                            <MenuItem value="">
+                                                <em>Seleccionar:</em>
                                             </MenuItem>
-                                        ))}
-                                    </TextField>
-                                </Grid>
-                            )}
-                        </>
-                        )}
+                                            {Array.isArray(procesosfil[0]) ? procesosfil[0].map((proceso, index) => (
+                                                <MenuItem key={index} value={proceso.proceso}>
+                                                    {proceso.proceso}
+                                                </MenuItem>
+                                            )) : null}
+                                        </TextField>
+                                    </Grid>
 
-                        {(Proceso === 'MANTENIMIENTO' || Proceso === 'LIMPIEZA') && (
+                                    {/* Selección de color si el proceso es "COLOR" */}
+                                    {Proceso === "LINEA COLOR" && (
+                                        <Grid item xs={12} sm={3} md={3} padding={0.5} >
+                                            <TextField
+                                                fullWidth
+                                                id="outlined-basic"
+                                                label="Color"
+                                                variant="outlined"
+                                                value={Color}
+                                                select
+                                                onChange={(event) => setColor(event.target.value)}
+                                                required
+                                            >
+                                                {colores.map((color, index) => (
+                                                    <MenuItem key={index} value={color}>
+                                                        {color}
+                                                    </MenuItem>
+                                                ))}
+                                            </TextField>
+                                        </Grid>
+                                    )}
+                                </>
+                            )}
+
+                            {(Proceso === 'MANTENIMIENTO' || Proceso === 'LIMPIEZA') && (
                                 <Grid item xs={12} sm={8} md={8}>
-                                <TextField
-                                    label="Horas Total"
-                                    value={HorasT}
-                                    type='number'
-                                    onChange={(event) => {
-                                        const horatotal = event.target.value
-                                        setHoraT(horatotal);
-                                        // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
-                                        // setFinHora(finHoraCalculada); 
-                                        
-                                    }}
-                                    fullWidth
-                                />
+                                    <TextField
+                                        label="Horas Total"
+                                        value={HorasT}
+                                        type='number'
+                                        onChange={(event) => {
+                                            const horatotal = event.target.value
+                                            setHoraT(horatotal);
+                                            // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
+                                            // setFinHora(finHoraCalculada); 
+
+                                        }}
+                                        fullWidth
+                                    />
                                 </Grid>
                             )}
                         </Grid>
@@ -706,9 +726,9 @@ console.log("respuesta:", respuesta);
 
                             {/* BOTON LIMPIAR */}
                             <Grid item xs={3} sm={3} md={4} justifyContent="flex-end" alignItems="flex-end">
-                                <Button 
-                                    variant='contained' 
-                                    style={{ color: 'white'}}
+                                <Button
+                                    variant='contained'
+                                    style={{ color: 'white' }}
                                     onClick={vaciarForm}
                                 >
                                     <Typography variant="button" fontFamily="Poppins" fontSize={18}>
@@ -749,7 +769,7 @@ console.log("respuesta:", respuesta);
             <Modal open={openModalTabla} onClose={handleCloseModalTabla}>
                 <Box sx={style}>
                     <Typography fontFamily={'Poppins'}>Seleccione Orden: </Typography>
-                    <TablaOrdenes Serie={ordenes}/>
+                    <TablaOrdenes Serie={ordenes} />
                 </Box>
             </Modal>
 
@@ -769,40 +789,40 @@ console.log("respuesta:", respuesta);
             </Dialog>
             {/* FIN -- Mensajes popup */}
 
-             {/* Mostrar el alert según el valor de alert */}
-             {alertt === 1 && (
-                
-                            <Alert
-                                variant='filled'
-                                severity="success"
-                                onClose={() => setAlert(null)}
-                                sx={{
-                                    position: 'fixed',
-                                    bottom: 20,
-                                    left: 20,
-                                    width: 'auto',
-                                    zIndex: 9999,
-                                }}
-                            >
-                                Orden eliminada correctamente.
-                            </Alert>
-                        )}
-                        {alertt === 2 && (
-                            <Alert
-                                variant='filled'
-                                severity="error"
-                                onClose={() => setAlert(null)}
-                                sx={{
-                                    position: 'fixed',
-                                    bottom: 20,
-                                    left: 20,
-                                    width: 'auto',
-                                    zIndex: 9999,
-                                }}
-                            >
-                                Error al eliminar la Orden.
-                            </Alert>
-                        )}
+            {/* Mostrar el alert según el valor de alert */}
+            {alertt === 1 && (
+
+                <Alert
+                    variant='filled'
+                    severity="success"
+                    onClose={() => setAlert(null)}
+                    sx={{
+                        position: 'fixed',
+                        bottom: 20,
+                        left: 20,
+                        width: 'auto',
+                        zIndex: 9999,
+                    }}
+                >
+                    Orden eliminada correctamente.
+                </Alert>
+            )}
+            {alertt === 2 && (
+                <Alert
+                    variant='filled'
+                    severity="error"
+                    onClose={() => setAlert(null)}
+                    sx={{
+                        position: 'fixed',
+                        bottom: 20,
+                        left: 20,
+                        width: 'auto',
+                        zIndex: 9999,
+                    }}
+                >
+                    Error al eliminar la Orden.
+                </Alert>
+            )}
         </>
     )
 }

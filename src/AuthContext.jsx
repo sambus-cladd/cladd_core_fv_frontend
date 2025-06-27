@@ -15,12 +15,20 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setIsAuthenticated(true);
     setAuth(userData); // userData debería contener los roles y cualquier otra información relevante
+
+  // SE AGREGA LOCALsTORAGE PARA GUARDAR LA SESION EN PESTAÑAS NUEVAS.
+    localStorage.setItem('auth', JSON.stringify(userData));
+    localStorage.setItem('isAuthenticated', 'true');
   };
 
   // Función para cerrar sesión
   const logout = () => {
     setIsAuthenticated(false);
     setAuth(null); // Limpia la información de autenticación
+    
+  // SE AGREGA LOCALsTORAGE PARA GUARDAR LA SESION EN PESTAÑAS NUEVAS.
+    localStorage.removeItem('auth');
+    localStorage.removeItem('isAuthenticated');
   };
 
   return (

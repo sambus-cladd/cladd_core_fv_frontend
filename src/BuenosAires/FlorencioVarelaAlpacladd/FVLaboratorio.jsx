@@ -18,6 +18,8 @@ export default function FVLaboratorio() {
     const [Tabvalue, setTabvalue] = useState('RutinasActivas');
     const [rutina, setRutina] = useState('');
     const { auth } = useAuth();
+    const [scrollPos, setScrollPos] = useState(0);
+
 
 
     const handleTabsChange = (event, newValue, rutina = '') => {
@@ -40,7 +42,7 @@ export default function FVLaboratorio() {
             case 'RutinasActivas':
                 return <BuscadorRutina handleTabChange={handleTabsChange} />;
             case 'FormularioRegistro':
-                return <FormularioEnsayos rutina={rutina} />;
+                return <FormularioEnsayos rutina={rutina} handleTabChange={handleTabsChange}/>;
             case 'StockCalidad':
                 return <StockCalidad />;
             default:

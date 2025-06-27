@@ -8,6 +8,7 @@ import AlpacladdHomeFV from "./BuenosAires/FlorencioVarelaAlpacladd/AlpacladdHom
 import ProductividadFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/ProductividadFV";
 import GanProgramacionFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/GantProgramacionFV";
 import GraficoGantFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/GraficoGantPcp";
+import FormularioEnsayos from './BuenosAires/FlorencioVarelaAlpacladd/components/FormularioEnsayos.jsx';
 
 import FVLaboratorio from "./BuenosAires/FlorencioVarelaAlpacladd/FVLaboratorio";
 import LoginLabFV from "./BuenosAires/FlorencioVarelaAlpacladd/Login/Login";
@@ -16,6 +17,7 @@ import AgregarRolloFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad
 import StockRollos from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/StockDeRollos";
 import StockPlanta from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockPlanta";
 import SubProducto from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/components/SubProducto";
+import VerRutina from "./BuenosAires/FlorencioVarelaAlpacladd/VerRutina.jsx";
 
 import ProduccionFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/ProduccionFV";
 
@@ -141,6 +143,9 @@ function App() {
         path="/BuenosAires/FlorencioVarela/Laboratorio/Login"
         element={<LoginLabFV />}
       />
+
+      <Route path="/formulario-ensayos/:rutinaId" element={<FormularioEnsayos />} />
+        <Route path="/ver-rutina/:rutinaId" element={<VerRutina />} />
 
       {/* PRODUCCIÓN */}
       <Route
