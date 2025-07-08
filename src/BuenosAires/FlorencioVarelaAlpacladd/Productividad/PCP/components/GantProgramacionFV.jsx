@@ -12,6 +12,7 @@ import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 // import BarChartIcon from '@mui/icons-material/BarChart';
 import DvrIcon from '@mui/icons-material/Dvr';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import { useEffect } from 'react';
 
 import FormularioGantPpc from './FormularioGantPcp';
 import HistoricoGantt from './TablaHistoricoGant';
@@ -79,6 +80,10 @@ export const GantProgramacionFV = () => {
         textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
         padding: '5px'
     };
+
+    useEffect(() => {
+        document.title = "CladdCore FV";
+    }, []);
 
     return (
         <>

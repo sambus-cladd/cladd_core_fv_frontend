@@ -4,6 +4,7 @@ import Chart from 'react-apexcharts';
 import { format, parseISO } from 'date-fns';
 import { GetTABLACOLORES } from '../API/APIFunctions';
 import es from 'apexcharts/dist/locales/es.json';
+import { Margin } from '@mui/icons-material';
 
 function GraficoRangeBarFV({ Serie }) {
   const [colores, setColores] = useState([]);
@@ -20,7 +21,9 @@ function GraficoRangeBarFV({ Serie }) {
     'LIMPIEZA': '#bf9021',
   };
 
-  const machineOrder = ["108", "GIRO LENTO", "120", "130", "20", "124", "123", "146", "149", "150", "10", "160"];
+  useEffect(() => {
+      document.title = "CladdCore FV";
+    }, []);
 
   useEffect(() => {
     const CargarColores = async () => {
@@ -51,26 +54,6 @@ function GraficoRangeBarFV({ Serie }) {
     }
   };
 
-  const generarEspaciador = (baseItem, offsetMinutos = 5) => {
-    const start = new Date(parseDate(baseItem.hora_inicio).getTime() - 3 * 3600 * 1000);
-    const end = new Date(start.getTime() + offsetMinutos * 60 * 1000);
-    return {
-      x: baseItem.maquina || 'GIRO LENTO',
-      y: [start.getTime(), end.getTime()],
-      fillColor: 'transparent',
-      orden: 'espaciador',
-      procmaquina: '',
-      proceso: '',
-      articulo: '',
-      color: '',
-      metros: 0,
-      horas_total: 0,
-      hora_inicio: '',
-      hora_fin: '',
-      tooltip: false
-    };
-  };
-
   if (!Array.isArray(Serie) || Serie.length === 0) {
     return <Box p={1} textAlign="center">No hay datos disponibles</Box>;
   }
@@ -79,35 +62,7 @@ function GraficoRangeBarFV({ Serie }) {
   const giroLentoItems = flatSerie.filter(item => item.maquina === 'GIRO LENTO');
   const otrasMaquinas = flatSerie.filter(item => item.maquina !== 'GIRO LENTO');
 
-  const giroLentoProcesado = giroLentoItems.flatMap(item => {
-    const color = item.proceso === 'LINEA COLOR'
-      ? colores.find(c => c.color === item.color)?.color_hex || '#000000'
-      : machineColors[item.proceso] || '#000000';
-
-    const inicio = new Date(parseDate(item.hora_inicio).getTime() - 3 * 3600 * 1000);
-    const fin = new Date(parseDate(item.hora_fin).getTime() - 3 * 3600 * 1000);
-
-    return [
-      generarEspaciador(item),
-      {
-        x: item.maquina,
-        y: [inicio.getTime(), fin.getTime()],
-        fillColor: color,
-        orden: item.orden || 'Sin orden',
-        procmaquina: item.maquina_proceso || 'Sin proceso',
-        proceso: item.proceso || 'Sin proceso',
-        articulo: item.articulo || 'Sin artículo',
-        color: item.color || 'Sin color',
-        metros: item.metros || 0,
-        horas_total: item.horas_total || 0,
-        hora_inicio: item.hora_inicio || 'Sin hora inicio',
-        hora_fin: item.hora_fin || 'Sin hora fin',
-        tooltip: true
-      },
-      generarEspaciador(item)
-    ];
-  });
-
+  // OTRAS MAQUINAS
   const otrasSeriesProcesadas = otrasMaquinas.map(item => {
     const color = item.proceso === 'LINEA COLOR'
       ? colores.find(c => c.color === item.color)?.color_hex || '#000000'
@@ -133,133 +88,143 @@ function GraficoRangeBarFV({ Serie }) {
     };
   });
 
-  const seriesData = [...otrasSeriesProcesadas, ...giroLentoProcesado]
-    .sort((a, b) => machineOrder.indexOf(a.x) - machineOrder.indexOf(b.x));
-
-  const getAnnotationsForToday = () => {
-    const today = new Date();
-    return [6, 14, 22].map(hour => {
-      const time = new Date(today);
-      time.setHours(hour - 3, 0, 0, 0);
-      return {
-        x: time.getTime(),
-        borderColor: hour === 6 ? 'red' : 'black',
-        label: {
-          text: `${String(hour).padStart(2, '0')}:00`,
-          style: {
-            color: 'white',
-            background: hour === 6 ? 'red' : 'black'
-          }
+  // OPCIONES DE AMBOS GRAFICOS
+  const commonOptions = {
+    chart: {
+      type: 'rangeBar',
+      height: 350,
+      locales: [es],
+      defaultLocale: 'es',
+      toolbar: { show: true }
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        colors: {
+          ranges: Object.keys(machineColors).map(name => ({
+            from: 0,
+            to: 0,
+            color: machineColors[name]
+          }))
         }
-      };
-    });
+      }
+    },
+    title: {
+      align: 'left',
+      offsetX: 10,
+      style: { fontSize: '25px' }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (value, { dataPointIndex, w }) {
+        const item = w.config.series[0].data[dataPointIndex];
+        return `${item.orden} (${item.articulo})`;
+      }
+      ,
+      style: { fontSize: '12px' }
+    },
+    xaxis: {
+      type: 'datetime',
+      min: new Date().setHours(0 - 3, 0, 0, 0),
+      max: new Date().setHours(23 - 3, 59, 0, 0),
+      position: 'top',
+      labels: {
+        datetimeFormatter: {
+          year: 'yyyy',
+          month: 'MMMM',
+          day: 'dd MMM',
+          hour: 'HH:mm'
+        },
+        style: { colors: '#000000' }
+      }
+    },
+    tooltip: {
+      enabled: true,
+      custom: function ({ dataPointIndex, w }) {
+        const item = w.config.series[0].data[dataPointIndex];
+        if (!item || item.tooltip === false) return '';
+
+        const inicio = new Date(item.hora_inicio);
+        const fin = new Date(item.hora_fin);
+
+        return `
+          <div style="background-color:white;border:1px solid #ccc;border-radius:8px;">
+            <div style="background:${item.fillColor};margin-bottom:5px;padding:10px;">
+              <span style="color:white;"><strong>Orden: ${item.orden}</strong></span>
+            </div>
+            <div style="margin-left:5px;display:flex;flex-direction:column;align-items:flex-start;">
+              <span> • <strong>Proc Maquina:</strong> ${item.procmaquina}</span>
+              <span> • <strong>Proceso:</strong> ${item.proceso}</span>
+              <span> • <strong>Metros:</strong> ${item.metros}</span>
+              <span> • <strong>Articulo:</strong> ${item.articulo}</span>
+              <span> • <strong>Horas:</strong> ${item.horas_total}</span>
+              <span> ► <strong>Inicio:</strong> ${format(inicio, 'yy/MM/dd HH:mm')}</span>
+              <span> ► <strong>Fin:</strong> ${format(fin, 'yy/MM/dd HH:mm')}</span>
+            </div>
+          </div>`;
+      }
+    },
+    noData: { text: 'Esperando Datos...' },
+    annotations: {
+      xaxis: (() => {
+        const today = new Date();
+        return [6, 14, 22].map(hour => {
+          const time = new Date(today);
+          time.setHours(hour - 3, 0, 0, 0);
+          return {
+            x: time.getTime(),
+            borderColor: hour === 6 ? 'red' : 'black',
+            label: {
+              text: `${String(hour).padStart(2, '0')}:00`,
+              style: {
+                color: 'white',
+                background: hour === 6 ? 'red' : 'black'
+              }
+            }
+          };
+        });
+      })()
+    }
   };
 
-  const data = {
+  // OPCIONES DE OTRAS MAQUINAS
+  const dataOtrasMaquinas = {
     options: {
-      chart: {
-        type: 'rangeBar',
-        height: 350,
-        locales: [es],
-        defaultLocale: 'es',
-        toolbar: { show: true }
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          colors: {
-            ranges: Object.keys(machineColors).map(name => ({
-              from: 0,
-              to: 0,
-              color: machineColors[name]
-            }))
-          }
-        }
-      },
+      ...commonOptions,
       title: {
-        text: `Producción Estimada`,
-        align: 'left',
-        offsetX: 110,
-        style: { fontSize: '25px' }
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: (_, { dataPointIndex }) => {
-          const item = seriesData[dataPointIndex];
-          return `${item.orden} (${item.articulo})`;
-        },
-        style: { fontSize: '12px' }
-      },
-      xaxis: {
-        type: 'datetime',
-        min: new Date().setHours(0 - 3, 0, 0, 0),
-        max: new Date().setHours(23 - 3, 59, 0, 0),
-        position: 'top',
-        labels: {
-          datetimeFormatter: {
-            year: 'yyyy',
-            month: 'MMMM',
-            day: 'dd MMM',
-            hour: 'HH:mm'
-          },
-          style: { colors: '#000000' }
-        }
+        ...commonOptions.title,
+        text: 'Producción Estimada'
       },
       yaxis: {
-        categories: machineOrder,
+        categories: [...new Set(otrasSeriesProcesadas.map(item => item.x))],
         labels: { style: { colors: '#000000' } }
-      },
-      tooltip: {
-        enabled: true,
-        custom: ({ dataPointIndex }) => {
-          const item = seriesData[dataPointIndex];
-          if (!item || item.tooltip === false) return '';
-
-          const inicio = new Date(item.hora_inicio);
-          const fin = new Date(item.hora_fin);
-
-          return `
-            <div style="background-color:white;border:1px solid #ccc;border-radius:8px;">
-              <div style="background:${item.fillColor};margin-bottom:5px;padding:10px;">
-                <span style="color:white;"><strong>Orden: ${item.orden}</strong></span>
-              </div>
-              <div style="margin-left:5px;display:flex;flex-direction:column;align-items:flex-start;">
-                <span> • <strong>Proc Maquina:</strong> ${item.procmaquina}</span>
-                <span> • <strong>Proceso:</strong> ${item.proceso}</span>
-                <span> • <strong>Metros:</strong> ${item.metros}</span>
-                <span> • <strong>Articulo:</strong> ${item.articulo}</span>
-                <span> • <strong>Horas:</strong> ${item.horas_total}</span>
-                <span> ► <strong>Inicio:</strong> ${format(inicio, 'yy/MM/dd HH:mm')}</span>
-                <span> ► <strong>Fin:</strong> ${format(fin, 'yy/MM/dd HH:mm')}</span>
-              </div>
-            </div>`;
-        }
-      },
-      noData: { text: 'Esperando Datos...' },
-      annotations: { xaxis: getAnnotationsForToday() }
+      }
     },
     series: [{
       name: 'Duración',
-      data: seriesData
+      data: otrasSeriesProcesadas
     }]
   };
 
   return (
-    <Box p={1} textAlign="center">
-      {Serie && Serie.length > 0 ? (
-        <Chart
-          key={forceUpdate}
-          ref={chartRef}
-          options={data.options}
-          series={data.series}
-          type="rangeBar"
-          height="550"
-          width="100%"
-        />
-      ) : (
-        <p>Esperando datos para mostrar gráfico...</p>
-      )}
-    </Box>
+    <>
+      <Box p={1}>
+        {otrasSeriesProcesadas.length > 0 && (
+          <>
+            <Chart
+              key={forceUpdate + '-otras'}
+              ref={chartRef}
+              options={dataOtrasMaquinas.options}
+              series={dataOtrasMaquinas.series}
+              type="rangeBar"
+              height="550"
+              width="100%" />
+          </>
+        )}
+      </Box>
+
+    </>
+
   );
 }
 

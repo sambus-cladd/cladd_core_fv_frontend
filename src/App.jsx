@@ -20,6 +20,7 @@ import SubProducto from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/co
 import VerRutina from "./BuenosAires/FlorencioVarelaAlpacladd/VerRutina.jsx";
 
 import ProduccionFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/ProduccionFV";
+import GraficoGiroLento from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/GraficoGiroLento.jsx";
 
 import StockDeQuimicos from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/StockDeQuimicos";
 import ActulizarQuimico from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/components/FormStockQuimicos";
@@ -146,6 +147,9 @@ function App() {
 
       <Route path="/formulario-ensayos/:rutinaId" element={<FormularioEnsayos />} />
         <Route path="/ver-rutina/:rutinaId" element={<VerRutina />} />
+
+        <Route path="/BuenosAires/FlorencioVarela/Productividad/PCP/GraficoGiroLento" element={<GraficoGiroLento />} />
+
 
       {/* PRODUCCIÓN */}
       <Route
