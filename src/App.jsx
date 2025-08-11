@@ -28,6 +28,7 @@ import ActulizarQuimico from "./BuenosAires/FlorencioVarelaAlpacladd/Productivid
 /* BUENOS AIRES - FLORENCIO VARELA  - TERMINACIÓN*/
 import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Terminacion";
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
+import ReimpresionEtiquetas from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas.jsx"
 
 import RequireAuth from "./BuenosAires/FlorencioVarelaAlpacladd/components/RequireAuth";
 import Articulos from "./components/Componentes/Articulos";
@@ -118,6 +119,13 @@ function App() {
         element={<Articulos rol={"fv"} />}
       />
 
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas"
+        element={<ReimpresionEtiquetas />}
+      />
+
+
+
       {/* LABORATORIO */}
       {/* rutas protegidas bs as */}
       <Route
@@ -146,9 +154,9 @@ function App() {
       />
 
       <Route path="/formulario-ensayos/:rutinaId" element={<FormularioEnsayos />} />
-        <Route path="/ver-rutina/:rutinaId" element={<VerRutina />} />
+      <Route path="/ver-rutina/:rutinaId" element={<VerRutina />} />
 
-        <Route path="/BuenosAires/FlorencioVarela/Productividad/PCP/GraficoGiroLento" element={<GraficoGiroLento />} />
+      <Route path="/BuenosAires/FlorencioVarela/Productividad/PCP/GraficoGiroLento" element={<GraficoGiroLento />} />
 
 
       {/* PRODUCCIÓN */}

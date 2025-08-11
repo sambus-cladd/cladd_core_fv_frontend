@@ -35,6 +35,12 @@ const routes = [
       route: "/BuenosAires/FlorencioVarela/Terminacion/Reportes",
       target:"_self",
     },
+    {
+      name: "REIMPRIMIR ETIQUETAS",
+      key: "REIMPRIMIR ETIQUETAS",
+      route: "/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas",
+      target: "_self",
+    },
   ];
    
   
