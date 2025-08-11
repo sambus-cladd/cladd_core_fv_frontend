@@ -1,20 +1,21 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { DataGrid, GridToolbarQuickFilter } from '@mui/x-data-grid';
 import SearchIcon from '@mui/icons-material/Search';
 import { Button, Typography, Stack, Box, Grid } from '@mui/material';
 import { useAuth } from '../../AuthContext';
 import { getReporteLaboratorio } from './API/APIFunctions';
 function BuscadorRutina({ handleTabChange }) {
-    const {  auth } = useAuth();
+    const { auth } = useAuth();
     const [rows, setRows] = useState([]);
     const [filteredRows, setFilteredRows] = useState([]);
     const [statusFilter, setStatusFilter] = useState("");
+    const [isFiltrado, setIsFiltrado] = useState(false);
 
     useEffect(() => {
+        setIsFiltrado(false);
         getData();
     }, []);
-    
+
     function QuickSearchToolbar() {
         return (
             <Box
@@ -40,21 +41,25 @@ function BuscadorRutina({ handleTabChange }) {
                     year: 'numeric'
                 }),
             }));
-    
+
             setRows(formattedData);
             setFilteredRows(formattedData);
+
         } catch (error) {
             console.error("Error fetching data:", error);
             alert("Error fetching data. Please try again later.");
         }
     }
-    
+
 
     const handleFilter = (status) => {
         setStatusFilter(status);
         if (status === "") {
+            setIsFiltrado(false);
             setFilteredRows(rows);
+            getData();
         } else {
+            setIsFiltrado(true);
             setFilteredRows(rows.filter(row => row.status === status));
         }
     };
@@ -67,7 +72,11 @@ function BuscadorRutina({ handleTabChange }) {
             flex: 1,
             headerClassName: 'super-app-theme--header',
             renderCell: (params) => (
-                <Button onClick={() => handleTabChange(null, "FormularioRegistro", params.row.rutina)} endIcon={<SearchIcon sx={{ color: '#000000' }} />}>
+                // <Button onClick={() => handleTabChange(null, "FormularioRegistro", params.row.rutina)} endIcon={<SearchIcon sx={{ color: '#000000' }} />}>
+                <Button
+                    onClick={() => window.open(`/ver-rutina/${params.row.rutina}`, '_blank')}
+                    endIcon={<SearchIcon sx={{ color: '#000000' }} />}>
+
                     <Typography color="black" fontFamily="Poppins" fontWeight='bold'>
                         {params.row.rutina}
                     </Typography>
@@ -86,7 +95,7 @@ function BuscadorRutina({ handleTabChange }) {
             valueGetter: (params) => `${params.row.status || ''} ${params.row.resultado || ''}`,
             headerClassName: 'super-app-theme--header',
             renderCell: (params) => (
-                <Typography sx={{ color: params.row.status === "Finalizado" && params.row.resultado !== "CONFORME" ? "red" : 'black', fontFamily :"Poppins", fontWeight:'bold'}}>
+                <Typography sx={{ color: params.row.status === "Finalizado" && params.row.resultado !== "CONFORME" ? "red" : 'black', fontFamily: "Poppins", fontWeight: 'bold' }}>
                     {params.row.status === "Finalizado" ? params.row.resultado : params.row.status}
                 </Typography>
             ),
@@ -97,13 +106,16 @@ function BuscadorRutina({ handleTabChange }) {
         { field: 'metros', headerName: 'Metros', flex: 0.7, headerClassName: 'super-app-theme--header' },
         { field: 'fecha', headerName: 'Fecha', flex: 1, headerClassName: 'super-app-theme--header' },
         { field: 'motivo', headerName: 'Motivo', flex: 1, headerClassName: 'super-app-theme--header' },
+        { field: 'lugar_muestra', headerName: 'Etapa Proc', flex: 1, headerClassName: 'super-app-theme--header' },
     ];
 
     return (
         <>
-        
+
             <Stack direction="row" justifyContent="center" alignItems="center" spacing={2} mb={2}>
+                <Button variant="outlined" onClick={() => handleFilter("")}>↺</Button>
                 <Button variant="outlined" onClick={() => handleFilter("")}>Todos</Button>
+                <Button variant='outlined' onClick={() => handleFilter("Registro")}>Registro</Button>
                 <Button variant='outlined' onClick={() => handleFilter("Entrada")}>Entrada</Button>
                 <Button variant="outlined" onClick={() => handleFilter("Ingreso")}>Ingreso</Button>
                 <Button variant="outlined" onClick={() => handleFilter("Marcado")}>Marcado</Button>
@@ -122,8 +134,9 @@ function BuscadorRutina({ handleTabChange }) {
                         columns: {
                             columnVisibilityModel: { id: false },
                         },
-                        pagination: { 
-                            paginationModel: { pageSize: 25 } }
+                        pagination: {
+                            paginationModel: { pageSize: 25 }
+                        }
                     }}
                     pageSizeOptions={[5, 10, 25]}
                     sx={{

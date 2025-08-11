@@ -41,6 +41,10 @@ const AlpacladdHomeFV = () => {
   });
 
   useEffect(() => {
+    document.title = "Florencio Varela";
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         // 🟢 Obtener datos de Stock Rollos

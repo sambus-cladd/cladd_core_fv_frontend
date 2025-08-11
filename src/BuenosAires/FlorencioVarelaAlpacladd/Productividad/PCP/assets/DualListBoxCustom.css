@@ -1,44 +1,119 @@
 /* DualListBoxCustom.css */
 
+/* BOTONES DE CONTROL */
 .react-dual-listbox__controls button {
-    background: none; /* Eliminar el fondo */
-    border: none; /* Eliminar bordes */
-    cursor: pointer; /* Cambiar el cursor al pasar sobre el botón */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.react-dual-listbox__controls button.move-left::before {
+  content: '←';
+  font-size: 20px;
+  color: #333;
+}
+
+.react-dual-listbox__controls button.move-right::before {
+  content: '→';
+  font-size: 20px;
+  color: #333;
+}
+
+.react-dual-listbox__controls button.move-all-left::before {
+  content: '⇐';
+  font-size: 20px;
+  color: #333;
+}
+
+.react-dual-listbox__controls button.move-all-right::before {
+  content: '⇒';
+  font-size: 20px;
+  color: #333;
+}
+
+.react-dual-listbox__controls button.move-up::before {
+  content: '↑';
+  font-size: 20px;
+  color: #333;
+}
+
+.react-dual-listbox__controls button.move-down::before {
+  content: '↓';
+  font-size: 20px;
+  color: #333;
+}
+
+/* FONDO DE TABLA ROLLOS DISPONIBLES - SELECCIONADOS*/
+.react-dual-listbox .rdl-control {
+  background-color: #ffffff !important;
+  color: #333 !important;
+  border: 1px solid #ccc;
+}
+
+.react-dual-listbox .rdl-control option {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+.react-dual-listbox .rdl-control option:checked {
+  background-color: #1976d2 !important;
+  color: #ffffff !important;
+}
+
+.react-dual-listbox .rdl-btn {
+  background-color: #1976d2 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px;
+}
+
+.react-dual-listbox .rdl-btn:hover {
+  background-color: #1565c0 !important;
+}
+
+
+
+
+
+/*.react-dual-listbox__controls button {
+    background: none;  Eliminar el fondo 
+    border: none;  Eliminar bordes 
+    cursor: pointer;  Cambiar el cursor al pasar sobre el botón
   }
   
   .react-dual-listbox__controls button.move-left::before {
-    content: '←'; /* Icono de mover a la izquierda */
-    font-size: 20px; /* Tamaño del icono */
-    color: #333; /* Color del icono */
+    content: '←'; Icono de mover a la izquierda
+    font-size: 20px; Tamaño del icono
+    color: #333;  Color del icono
   }
   
   .react-dual-listbox__controls button.move-right::before {
-    content: '→'; /* Icono de mover a la derecha */
-    font-size: 20px; /* Tamaño del icono */
-    color: #333; /* Color del icono */
+    content: '→'; Icono de mover a la derecha 
+    font-size: 20px; Tamaño del icono 
+    color: #333;  Color del icono 
   }
   
   .react-dual-listbox__controls button.move-all-left::before {
-    content: '⇐'; /* Icono de mover todo a la izquierda */
+    content: '⇐'; Icono de mover todo a la izquierda 
     font-size: 20px;
     color: #333;
   }
   
   .react-dual-listbox__controls button.move-all-right::before {
-    content: '⇒'; /* Icono de mover todo a la derecha */
+    content: '⇒';  Icono de mover todo a la derecha 
     font-size: 20px;
     color: #333;
   }
   
   .react-dual-listbox__controls button.move-up::before {
-    content: '↑'; /* Icono de mover hacia arriba */
+    content: '↑';  Icono de mover hacia arriba 
     font-size: 20px;
     color: #333;
   }
   
   .react-dual-listbox__controls button.move-down::before {
-    content: '↓'; /* Icono de mover hacia abajo */
+    content: '↓';  Icono de mover hacia abajo 
     font-size: 20px;
     color: #333;
   }
-  
+  */

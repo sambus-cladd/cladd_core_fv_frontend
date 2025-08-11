@@ -51,6 +51,10 @@ function FormularioGantPcp() {
     const [openError, setopenError] = useState(false);
     const [rollosDeArticulo, setRollosdeArticulo] = useState([]);
     const [mensaje, setMensaje] = useState("");
+    const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
+    const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
+
+
 
     const columns = [
         { field: 'rollo', headerName: 'Rollo', width: 150 },
@@ -146,7 +150,6 @@ function FormularioGantPcp() {
                 toggleOpenErrorWithDelay();
             }
 
-            vaciarForm();
         }
         else {
             setMensaje('Error en 1 o más campos');
@@ -386,15 +389,20 @@ function FormularioGantPcp() {
                 FinHora: datos.FinHora.format('YYYY/MM/DD HH:mm'),
                 Rollos: selected.map(item => item.split('-')[0])
             };
+
             let respuesta = await PutRegistroGantFV(DatosGant)
-            if (respuesta.serverStatus === 34) {
+            console.warn('Respuesta de PutRegistroGantFV:', respuesta);
+            // if (respuesta.serverStatus === 34) {
+            if (respuesta?.affectedRows > 0 && respuesta?.serverStatus >= 2) {
                 setMensaje('Orden registrada correctamente');
                 toggleOpenDialogWithDelay();
             } else {
-                setMensaje('Error al enviar datos a BBDD');
+                console.error('La orden no se registró correctamente. Respuesta inesperada:', respuesta);
+                setMensaje('Error al registar la ordenNNNN');
                 toggleOpenErrorWithDelay();
             }
         } catch (error) {
+            console.error('Error al enviar datos a BBDD:', error);
             setMensaje('Error al enviar datos a BBDD');
             toggleOpenErrorWithDelay();
         }
@@ -410,6 +418,42 @@ function FormularioGantPcp() {
     console.log('colores:', colores);
     console.log('options (rollos):', options);
     console.log('selected (rollos seleccionados):', selected);
+
+    const filtrarMaquinasGiroLentoDisponibles = () => {
+        if (!InicioHora || !HorasT) return;
+
+        const fechaInicio = dayjs(InicioHora);
+        const fechaFin = fechaInicio.add(Number(HorasT), 'hour');
+
+        const ocupadas = rows
+        .filter(row => {
+            if (!row.InicioHora || !row.FinHora) return false;
+
+            const inicioRow = dayjs(row.InicioHora);
+            const finRow = dayjs(row.FinHora);
+
+            return maquinasGiroLento.includes(row.MaquinaProc) &&
+                   fechaInicio.isBefore(finRow) &&
+                   fechaFin.isAfter(inicioRow);
+        })
+        .map(row => row.MaquinaProc);
+
+    setMaquinasGiroLentoOcupadas(ocupadas);
+    };
+
+
+    useEffect(() => {
+    if (Maquina === "GIRO LENTO") {
+        filtrarMaquinasGiroLentoDisponibles();
+    } else {
+        setMaquinasGiroLentoOcupadas([]); // Limpiar ocupadas si cambia de tipo de máquina
+    }
+}, [InicioHora, HorasT, rows, Maquina]);
+useEffect(() => {
+    console.log("Máquinas ocupadas:", maquinasGiroLentoOcupadas);
+}, [maquinasGiroLentoOcupadas]);
+
+
 
     return (
         <>
@@ -530,23 +574,33 @@ function FormularioGantPcp() {
                                     select
                                     value={MaquinaProceso}
                                     onChange={(event) => {
-                                        const maquinaproc = event.target.value
+                                        const maquinaproc = event.target.value;
                                         setMaquinaProceso(maquinaproc);
                                     }}
                                     required
-
                                 >
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {maquinasprocfil.map((maquina, index) => (
-                                        <MenuItem key={index} value={maquina.proceso}>
-                                            {maquina.proceso}
-                                        </MenuItem>
-                                    ))
+                                    {Maquina === "GIRO LENTO"
+                                        ? maquinasGiroLento.map((gl) => (
+                                            <MenuItem
+                                                key={gl}
+                                                value={gl}
+                                                disabled={maquinasGiroLentoOcupadas.includes(gl)}
+                                            >
+                                                {gl} {maquinasGiroLentoOcupadas.includes(gl) ? "(Ocupada)" : ""}
+                                            </MenuItem>
+                                        ))
+                                        : maquinasprocfil.map((maquina) => (
+                                            <MenuItem key={maquina.proceso} value={maquina.proceso}>
+                                                {maquina.proceso}
+                                            </MenuItem>
+                                        ))
                                     }
                                 </TextField>
                             </Grid>
+
 
                             {/* Proceso */}
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
@@ -720,14 +774,17 @@ function FormularioGantPcp() {
                     </Grid>
                     <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" >
                         <Grid item xs={12} sm={12} md={12} padding={1}>
-                            <DualListBox
-                                options={options}
-                                selected={selected}
-                                alignActions="top"
-                                onChange={(newValue) => {
-                                    setSelected(newValue)
-                                }}
-                            />
+                            <div className="custom-dual-listbox">
+                                <DualListBox
+                                    options={options}
+                                    selected={selected}
+                                    alignActions="top"
+                                    onChange={(newValue) => {
+                                        setSelected(newValue)
+                                    }}
+                                />
+
+                            </div>
                             <Grid item xs={12} sm={12} md={12} padding={1} alignItems="flex-end">
                                 <Typography variant="h6" fontFamily="Poppins" fontSize={18}>
                                     Metros Necesarios: {`${Metros} m`}
