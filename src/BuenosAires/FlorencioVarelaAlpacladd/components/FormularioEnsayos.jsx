@@ -10,6 +10,7 @@ import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import { useAuth } from '../../../AuthContext';
 import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useParams } from 'react-router-dom';
 
 function FormularioEnsayos({ rutina, handleTabChange }) {
@@ -99,6 +100,8 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
     const [errors, setErrors] = useState({});
     const [dibujo, setDibujo] = useState('');
     const [resultadoRutinaTerminada, setResultadoRutinaTerminada] = useState('');
+    const [loading, setLoading] = useState(true);
+
 
     // const { auth } = useAuth();
     const [auth, setAuth] = useState(() => {
@@ -124,6 +127,32 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
             document.title = 'Rutina';
         }
     }, [rutinaId]);
+
+    useEffect(() => {
+    const fetchData = async () => {
+        try {
+            await getDataRutina(rutina);
+            await fetchDatosDeEnsayo(rutina);
+            await fetchResultadosPosibles();
+        } catch (error) {
+            setMensaje(`Error al cargar los datos de la rutina ${rutina}`);
+            setTipo("error");
+            setIsOpen(true);
+        } finally {
+            setLoading(false); // <- Liberás la UI acá
+        }
+    };
+    fetchData();
+}, []);
+useEffect(() => {
+  if (loading) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+}, [loading]);
+
+
 
     const etapas = [
         {
@@ -603,6 +632,36 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
         ) ||
         etapa !== 'Finalizado';
 
+
+if (loading) {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: 9999,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(164, 164, 164, 0.78)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backdropFilter: 'blur(4px)',
+      WebkitBackdropFilter: 'blur(4px)',
+    }}>
+      <div style={{ marginBottom: 20, fontSize: 20, color: '#333' }}>
+        Recopilando datos...
+      </div>
+      <CircularProgress color="primary" size={60} />
+      <div style={{ marginTop: 20, fontSize: 16, color: '#555' }}>
+        Aguarde un momento por favor.
+      </div>
+    </div>
+  );
+}
+
+
     return (
         <>
             <Grid container direction="row" justifyContent="center" alignItems="center" p={1.5} rowSpacing={1.5} pt={1.5}>
@@ -989,7 +1048,7 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
                                         referencia={referencias["DEFORMACION Lavada  [%]"]?.ref}
                                         validar_std={referencias["DEFORMACION Lavada  [%]"]?.validar}
                                         esObligatorio={referencias["DEFORMACION Lavada  [%]"]?.esObligatorio}
-                                        readOnly={!permiteEditarCampos}
+                                        // readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
