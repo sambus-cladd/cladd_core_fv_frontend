@@ -9,8 +9,11 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import { useAuth } from '../../../AuthContext';
-import MensajeDialog from '../../../components/Plantilla/MensajeDialog'
-function FormularioEnsayos({ rutina }) {
+import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useParams } from 'react-router-dom';
+
+function FormularioEnsayos({ rutina, handleTabChange }) {
     const [anchoSinLavar1, setAnchoSinLavar1] = useState(null);
     const [anchoSinLavar2, setAnchoSinLavar2] = useState(null);
     const [anchoSinLavarCalculo, setAnchoSinLavarCalculo] = useState(null);
@@ -97,9 +100,59 @@ function FormularioEnsayos({ rutina }) {
     const [errors, setErrors] = useState({});
     const [dibujo, setDibujo] = useState('');
     const [resultadoRutinaTerminada, setResultadoRutinaTerminada] = useState('');
-    const { auth } = useAuth();
+    const [loading, setLoading] = useState(true);
+
+
+    // const { auth } = useAuth();
+    const [auth, setAuth] = useState(() => {
+        const saved = localStorage.getItem('auth');
+        return saved ? JSON.parse(saved) : null;
+    });
+
     const [tipo, setTipo] = useState('success');
     const [isOpen, setIsOpen] = useState(false);
+
+    const { rutinaId } = useParams(); // trae desde la URL
+    useEffect(() => {
+        const rutinaFinal = rutinaId || rutina; // usa la prop o el valor de la URL
+        if (rutinaFinal) {
+            getDataRutina(rutinaFinal);
+        }
+    }, [rutinaId, rutina]);
+
+    useEffect(() => {
+        if (rutinaId) {
+            document.title = `Rutina ${rutinaId}`;
+        } else {
+            document.title = 'Rutina';
+        }
+    }, [rutinaId]);
+
+    useEffect(() => {
+    const fetchData = async () => {
+        try {
+            await getDataRutina(rutina);
+            await fetchDatosDeEnsayo(rutina);
+            await fetchResultadosPosibles();
+        } catch (error) {
+            setMensaje(`Error al cargar los datos de la rutina ${rutina}`);
+            setTipo("error");
+            setIsOpen(true);
+        } finally {
+            setLoading(false); // <- Liberás la UI acá
+        }
+    };
+    fetchData();
+}, []);
+useEffect(() => {
+  if (loading) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+}, [loading]);
+
+
 
     const etapas = [
         {
@@ -183,6 +236,7 @@ function FormularioEnsayos({ rutina }) {
             if (respuesta.status >= 200 && respuesta.status < 300) {
                 try {
                     await handleCambioDeEtapa("Finalizado");
+                    await getDataRutina(rutina);
                 } catch (error) {
                     setMensaje("Error al finalizar etapa");
                     setTipo("error");
@@ -224,7 +278,9 @@ function FormularioEnsayos({ rutina }) {
             setMotivo(dataRaw.motivo);
             setSubLote(dataRaw.sublote);
             setResultadoRutinaTerminada(dataRaw.resultado)
+            setResultadoEnsayo(dataRaw.resultado);
             setObservaciones(dataRaw.observaciones)
+            setDibujo(dataRaw.dibujo)
             await fetchEspecificacion(dataRaw.articulo_final, dataRaw.motivo.toUpperCase());
         } catch (error) {
             setMensaje("Error: ", error);
@@ -310,6 +366,11 @@ function FormularioEnsayos({ rutina }) {
             let respuesta = await getDatosEnsayo(rutina);
             if (Array.isArray(respuesta.data) && respuesta.data.length > 0 && respuesta.data[0] !== null) {
                 setearDatos(respuesta.data[0]);
+
+                if (respuesta.data[0].dibujo !== null) {
+                    setDibujo(respuesta.data[0].dibujo);
+                    console.log("Dibujo cargado desde ensayo:", respuesta.data[0].dibujo);
+                }
             }
             else {
                 setMensaje(`No se encontraron ensayos registrados para la rutina ${rutina}`);
@@ -323,11 +384,14 @@ function FormularioEnsayos({ rutina }) {
         }
     }
 
+
     async function handleCambioDeEtapa(etapa) {
         try {
+            const usuarioResponsable = auth?.usuario || 'desconocido';
             let body = {
                 rutina: rutina,
-                etapa: etapa
+                etapa: etapa,
+                usuario: usuarioResponsable
             };
             let respuesta = await putCambiarEtapaEnsayo(body);
             if (respuesta.status >= 200 && respuesta.status < 300) {
@@ -483,8 +547,11 @@ function FormularioEnsayos({ rutina }) {
                 deslizCosturaTUCalculo: deslizCosturaTUCalculo,
                 rigidez1: rigidez1,
                 rigidez2: rigidez2,
-                rigidezCalculo: rigidezCalculo
+                rigidezCalculo: rigidezCalculo,
+                dibujo: dibujo
             };
+            console.log("Datos enviados:", datos);
+
             let respuesta = await PutEnsayoDeRutina(datos);
             if (respuesta.status >= 200 && respuesta.status < 300) {
                 setMensaje("Datos guardados correctamente");
@@ -549,12 +616,55 @@ function FormularioEnsayos({ rutina }) {
             setIsOpen(true);
         }
     };
+    console.log("ROL:", auth?.rol);
+    console.log("ETAPA:", etapa);
+    console.log("RESULTADOS POSIBLES:", resultadosPosibles);
+    console.log("RESULTADO:", resultadoEnsayo?.trim().toUpperCase());
 
+    const resultadoNormalizado = resultadoEnsayo?.trim().toUpperCase();
+
+    const permiteEditarCampos =
+        auth?.rol === 'Administrador' ||
+        (
+            auth?.rol === 'Operador' &&
+            etapa === 'Finalizado' &&
+            (resultadoNormalizado === 'ANULADO' || resultadoNormalizado === 'TERCEROS ENSAYOS')
+        ) ||
+        etapa !== 'Finalizado';
+
+
+if (loading) {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: 9999,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(164, 164, 164, 0.78)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backdropFilter: 'blur(4px)',
+      WebkitBackdropFilter: 'blur(4px)',
+    }}>
+      <div style={{ marginBottom: 20, fontSize: 20, color: '#333' }}>
+        Recopilando datos...
+      </div>
+      <CircularProgress color="primary" size={60} />
+      <div style={{ marginTop: 20, fontSize: 16, color: '#555' }}>
+        Aguarde un momento por favor.
+      </div>
+    </div>
+  );
+}
 
 
     return (
         <>
-            <Grid container direction="row" justifyContent="center" alignItems="center" p={1.5} rowSpacing={1.5} pt={0.3}>
+            <Grid container direction="row" justifyContent="center" alignItems="center" p={1.5} rowSpacing={1.5} pt={1.5}>
                 <Grid item xs={12}>
                     <Card sx={{ borderRadius: "5px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)" }}>
                         <Grid container direction="row" justifyContent="flex-start" alignItems="center" rowSpacing={1} pb={0.3} px={0.5}>
@@ -701,7 +811,9 @@ function FormularioEnsayos({ rutina }) {
                                         variable1={rigidez1} setVariable1={setRigidez1} unidadCalculo={""}
                                         variable2={rigidez2} setVariable2={setRigidez2}
                                         calculo={rigidezCalculo} setCalculo={setRigidezCalculo}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'} />
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'} 
+                                        readOnly={!permiteEditarCampos}
+                                    />
                                 </Grid>
                                 <Grid item xs={2.4}>
                                     <RenglonFormSigno ensayo="PREDISTORSION " tipo={"izq"} id={3}
@@ -720,7 +832,8 @@ function FormularioEnsayos({ rutina }) {
                                 <Grid item xs={2.4}>
                                     <RenglonForm ensayo="GRAB" tipo={"trama sin lavar"}
                                         id={4}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
 
@@ -733,7 +846,8 @@ function FormularioEnsayos({ rutina }) {
                                         (e) => setAnchoLavadoCalculo(e.target.value)}
                                         variant="outlined" size="small" fullWidth
                                         InputProps={{
-                                            readOnly: etapa === 'Finalizado' && auth.rol !== 'Administrador'
+                                            // readOnly: etapa === 'Finalizado' && auth.rol !== 'Administrador'
+                                            readOnly: !permiteEditarCampos
                                         }}
                                     />
                                     <Typography sx={{ fontSize: 16 }}> Ref:
@@ -746,7 +860,8 @@ function FormularioEnsayos({ rutina }) {
                                     </Typography>
                                     <TextField id={22} value={recuentoPasadasLavada} onChange={(e) => setRecuentoPasadasLavada(e.target.value)} variant="outlined" size="small" fullWidth InputProps=
                                         {{
-                                            readOnly: etapa === 'Finalizado' && auth.rol !== 'Administrador'
+                                            // readOnly: etapa === 'Finalizado' && auth.rol !== 'Administrador'
+                                            readOnly: !permiteEditarCampos
                                         }} />
                                     <Typography sx={{ fontSize: 16 }}> Ref:
                                     </Typography>
@@ -776,7 +891,8 @@ function FormularioEnsayos({ rutina }) {
                                         referencia={referencias["RECUENTO Urdido [h/'']"]?.ref}
                                         validar_std={referencias["RECUENTO Urdido [h/'']"]?.validar}
                                         esObligatorio={referencias["RECUENTO Urdido [h/'']"]?.esObligatorio}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -796,7 +912,9 @@ function FormularioEnsayos({ rutina }) {
 
                                 <Grid item xs={2.4}>
                                     <RenglonForm ensayo="GRAB " tipo={"urdido sin lavar"} id={9}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'} />
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
+                                    />
                                 </Grid>
                                 <Grid item xs={2.4}>
                                     <RenglonFormTriple ensayo="ESTABILIDAD " tipo={"trama"} id={10}
@@ -833,7 +951,8 @@ function FormularioEnsayos({ rutina }) {
                                         variable1={elmendorfUrdidoSinLavar1} setVariable1={setElmendorfUrdidoSinLavar1} unidadCalculo={""}
                                         variable2={elmendorfUrdidoSinLavar2} setVariable2={setElmendorfUrdidoSinLavar2}
                                         calculo={elmendorfUrdidoSinLavarCalculo} setCalculo={setElmendorfUrdidoSinLavarCalculo}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -859,7 +978,8 @@ function FormularioEnsayos({ rutina }) {
                                         referencia={referencias["DESLIZ.Costura U/T [kg]"]?.ref}
                                         validar_std={referencias["DESLIZ.Costura U/T [kg]"]?.validar}
                                         esObligatorio={referencias["DESLIZ.Costura U/T [kg]"]?.esObligatorio}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -890,7 +1010,8 @@ function FormularioEnsayos({ rutina }) {
                                         variable1={elmendorfTramaSinLavar1} setVariable1={setElmendorfTramaSinLavar1} unidadCalculo={""}
                                         variable2={elmendorfTramaSinLavar2} setVariable2={setElmendorfTramaSinLavar2}
                                         calculo={elmendorfTramaSinLavarCalculo} setCalculo={setElmendorfTramaSinLavarCalculo}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -912,7 +1033,8 @@ function FormularioEnsayos({ rutina }) {
                                         variable1={deslizCosturaTU1} setVariable1={setDeslizCosturaTU1} unidadCalculo={"[kg]"}
                                         variable2={deslizCosturaTU2} setVariable2={setDeslizCosturaTU2} unidadMedida={"[kg]"}
                                         calculo={deslizCosturaTUCalculo} setCalculo={setDeslizCosturaTUCalculo}
-                                        readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -926,7 +1048,7 @@ function FormularioEnsayos({ rutina }) {
                                         referencia={referencias["DEFORMACION Lavada  [%]"]?.ref}
                                         validar_std={referencias["DEFORMACION Lavada  [%]"]?.validar}
                                         esObligatorio={referencias["DEFORMACION Lavada  [%]"]?.esObligatorio}
-
+                                        // readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>
@@ -935,7 +1057,10 @@ function FormularioEnsayos({ rutina }) {
                                         variable2={pesoLavado2} setVariable2={setPesoLavado2} unidadMedida={'g'}
                                         calculo={pesoLavadoCalculo} setCalculo={setPesoLavadoCalculo}
                                         tipoCalculo={'PromedioConFactorPeso'}
-                                        factorPeso={'0.994'} readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'} />
+                                        factorPeso={'0.994'}
+                                        // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'} 
+                                        readOnly={!permiteEditarCampos}
+                                    />
                                 </Grid>
                                 <Grid item xs={2.4} px={1}>
                                     <TextField variant="standard" label="Observaciones" fullWidth multiline inputProps={{
@@ -977,6 +1102,7 @@ function FormularioEnsayos({ rutina }) {
                         <Typography variant="h6" component="h2">
                             Resultado del ensayo de la rutina {rutina}
                         </Typography>
+                        <hr />
                         <FormControl fullWidth>
                             <InputLabel id="select-resultado-label">Seleccione el resultado final</InputLabel>
                             <Select
@@ -986,11 +1112,19 @@ function FormularioEnsayos({ rutina }) {
                                 label="Seleccione el resultado final"
                                 fullWidth
                             >
-                                {resultadosPosibles.map((resultado) => (
-                                    <MenuItem key={resultado} value={resultado}>
-                                        {resultado}
-                                    </MenuItem>
-                                ))}
+                                {resultadosPosibles
+                                    .filter((resultado) => {
+                                        const noAdmin = ['Operador', 'Supervisor'].includes(auth?.rol);
+                                        if (noAdmin && etapa === 'Finalizado') {
+                                            return resultado === 'VER' || resultado === 'CONFORME';
+                                        }
+                                        return true;
+                                    })
+                                    .map((resultado) => (
+                                        <MenuItem key={resultado} value={resultado}>
+                                            {resultado}
+                                        </MenuItem>
+                                    ))}
                             </Select>
                         </FormControl>
                         <TextField
@@ -1003,7 +1137,7 @@ function FormularioEnsayos({ rutina }) {
                             sx={{ mt: 2 }}
                         />
 
-                        <br />
+                        <hr />
                         <Button onClick={handleGuardarResultado} variant="contained" color="primary">
                             Guardar
                         </Button>

@@ -31,7 +31,9 @@ const RutinasTerminadas = () => {
         { field: 'desliz_costura_ut_cal', headerName: 'Desliz Costura UT', width: 180 },
         { field: 'desliz_costura_tu_cal', headerName: 'Desliz Costura TU', width: 180 },
         { field: 'rigidez_cal', headerName: 'Rigidez', width: 150 },
-        { field: 'fecha_registro', headerName: 'Fecha Registro', width: 150 }
+        { field: 'fecha_registro', headerName: 'Fecha Registro', width: 150 },
+        { field: 'letra', headerName: 'Letra', width: 150 },
+        { field: 'metros', headerName: 'Metros', width: 150 }
     ];
 
     async function fetchRutinasTerminadas() {

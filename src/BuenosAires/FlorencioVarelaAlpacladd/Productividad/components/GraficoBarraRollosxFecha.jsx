@@ -21,16 +21,35 @@ const GraficoBarraRollosxFecha = ({ data, label = "Cantidad de rollos por fecha"
 
     const cantidades = data.map((item) => item.cantidad_rollos);
 
+
     const options = {
         chart: {
             type: 'bar',
         },
         xaxis: {
-            categories: fechas, // Fechas en el eje X
+            categories: fechas,
         },
         title: {
             text: label,
             align: 'center',
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+                return val;
+            },
+            offsetY: -20, // Mueve el número arriba de la barra
+            style: {
+                fontSize: '15px',
+                colors: ["#000"],
+            }
+        },
+        plotOptions: {
+            bar: {
+                dataLabels: {
+                    position: 'top', // Posiciona las etiquetas encima
+                },
+            },
         },
     };
 

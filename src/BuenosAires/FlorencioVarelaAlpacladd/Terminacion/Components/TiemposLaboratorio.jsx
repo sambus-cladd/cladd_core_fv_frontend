@@ -21,7 +21,8 @@ const TiemposLaboratorio = () => {
         { field: 'estado', headerName: 'Etapa', flex: 1 },
         { field: 'inicio_etapa', headerName: 'Inicio', flex: 1 },
         { field: 'fin_etapa', headerName: 'Fin', flex: 1 },
-        { field: 'duracion_horas_minutos', headerName: 'Duracion', flex: 1 }
+        { field: 'duracion_horas_minutos', headerName: 'Duracion', flex: 1 },
+        { field: 'usuario', headerName: 'Responsable', flex: 1 }
     ];
     async function handleBuscarXRutina() {
         if (!rutina || rutina === '') {

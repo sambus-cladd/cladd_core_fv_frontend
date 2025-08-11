@@ -3,30 +3,45 @@ import { PDFViewer } from '@react-pdf/renderer';
 import MyDocument from './DocPedidoRollo';
 import ReactDOM from 'react-dom';
 import { getStockRollosXOrden } from '../../../API/APIFunctions';
+
+function getDatosValidos(serie) {
+  if (Array.isArray(serie)) {
+    if (Array.isArray(serie[0])) {
+      return serie[0];
+    }
+    return serie;
+  }
+  return [];
+}
+
 const RollosPorOrden = ({ orden, articulo, maquina }) => {
     const [rollos, setRollos] = useState([]);
 
     async function fetchRollosDeOrden(orden) {
         try {
             const response = await getStockRollosXOrden(orden);
-            
-            // Si hay datos válidos en la respuesta
-            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                const dataSinFechaRegistro = response.data.map(({ fecha_registro, ...resto }) => resto);
-                setRollos(dataSinFechaRegistro); // Actualiza el estado con los datos filtrados
+            console.log('Respuesta de la API:', response.data);
+            const datos = getDatosValidos(response.data);
+            console.log('Datos válidos:', datos);
+            if (datos.length > 0) {
+                const dataSinFechaRegistro = datos.map(({ fecha_registro, ...resto }) => resto);
+                setRollos(dataSinFechaRegistro);
+                console.log('Rollos seteados:', dataSinFechaRegistro);
             } else {
-                setRollos([]); // Si no hay datos, asegura que el estado se limpie
+                setRollos([]);
+                console.log('No hay datos, rollos seteados como array vacío');
             }
         } catch (error) {
             console.error(error);
-            setRollos([]); // En caso de error, también limpia el estado
+            setRollos([]);
         }
     }
     
 
     useEffect(() => {
+        console.log('Orden recibida:', orden);
         fetchRollosDeOrden(orden);
-    }, [orden]); // Agregamos orden como dependencia
+    }, [orden]);
 
     function handleprint() {
 
@@ -47,8 +62,8 @@ const RollosPorOrden = ({ orden, articulo, maquina }) => {
     return (
         <>
             <div>
-                <h1>Orden: {orden}</h1>
-                <ul>
+                <h1 style={{ color: '#222', fontWeight: 'bold', fontSize: '1.3em' }}>Orden: {orden}</h1>
+                <ul style={{ color: '#222', fontWeight: 'bold', fontSize: '1.1em' }}>
                     {rollos && Array.isArray(rollos) && rollos.length > 0
                         ? rollos.map((rollo) => <li key={rollo.id}>{rollo.rollo}</li>)
                         : <li>No hay rollos disponibles</li>

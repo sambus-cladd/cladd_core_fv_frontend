@@ -48,6 +48,9 @@ function RegistrarMuestra() {
   const [rows, setRows] = useState([]);
   const [refrescarTabla, setRefrescarTabla] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [estadoTela, setEstadoTela] = useState('');
+  const [procesoRama, setRama] = useState("");
+
 
   const columns = [
     { field: 'rutina', headerName: 'Rutina', width: 150 },
@@ -77,6 +80,10 @@ function RegistrarMuestra() {
     },
   ]
 
+  useEffect(() => {
+    document.title = "Registrar muestras";
+  }, []);
+
   async function getRutinas() {
     try {
       let respuesta = await getTodasRutinas();
@@ -103,6 +110,8 @@ function RegistrarMuestra() {
     setMetrosTotal('');
     setNumCampos(1);
     setMuestra(Array(1).fill(''));
+    setEstadoTela('');
+    setRama('');
 
   }
   const handleIncremento = () => {
@@ -384,6 +393,21 @@ function RegistrarMuestra() {
       setIsOpen(true);
       return false;
     }
+    if (estadoTela === '' || estadoTela === null) {
+      setMensaje('Ingrese el estado de la tela');
+      setTipo('error');
+      setIsOpen(true);
+      return false;
+    }
+    if (
+      (value === 'Lavado Potencial' || value === 'Boil Off') &&
+      (procesoRama === '' || procesoRama === null)
+    ) {
+      setMensaje('Ingrese si el proceso es antes o después de rama');
+      setTipo('error');
+      setIsOpen(true);
+      return false;
+    }
     return true;
   }
   const handleClick = async () => {
@@ -419,7 +443,9 @@ function RegistrarMuestra() {
             muestra: muestra[x],
             tarima: tarima,
             operario: auth?.usuario,
-            letra: letra
+            letra: letra,
+            grupo_articulo_final: estadoTela,
+            lugar_muestra: procesoRama,
           };
 
           try {
@@ -519,6 +545,23 @@ function RegistrarMuestra() {
                 ))}
               </Grid>
 
+              {(value === "Boill Off" || value === "Lavado Potencial") && (
+                <Grid item xs={6} sm={12} md={12} padding={0} margin={1.3}>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="procesoRama">Etapa de proceso</InputLabel>
+                    <Select
+                      labelId="procesoRama"
+                      id="procesoRama"
+                      value={procesoRama}
+                      onChange={(e) => setRama(e.target.value)}
+                      label="procesoRama"
+                    >
+                      <MenuItem value="AntesRama">Antes de rama</MenuItem>
+                      <MenuItem value="DespuesRama">Después de rama</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
               {/* SEGUNDA FILA - LOTE - PIEZA*/}
               <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1}>
 
@@ -786,6 +829,23 @@ function RegistrarMuestra() {
                   </Grid>
                 ))}
               </Grid>
+              {/* ESTADO DE TELA  PLEGADO-ENROLLADO */}
+              <Grid item xs={6} sm={6} md={6} padding={0.2} margin={1.2}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel id="estado-tela">Estado</InputLabel>
+                  <Select
+                    labelId="estado-tela"
+                    id="estado-tela"
+                    value={estadoTela}
+                    onChange={(e) => setEstadoTela(e.target.value)}
+                    label="Estado"
+                  >
+                    <MenuItem value="Enrollado">Enrollado</MenuItem>
+                    <MenuItem value="Plegado">Plegado</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
 
               {/* MENSAJE Y BOTON */}
               <Grid container direction="row" justifyContent="flex-end" alignItems="flex-start" padding={1}>
@@ -796,7 +856,7 @@ function RegistrarMuestra() {
                     onClick={handleClick}
                     loading={loading}
                     loadingIndicator="Registrando...">
-                      Guardar e imprimir
+                    Guardar e imprimir
                   </LoadingButton>
                 </Grid>
               </Grid>

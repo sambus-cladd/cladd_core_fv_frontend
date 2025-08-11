@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import DataGridTabla from '../../../../components/DataGrid/DataGridTable';
 import GraficoBarraRollosxFecha from './GraficoBarraRollosxFecha';
 import { getReporteIngresoRollos } from '../../API/APIFunctions';
+
 const ReporteIngresoRollos = () => {
   const [fechaInicio, setFechaInicio] = useState(dayjs());
   const [fechaFin, setFechaFin] = useState(dayjs());
@@ -53,49 +54,42 @@ const ReporteIngresoRollos = () => {
 
 
   return (
-    <Grid container
-      direction="row"
-      sx={{
-        justifyContent: "flex-start",
-        alignItems: "center",
-      }}>
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-        <Grid item xs={4}>
-          <Grid container
-            direction="row"
-            sx={{
-              justifyContent: "flex-start",
-              alignItems: "flex-start",
-            }}>
-            <Grid item xs={6}>
-              <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                Fecha de inicio
-              </Typography>
-              <DatePicker
-                value={fechaInicio}
-                onChange={(newValue) => setFechaInicio(newValue)}
-                disableFuture
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                Fecha de fin
-              </Typography>
-              <DatePicker
-                value={fechaFin}
-                onChange={(newValue) => setFechaFin(newValue)}
-                disableFuture
-              />
-            </Grid>
-            <Grid item xs={12} paddingTop={1}>
-              <Button variant='contained' onClick={fetchRollos}>
-                Generar reporte
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-      </LocalizationProvider >
-      <Grid item xs={8}>
+  <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+    <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
+      
+      {/* Fecha de inicio */}
+      <Grid item>
+        <Typography variant='h6' fontFamily='Poppins' fontWeight="bold" gutterBottom>
+          Fecha de inicio
+        </Typography>
+        <DatePicker
+          value={fechaInicio}
+          onChange={(newValue) => setFechaInicio(newValue)}
+          disableFuture
+        />
+      </Grid>
+
+      {/* Fecha de fin */}
+      <Grid item>
+        <Typography variant='h6' fontFamily='Poppins' fontWeight="bold" gutterBottom>
+          Fecha de fin
+        </Typography>
+        <DatePicker
+          value={fechaFin}
+          onChange={(newValue) => setFechaFin(newValue)}
+          disableFuture
+        />
+      </Grid>
+
+      {/* Botón */}
+      <Grid item alignSelf="end" sx={{ mt: 2 }}>
+        <Button variant='contained' onClick={fetchRollos}>
+          Generar reporte
+        </Button>
+      </Grid>
+
+      {/* Grafico */}
+      <Grid item xs={12}>
         <Box p={1} textAlign="center">
           <GraficoBarraRollosxFecha
             data={rows}
@@ -104,13 +98,8 @@ const ReporteIngresoRollos = () => {
           />
         </Box>
       </Grid>
-      {/* <Grid item xs={12}>
-        <DataGridTabla
-          rows={rows}
-          columns={columns}
-          filename={`Ingreso de rollos desde ${fechaInicio.format('DD/MM/YYYY')} hasta ${fechaFin.format('DD/MM/YYYY')}`}
-        />
-      </Grid> */}
+
+      {/* Tabla */}
       <Grid item xs={12}>
         <DataGridTabla
           rows={rows2}
@@ -120,9 +109,10 @@ const ReporteIngresoRollos = () => {
       </Grid>
 
     </Grid>
+  </LocalizationProvider>
+);
 
 
-  );
 };
 
 export default ReporteIngresoRollos;
