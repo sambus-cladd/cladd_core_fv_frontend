@@ -1,5 +1,5 @@
 import { useEffect, useState, React } from 'react';
-import { Card, MenuItem, TextField, Button, Dialog, DialogTitle } from '@mui/material';
+import { Card, MenuItem, TextField, Button, Dialog, DialogTitle, DialogContent, Box } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { Typography } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -22,6 +22,8 @@ import '../assets/DualListBoxCustom.css';
 import { set } from 'date-fns';
 import MyDocument from './DocPedidoRollo';
 import { getRollosEnProduccionXArt, getStockRollosXArt, putEnviarRollosAProduccion } from '../../../API/APIFunctions';
+import { getNumeroOrdenes, GetDatosGantFV } from '../API/APIFunctions';
+
 function FormularioGantPcp() {
     dayjs.extend(duration);
     dayjs.extend(customParseFormat);
@@ -51,10 +53,22 @@ function FormularioGantPcp() {
     const [openError, setopenError] = useState(false);
     const [rollosDeArticulo, setRollosdeArticulo] = useState([]);
     const [mensaje, setMensaje] = useState("");
+<<<<<<< Updated upstream
     const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
     const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
 
 
+=======
+<<<<<<< Updated upstream
+=======
+    const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
+    const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
+    const [verificacionMensaje, setVerificacionMensaje] = useState("");
+    const [openVerificacion, setOpenVerificacion] = useState(false);
+    const [metrosCorrectos, setMetrosCorrectos] = useState(false);
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
     const columns = [
         { field: 'rollo', headerName: 'Rollo', width: 150 },
@@ -407,6 +421,11 @@ function FormularioGantPcp() {
             toggleOpenErrorWithDelay();
         }
     };
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 
     // Logs de depuración antes del return principal
     console.log('Orden:', Orden);
@@ -426,6 +445,7 @@ function FormularioGantPcp() {
         const fechaFin = fechaInicio.add(Number(HorasT), 'hour');
 
         const ocupadas = rows
+<<<<<<< Updated upstream
         .filter(row => {
             if (!row.InicioHora || !row.FinHora) return false;
 
@@ -439,10 +459,26 @@ function FormularioGantPcp() {
         .map(row => row.MaquinaProc);
 
     setMaquinasGiroLentoOcupadas(ocupadas);
+=======
+            .filter(row => {
+                if (!row.InicioHora || !row.FinHora) return false;
+
+                const inicioRow = dayjs(row.InicioHora);
+                const finRow = dayjs(row.FinHora);
+
+                return maquinasGiroLento.includes(row.MaquinaProc) &&
+                    fechaInicio.isBefore(finRow) &&
+                    fechaFin.isAfter(inicioRow);
+            })
+            .map(row => row.MaquinaProc);
+
+        setMaquinasGiroLentoOcupadas(ocupadas);
+>>>>>>> Stashed changes
     };
 
 
     useEffect(() => {
+<<<<<<< Updated upstream
     if (Maquina === "GIRO LENTO") {
         filtrarMaquinasGiroLentoDisponibles();
     } else {
@@ -455,6 +491,96 @@ useEffect(() => {
 
 
 
+=======
+        if (Maquina === "GIRO LENTO") {
+            filtrarMaquinasGiroLentoDisponibles();
+        } else {
+            setMaquinasGiroLentoOcupadas([]);
+        }
+    }, [InicioHora, HorasT, rows, Maquina]);
+    useEffect(() => {
+        console.log("Máquinas ocupadas:", maquinasGiroLentoOcupadas);
+    }, [maquinasGiroLentoOcupadas]);
+
+
+    const verificarOrden = async () => {
+        if (!Orden) {
+            setVerificacionMensaje("Debes ingresar un numero de orden");
+            setOpenVerificacion(true);
+            setMetrosCorrectos(false);
+            return;
+        }
+        if (!Metros) {
+            setVerificacionMensaje("Debes ingresar los metros para verificar");
+            setOpenVerificacion(true);
+            setMetrosCorrectos(false);
+            return;
+        }
+
+        try {
+            const response = await getNumeroOrdenes(Orden);
+            const lista = Array.isArray(response?.data) ? response.data : [];
+
+            const gantResponse = await GetDatosGantFV();
+            const datosPlanos = gantResponse?.Dato?.flat() ?? [];
+
+            if (response?.success && lista.length > 0) {
+                const metrosIngresados = parseInt(Metros, 10);
+                const listaConMaquinas = lista.map(item => {
+                    const dato = datosPlanos.find(d => d.id === item.id_orden);
+                    return {
+                        ...item,
+                        maquina: dato?.maquina ?? "No asignada"
+                    };
+                });
+
+                const coincide = listaConMaquinas.some(x => parseInt(x.metros_totales, 10) === metrosIngresados);
+
+                if (coincide) {
+                    setMetrosCorrectos(true);
+                    const registroCorrecto = listaConMaquinas.find(x => parseInt(x.metros_totales, 10) === metrosIngresados);
+                    setVerificacionMensaje(
+                    <><Typography variant="body1" sx={{ color: 'green' }}>
+                            <b>Datos correctos.</b>
+                        </Typography>
+                        <Typography variant="body1" sx={{ ml: 1, mb: 2, mt: 1, borderBottom: '1px solid #ddd' }}>
+                            🟢Orden: <b>{registroCorrecto.numero_orden}</b>, Maquina: <b>{registroCorrecto.maquina}</b>
+                        </Typography></>
+                );
+                } else {
+                    setMetrosCorrectos(false);
+                    setVerificacionMensaje(
+                        <><Typography variant="body1" sx={{ color: 'red' }}>
+                            <b>Los metros ingresados no coinciden.</b>
+                        </Typography>
+                        <Typography variant="body1" sx={{ mt: 1, fontSize: 20, borderBottom: '1px solid #ddd' }}>
+                            Valores correctos posibles:
+                        </Typography>
+                            {listaConMaquinas.map((x, index) => (
+                                <Typography key={index} variant="body1" sx={{ ml: 1, mb: 2, mt: 1, borderBottom: '1px solid #ddd' }}>
+                                    🟢Orden: <b>{x.numero_orden}</b>, Maquina: <b>{x.maquina}</b>, Metros: <b>{parseInt(x.metros_totales, 10)}</b>
+                                </Typography>
+                            ))}
+                        </>
+                    );
+                }
+            } else {
+                setMetrosCorrectos(false);
+                setVerificacionMensaje(
+                    <Typography variant="body1" sx={{ color: 'red' }}>
+                        <b>No se encontró ninguna orden con ese número.</b>
+                    </Typography>
+                );
+            }
+            setOpenVerificacion(true);
+        } catch (error) {
+            setMetrosCorrectos(false);
+            setOpenVerificacion(true);
+        }
+    };
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     return (
         <>
             {/* contenedor principal */}
@@ -722,7 +848,6 @@ useEffect(() => {
                                             setHoraT(horatotal);
                                             // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
                                             // setFinHora(finHoraCalculada); 
-
                                         }}
                                         fullWidth
                                     />
@@ -731,8 +856,8 @@ useEffect(() => {
                         </Grid>
 
                         {/* FILA BOTON */}
-                        <Grid container direction="row" justifyContent="flex-end" alignItems="flex-end" padding={2}>
-                            <Grid item xs={6} sm={6} md={6} justifyContent="flex-end" alignItems="flex-end">
+                        <Grid container direction="row" justifyContent="flex-end" alignItems="flex-end" padding={2} gap={1}>
+                            <Grid item>
                                 <Button variant="contained" style={{ color: 'white' }}
                                     onClick={() => {
                                         let Aux = {
@@ -753,6 +878,11 @@ useEffect(() => {
                                     <Typography variant="button" fontFamily="Poppins" fontSize={18}>
                                         Registrar Orden
                                     </Typography>
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button variant="outlined" onClick={verificarOrden} sx={{ mt: 0 }}>
+                                    Verificar Orden
                                 </Button>
                             </Grid>
                         </Grid>
@@ -795,6 +925,49 @@ useEffect(() => {
                                 <Button onClick={handleprint}>
                                     imprimir
                                 </Button>
+
+                                {/* Popp up Verificar datos de orden */}
+                                <Dialog open={openVerificacion} onClose={() => setOpenVerificacion(false)}
+                                    PaperProps={{ style: { padding: '20px', borderRadius: '12px', minWidth: '300px' } }}
+                                >
+                                    <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #ddd', ml: 0, pb: 0, mb: 1, }}>
+                                        Verificacion de Ordenes
+                                    </DialogTitle>
+                                    <DialogContent sx={{ p: 0 }}>
+                                        <Typography variant="body1" textAlign={'center'}>
+                                            {verificacionMensaje}
+                                        </Typography>
+                                    </DialogContent>
+
+                                    <Button variant="contained" style={{ color: 'white' }}
+                                        disabled={!metrosCorrectos}
+                                        onClick={() => {
+                                            let Aux = {
+
+                                                Orden: Orden,
+                                                Maquina: Maquina,
+                                                MaquinaProc: MaquinaProceso,
+                                                Proceso: Proceso,
+                                                Color: Color,
+                                                Articulo: Articulo,
+                                                Metros: Metros,
+                                                HorasT: HorasT,
+                                                InicioHora: InicioHora,
+                                                FinHora: FinHora
+                                            }
+                                            handleAsignar();
+                                            setOpenVerificacion(false);
+                                        }}>
+                                        <Typography variant="button" fontFamily="Poppins" fontSize={15}>
+                                            Registrar Orden
+                                        </Typography>
+                                    </Button>
+
+                                    <Button variant="outlined" sx={{ mt: 1 }} onClick={() => setOpenVerificacion(false)}>
+                                        Cerrar
+                                    </Button>
+                                </Dialog>
+
                             </Grid>
                         </Grid>
                     </Grid>

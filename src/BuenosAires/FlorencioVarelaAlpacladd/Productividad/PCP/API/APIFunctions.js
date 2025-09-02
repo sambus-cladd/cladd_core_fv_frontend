@@ -70,6 +70,95 @@ async function DeleteOrdenPcp(id){
     return(peticion.data)
 }
 
+const actualizarDatosReales = async ({ IdOrden, MetrosReal, HoraInicioReal, HoraFinReal, FechaRegistroReal,HorasTotalReal }) => {
+    try {
+        const response = await axios.put('http://localhost:4300/Gant/ActualizarDatosReales', {
+            IdOrden,
+            MetrosReal,
+            HoraInicioReal,
+            HoraFinReal,
+            FechaRegistroReal,
+            HorasTotalReal
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error en actualizarDatosReales:", error);
+        throw error;
+    }
+};
+
+const guardarEstadoOrden = async ({ IdOrden, NumeroOrden, EstadoOrden, HoraInicioReal, HoraFinReal, MetrosTotales, MetrosPorRollo }) => {
+    try {
+        const response = await axios.put('http://localhost:4300/Gant/GuardarEstadoOrden', {
+            IdOrden,
+            NumeroOrden,
+            EstadoOrden,
+            HoraInicioReal,
+            HoraFinReal,
+            MetrosTotales,
+            MetrosPorRollo
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error en guardarEstadoOrden:", error);
+        throw error;
+    }
+};
+const getEstadoOrden = async (idOrden) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/Gant/EstadoOrden/${idOrden}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getEstadoOrden:", error);
+        throw error;
+    }
+};
+
+const getSecuenciaRollo = async (rollo) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/Gant/SecuenciaRollo/${rollo}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getEstadoOrden:", error);
+        throw error;
+    }
+};
+
+const getDatosOrdenes = async (idOrden) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/Gant/DatosOrdenes/${idOrden}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getDatosOrdenes:", error);
+        throw error;
+    }
+};
+
+const getNumeroOrdenes = async (numero_orden) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/Gant/NumOrdenes/${numero_orden}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getDatosOrdenes:", error);
+        throw error;
+    }
+};
+
+const getOrdenPorRollo = async (rollo) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/Gant/RolloOrdenes/${rollo}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getDatosOrdenes:", error);
+        throw error;
+    }
+};
+
 export {
     PutRegistroGantFV,
     PutModificacionGantFV,
@@ -82,4 +171,11 @@ export {
     GetMetrosxArticulo,
     GetProdxOrden,
     DeleteOrdenPcp,
+    actualizarDatosReales,
+    guardarEstadoOrden,
+    getEstadoOrden,
+    getSecuenciaRollo,
+    getDatosOrdenes,
+    getNumeroOrdenes,
+    getOrdenPorRollo,
 }
