@@ -14,6 +14,7 @@ function StockDeRollos() {
     async function fetchData() {
         try {
             let respuesta = await getStockRollosDeposito();
+            console.log("DATA DE LA BD", respuesta)
             if (respuesta.data) {
                 DataRaw = respuesta.data;
                 if (Array.isArray(DataRaw.ArticuloStock) && DataRaw.ArticuloStock.length > 0) {

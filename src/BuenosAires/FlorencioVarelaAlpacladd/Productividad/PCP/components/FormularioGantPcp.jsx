@@ -53,22 +53,11 @@ function FormularioGantPcp() {
     const [openError, setopenError] = useState(false);
     const [rollosDeArticulo, setRollosdeArticulo] = useState([]);
     const [mensaje, setMensaje] = useState("");
-<<<<<<< Updated upstream
-    const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
-    const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
-
-
-=======
-<<<<<<< Updated upstream
-=======
     const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
     const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
     const [verificacionMensaje, setVerificacionMensaje] = useState("");
     const [openVerificacion, setOpenVerificacion] = useState(false);
     const [metrosCorrectos, setMetrosCorrectos] = useState(false);
-
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
     const columns = [
         { field: 'rollo', headerName: 'Rollo', width: 150 },
@@ -421,11 +410,6 @@ function FormularioGantPcp() {
             toggleOpenErrorWithDelay();
         }
     };
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 
     // Logs de depuración antes del return principal
     console.log('Orden:', Orden);
@@ -445,21 +429,6 @@ function FormularioGantPcp() {
         const fechaFin = fechaInicio.add(Number(HorasT), 'hour');
 
         const ocupadas = rows
-<<<<<<< Updated upstream
-        .filter(row => {
-            if (!row.InicioHora || !row.FinHora) return false;
-
-            const inicioRow = dayjs(row.InicioHora);
-            const finRow = dayjs(row.FinHora);
-
-            return maquinasGiroLento.includes(row.MaquinaProc) &&
-                   fechaInicio.isBefore(finRow) &&
-                   fechaFin.isAfter(inicioRow);
-        })
-        .map(row => row.MaquinaProc);
-
-    setMaquinasGiroLentoOcupadas(ocupadas);
-=======
             .filter(row => {
                 if (!row.InicioHora || !row.FinHora) return false;
 
@@ -473,25 +442,10 @@ function FormularioGantPcp() {
             .map(row => row.MaquinaProc);
 
         setMaquinasGiroLentoOcupadas(ocupadas);
->>>>>>> Stashed changes
     };
 
 
     useEffect(() => {
-<<<<<<< Updated upstream
-    if (Maquina === "GIRO LENTO") {
-        filtrarMaquinasGiroLentoDisponibles();
-    } else {
-        setMaquinasGiroLentoOcupadas([]); // Limpiar ocupadas si cambia de tipo de máquina
-    }
-}, [InicioHora, HorasT, rows, Maquina]);
-useEffect(() => {
-    console.log("Máquinas ocupadas:", maquinasGiroLentoOcupadas);
-}, [maquinasGiroLentoOcupadas]);
-
-
-
-=======
         if (Maquina === "GIRO LENTO") {
             filtrarMaquinasGiroLentoDisponibles();
         } else {
@@ -579,8 +533,6 @@ useEffect(() => {
         }
     };
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     return (
         <>
             {/* contenedor principal */}

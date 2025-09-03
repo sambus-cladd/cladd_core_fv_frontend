@@ -1,12 +1,4 @@
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-
->>>>>>> Stashed changes
-import { React, useState, useEffect } from "react";
-=======
 import React, { useState, useEffect } from "react";
->>>>>>> Stashed changes
 import Grid from '@mui/material/Grid';
 import dayjs from 'dayjs';
 import DataGridTable from '../../../../../components/DataGrid/DataGridTable';
@@ -51,43 +43,6 @@ const TablaGantt = ({ handleChange }) => {
   );
 }
 
-<<<<<<< Updated upstream
-function getDatosValidos(serie) {
-  if (Array.isArray(serie)) {
-    if (Array.isArray(serie[0])) {
-      return serie[0];
-    }
-    return serie;
-  }
-  return [];
-}
-
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-function TablaHistoricoGantt({ Serie, handleChange }) {
-  let fila, filas = [];
-  const datos = getDatosValidos(Serie);
-
-  if (datos.length !== 0) {
-    datos.map((elemento, index) => {
-      fila = {
-        id: index,
-        Orden: elemento.orden,
-        Maquina: elemento.maquina,
-        MaquinaProceso: elemento.maquina_proceso,
-        Proceso: elemento.proceso,
-        Color: elemento.color,
-        Articulo: elemento.articulo,
-        Metros: elemento.metros,
-        HorasT: elemento.horas_total,
-        HoraInicio: dayjs(elemento.hora_inicio).format('DD-MM-YYYY HH:mm'),
-        HoraFin: dayjs(elemento.hora_fin).format('DD-MM-YYYY HH:mm')
-      };
-      filas.push(fila);
-    });
-  }
-=======
 function getDatosValidos(serie) {
   if (Array.isArray(serie)) {
     if (Array.isArray(serie[0])) return serie[0];
@@ -145,7 +100,6 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
       setOpenRollos(true);
     }
   };
->>>>>>> Stashed changes
 
   const columns = [
     {
