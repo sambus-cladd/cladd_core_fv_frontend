@@ -18,6 +18,8 @@ import FormularioGantPpc from './FormularioGantPcp';
 import HistoricoGantt from './TablaHistoricoGant';
 import MetrosXArticulos from './MetrosXArticulos'
 import ModificacionGantPcp from './ModificacionGantPcp';
+import ConfirmarProduccion from './ConfirmarProduccion';
+import TrazabilidadOrdenes from './TrazabilidadOrdenes';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -31,7 +33,7 @@ function CustomTabPanel(props) {
             {...other}
         >
             {value === index && (
-                <Box sx={{ p: 0 }}>
+                <Box sx={{ p: 2 }}>
                     <Typography>{children}</Typography>
                 </Box>
             )}
@@ -46,17 +48,18 @@ CustomTabPanel.propTypes = {
 };
 
 export const GantProgramacionFV = () => {
-    const [value, setValue] = React.useState(3);
+    const [value, setValue] = React.useState(2);
     const [orden, setOrden] = React.useState("");
     const [articulo, setArticulo] = React.useState("");
     const [maquina, setMaquina] = React.useState("");
+
     const handleChange = (event, newValue, orden, articulo, maquina) => {
         setValue(newValue);
         setOrden(orden);
         setArticulo(articulo);
         setMaquina(maquina);
         // Abrir una nueva ventana para PLANTAS
-        if (newValue === 2) {
+        if (newValue === 1) {
             const newWindow = window.open("/BuenosAires/FlorencioVarela/Productividad/PCP/GraficoGantFV", '_blank');
             if (newWindow) newWindow.focus();
         }
@@ -93,45 +96,52 @@ export const GantProgramacionFV = () => {
 
                     <Box sx={{ width: '100%', bgcolor: " #d3d3d3", display: 'flex', overflow: 'auto', justifyContent: 'center', alignItems: 'center' }}>
                         <Tabs value={value} onChange={handleChange} variant='scrollable' scrollButtons="on" allowScrollButtonsMobile>
-                            <Tab label="Home" icon={<HomeIcon />} />
-                            <Tab label="" disabled />
-                            <Tab label="Grafico Producción" icon={<DvrIcon />} />
-                            <Tab label="Registro Producción" icon={<AddCardIcon />} />
-                            <Tab label="Modificaciones" icon={<DriveFileRenameOutlineIcon />} />
-                            <Tab label="Metros x Articulo" icon={<ManageSearchIcon />} />
-                            <Tab label="Historico" icon={<SearchIcon />} />
-                            <Tab label="Rollos x Orden" icon={<SearchIcon />} />
+                            <Tab label="Home" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}}icon={<HomeIcon />} />
+                            <Tab label="Grafico Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<DvrIcon />} />
+                            <Tab label="Registro Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} />
+                            <Tab label="Modificaciones" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<DriveFileRenameOutlineIcon />} />
+                            <Tab label="Metros x Articulo" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<ManageSearchIcon />} />
+                            <Tab label="Historico" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
+                            <Tab label="Rollos x Orden" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
+                            {/* <Tab label="Confirmar Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} /> */}
+                            {/* <Tab label="Trazabilidad" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} /> */}
                         </Tabs>
                     </Box>
                     <Box sx={{ width: '100%' }}>
                         <CustomTabPanel value={value} index={0}>
                             <Navigate to='/BuenosAires/FlorencioVarela/Productividad'></Navigate>
                         </CustomTabPanel>
-                        <CustomTabPanel value={value} index={1}>
+                        {/* <CustomTabPanel value={value} index={1}>
                             <></>
+                        </CustomTabPanel> */}
+                        <CustomTabPanel value={value} index={1}>
+
                         </CustomTabPanel>
+
                         <CustomTabPanel value={value} index={2}>
-
-                        </CustomTabPanel>
-
-                        <CustomTabPanel value={value} index={3}>
                             <FormularioGantPpc />
                         </CustomTabPanel>
 
-                        <CustomTabPanel value={value} index={4}>
+                        <CustomTabPanel value={value} index={3}>
                             <ModificacionGantPcp />
                         </CustomTabPanel>
 
-                        <CustomTabPanel value={value} index={5}>
+                        <CustomTabPanel value={value} index={4}>
                             <MetrosXArticulos />
                         </CustomTabPanel>
 
-                        <CustomTabPanel value={value} index={6}>
+                        <CustomTabPanel value={value} index={5}>
                             <HistoricoGantt handleChange={handleChange} />
                         </CustomTabPanel>
-                        <CustomTabPanel value={value} index={7}>
+                        <CustomTabPanel value={value} index={6}>
                             <RollosPorOrden orden={orden} articulo={articulo} maquina={maquina} />
                         </CustomTabPanel>
+                        {/* <CustomTabPanel value={value} index={7}>
+                            <ConfirmarProduccion />
+                        </CustomTabPanel>
+                        <CustomTabPanel value={value} index={8}>
+                            <TrazabilidadOrdenes />
+                        </CustomTabPanel> */}
                     </Box>
                 </div>
 

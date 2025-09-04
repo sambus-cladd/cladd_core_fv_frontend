@@ -39,7 +39,7 @@ const fetchEtiqueta = async () => {
   setLoading(true);
 
   try {
-    const response = await axios.get(`http://localhost:4300/api/movimientos/${codigo}`);
+    const response = await axios.get(`http://192.168.0.18:4300/api/movimientos/${codigo}`);
 
     if (!response.data?.data) {
       showSnackbar('No se encontró la información del código ingresado.', 'warning');

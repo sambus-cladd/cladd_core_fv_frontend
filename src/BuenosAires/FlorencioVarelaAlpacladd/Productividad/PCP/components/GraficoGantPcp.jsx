@@ -45,7 +45,7 @@ export const GraficosGant = () => {
     const fetchData = async () => {
       try {
         const response = await GetDatosGantFV();
-        // console.log("respuesta", response);
+        console.log("respuesta", response);
         setDatosGant(response.Dato);
       } catch (error) {
         console.error("Error al obtener los datos de gantt", error);
