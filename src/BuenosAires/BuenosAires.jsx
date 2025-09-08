@@ -45,7 +45,7 @@ const navItems = [
   { href: "", label: "San Martín", showAlert: true },
   { href: "/BuenosAires/FlorencioVarela/AlpacladdHome", label: "Florencio Varela" },
   { href: "", label: "Morón", showAlert: true },
-  { href: "http://192.168.0.18:4300/users/login", label: "CladdPro" },
+  { href: "http://192.168.0.18:3000/users/login", label: "CladdPro" },
 ];
 
 const BuenosAires = () => {
