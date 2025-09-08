@@ -16,6 +16,7 @@ const TrazabilidadOrdenes = () => {
         setLoading(true);
         try {
             const response = await getOrdenPorRollo(rollo);
+            console.log("RESPUESTA", response)
             if (response.success) {
                 const withIds = response.data.map((item, index) => ({
                     ...item,
@@ -45,8 +46,8 @@ const TrazabilidadOrdenes = () => {
         { field: "orden", headerName: "Orden", width: 80 },
         { field: "hora_inicio_real", headerName: "Inicio Real", width: 130, valueFormatter: ({ value }) => formatDate(value)},
         { field: "hora_fin_real", headerName: "Fin Real", width: 130, valueFormatter: ({ value }) => formatDate(value)},
-        { field: "fecha_registro", headerName: "Fecha Registro", width: 130, valueFormatter: ({ value }) => formatDate(value)},
-        { field: "metros_real", headerName: "Metros", width: 80, valueFormatter: (params) => { return params.value ? parseInt(params.value, 10) : ""; }, },
+        { field: "fecha_registro_real", headerName: "Fecha Registro", width: 130, valueFormatter: ({ value }) => value ? dayjs(value).format("DD/MM/YYYY") : ""},
+        { field: "metros_por_rollo", headerName: "Metros", width: 80, valueFormatter: (params) => { return params.value ? parseInt(params.value, 10) : ""; }, },
         { field: "horas_total_real", headerName: "Hs.Total", width: 80 },
         { field: "maquina_proceso", headerName: "Maq.Proc.", width: 120 },
         { field: "proceso", headerName: "Proceso", width: 100 },
