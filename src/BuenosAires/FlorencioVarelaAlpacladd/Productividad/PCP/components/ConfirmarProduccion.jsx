@@ -31,6 +31,7 @@ export default function ConfirmarProduccion() {
     const [passwordIngresada, setPasswordIngresada] = useState("");
     const [busquedaActiva, setBusquedaActiva] = useState(false);
     const PASSWORD_SUPERUSER = "0000";
+    const PASSWORD_FORZAR = "1111";
 
     useEffect(() => {
         const fetchData = async () => {
@@ -56,7 +57,7 @@ export default function ConfirmarProduccion() {
                 setDatos(datosConMetros);
                 setResultados(datosConMetros);
 
-                // Traer estados de orden como ya lo haces
+                // Traer estados de orden
                 if (!busquedaActiva) setResultados(datosConMetros);
                 const estados = {};
                 const promesas = datosConMetros.map(async (it) => {
@@ -79,7 +80,6 @@ export default function ConfirmarProduccion() {
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, [busquedaActiva]);
-
 
     const handleBuscar = () => {
         const filtro = busqueda.trim();
@@ -131,10 +131,8 @@ export default function ConfirmarProduccion() {
         }
     };
 
-
     const handleOpenPopup = async (item) => {
         setOrdenSeleccionada(item);
-
         // Traer estado de la orden
         let estado = {};
         try {
@@ -171,6 +169,8 @@ export default function ConfirmarProduccion() {
         setEstadoOrden("sin iniciar");
         setHoraInicioReal(null);
         setHoraFinReal(null);
+        setUsuarioAutorizado(false);
+        setPasswordIngresada("");
     };
 
     const iniciarOrden = async () => {
@@ -206,13 +206,18 @@ export default function ConfirmarProduccion() {
         }
 
         const totalMetros = Object.values(todosMetros).reduce((acc, val) => acc + Number(val || 0), 0);
-
         if (totalMetros <= 0) {
             return alert("No se registraron metros reales. Verificá antes de finalizar la orden.");
         }
-        if (ordenSeleccionada.metros && totalMetros > Number(ordenSeleccionada.metros)) {
-            setMostrarPassword(true);
-            return alert(`Los metros reales (${totalMetros}) exceden a los metros cargados (${ordenSeleccionada.metros}). Verificá los datos.`);
+        const metrosCargados = Number(ordenSeleccionada.metros);
+        const minPermitido = metrosCargados * 0.92; // 8% menos
+        const maxPermitido = metrosCargados * 1.08; // 8% más
+
+        if (totalMetros < minPermitido || totalMetros > maxPermitido) {
+            return alert(
+                `Los metros reales (${totalMetros}) deben estar dentro del rango permitido: 
+             entre ${minPermitido.toFixed(2)} y ${maxPermitido.toFixed(2)}.`
+            );
         }
 
         const ahora = dayjs();
@@ -254,6 +259,86 @@ export default function ConfirmarProduccion() {
                 alert("Ocurrió un error al finalizar la orden. Reintente.");
             }
     };
+    const finalizarOrdenForzado = async () => {
+        if (!ordenSeleccionada) return;
+
+        const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
+        const checks = checksUsadosPorOrden[ordenSeleccionada.id] || {};
+
+        for (let rollo of rollosAsignados) {
+            const valor = todosMetros[rollo.rollo];
+            const confirmado = checks[rollo.rollo];
+            if (!confirmado || !valor || isNaN(valor) || Number(valor) <= 0) {
+                return alert(`Debes ingresar y confirmar metros reales para el rollo ${rollo.rollo}.`);
+            }
+        }
+
+        const totalMetros = Object.values(todosMetros).reduce((acc, val) => acc + Number(val || 0), 0);
+        if (totalMetros <= 0) {
+            return alert("No se registraron metros reales.");
+        }
+
+        const ahora = dayjs();
+        setHoraFinReal(ahora);
+        setEstadoOrden("finalizado");
+
+        let duracionHoras = 0;
+        if (horaInicioReal && dayjs.isDayjs(horaInicioReal)) {
+            const diffMs = ahora.diff(horaInicioReal);
+            duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
+        }
+
+        try {
+            await actualizarDatosReales({
+                IdOrden: ordenSeleccionada.id,
+                MetrosReal: totalMetros,
+                HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
+                HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
+                FechaRegistroReal: ahora.format("YYYY-MM-DD"),
+                MetrosPorRollo: todosMetros,
+                HorasTotalReal: duracionHoras
+            });
+
+            await guardarEstadoOrden({
+                IdOrden: ordenSeleccionada.id,
+                NumeroOrden: ordenSeleccionada.orden,
+                EstadoOrden: "finalizado",
+                HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
+                HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
+                MetrosTotales: totalMetros,
+                MetrosPorRollo: todosMetros,
+                Forzado: true,
+            });
+
+            alert("Orden finalizada FORZADA correctamente.");
+        } catch (err) {
+            console.error("Error finalizando la orden forzada:", err);
+            alert("Ocurrió un error al finalizar la orden.");
+        }
+    };
+    const handleAutorizar = () => {
+        if (mostrarPassword === "editar") {
+            if (passwordIngresada === PASSWORD_SUPERUSER) {
+                setUsuarioAutorizado(true);
+                alert("Autorización correcta. Ahora podés editar los metros.");
+                setMostrarPassword(false);
+                setPasswordIngresada("");
+            } else {
+                alert("Contraseña incorrecta.");
+            }
+        }
+
+        if (mostrarPassword === "forzar") {
+            if (passwordIngresada === PASSWORD_FORZAR) {
+                alert("Autorización correcta. Se forzará la finalización.");
+                setMostrarPassword(false);
+                setPasswordIngresada("");
+                finalizarOrdenForzado();
+            } else {
+                alert("Contraseña incorrecta.");
+            }
+        }
+    };
 
     const guardarMetrosRollo = async (rollo) => {
         if (!ordenSeleccionada) return;
@@ -265,15 +350,34 @@ export default function ConfirmarProduccion() {
             [ordenSeleccionada.id]: { ...(prev[ordenSeleccionada.id] || {}), [rollo]: true }
         }));
 
+        const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
+        const totalMetros = Object.values(todosMetros).reduce((a, b) => a + Number(b || 0), 0);
+
+        let duracionHoras = 0;
+        if (horaInicioReal && dayjs.isDayjs(horaInicioReal) && horaFinReal && dayjs.isDayjs(horaFinReal)) {
+            const diffMs = horaFinReal.diff(horaInicioReal);
+            duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
+        }
+
         try {
+            await actualizarDatosReales({
+                IdOrden: ordenSeleccionada.id,
+                MetrosReal: totalMetros,
+                HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
+                HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
+                FechaRegistroReal: dayjs().format("YYYY-MM-DD"),
+                MetrosPorRollo: todosMetros,
+                HorasTotalReal: duracionHoras
+            });
+
             await guardarEstadoOrden({
                 IdOrden: ordenSeleccionada.id,
                 NumeroOrden: ordenSeleccionada.orden,
                 EstadoOrden: estadoOrden,
                 HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
                 HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                MetrosTotales: Object.values(metrosRealesPorOrden[ordenSeleccionada.id]).reduce((a, b) => a + Number(b || 0), 0),
-                MetrosPorRollo: metrosRealesPorOrden[ordenSeleccionada.id],
+                MetrosTotales: totalMetros,
+                MetrosPorRollo: todosMetros,
             });
 
             alert(`Metros del rollo ${rollo} guardados correctamente.`);
@@ -302,7 +406,7 @@ export default function ConfirmarProduccion() {
                             </Button>
                         </Grid>
                         <Grid item>
-                            <Button variant="outlined" color="primary" onClick={() => { setBusqueda(""); setResultados(datos); setBusquedaActiva(false);}} >
+                            <Button variant="outlined" color="primary" onClick={() => { setBusqueda(""); setResultados(datos); setBusquedaActiva(false); }} >
                                 Limpiar
                             </Button>
                         </Grid>
@@ -323,7 +427,6 @@ export default function ConfirmarProduccion() {
                         </Grid>
                     </Grid>
                 </Grid>
-
 
                 {/* Cards */}
                 <Grid item xs={12}>
@@ -346,7 +449,7 @@ export default function ConfirmarProduccion() {
                                                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
                                                 <Typography variant="body2" color="text.secondary">Maquina: {item.maquina}</Typography>
                                                 <Typography variant="body2" color="text.secondary">Proceso: {item.proceso}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros ,10)}</b></Typography>
+                                                <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
                                                 <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
                                                 <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
                                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -448,36 +551,76 @@ export default function ConfirmarProduccion() {
                             ) : <Typography variant="body2" color="text.secondary" marginTop={2}>No hay rollos asignados</Typography>
                         )}
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, marginTop: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, marginTop: 2 }}>
                             <Typography variant="h6">Metros Totales: <b>{metrosTotales}</b></Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, marginTop: 3 }}>
-                                <Button variant="outlined" startIcon={<CloseIcon />} color="error" onClick={handleClosePopup}>Cerrar</Button>
-                                {estadoOrden === "sin iniciar" && <Button variant="contained" onClick={iniciarOrden}>Iniciar Orden</Button>}
-                                {estadoOrden === "en proceso" && <Button variant="contained" onClick={finalizarOrden} color="error">Finalizar Orden</Button>}
-                                {estadoOrden === "finalizado" && <Button variant="contained" disabled>Orden Finalizada</Button>}
-                            </Box>
                         </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, marginTop: 2 }}>
+                            {!usuarioAutorizado && (
+                                <Button variant="outlined" color="primary" onClick={() => setMostrarPassword("editar")} >
+                                    Editar Metros
+                                </Button>
+                            )}
+                            <Button variant="outlined" startIcon={<CloseIcon />} color="error" onClick={handleClosePopup}>Cerrar</Button>
+                            {estadoOrden === "sin iniciar" && <Button variant="contained" onClick={iniciarOrden}>Iniciar Orden</Button>}
+                            {/* {estadoOrden === "en proceso" && <Button variant="contained" onClick={finalizarOrden} color="error">Finalizar Orden</Button>} */}
+
+                            {estadoOrden === "en proceso" && (
+                                <>
+                                    {/* Botón normal solo si los metros están dentro del rango ±8% */}
+                                    {metrosTotales >= ordenSeleccionada.metros * 0.92 && metrosTotales <= ordenSeleccionada.metros * 1.08 && (
+                                        <Button variant="contained" color="error" onClick={finalizarOrden}>
+                                            Finalizar Orden
+                                        </Button>
+                                    )}
+
+                                    {/* Botón forzar solo si está fuera del rango */}
+                                    {(metrosTotales < ordenSeleccionada.metros * 0.92 || metrosTotales > ordenSeleccionada.metros * 1.08) && (
+                                        <Button variant="outlined" color="warning" onClick={() => setMostrarPassword("forzar")}>
+                                            Forzar Finalización
+                                        </Button>
+                                    )}
+                                </>
+                            )}
+
+
+                            {estadoOrden === "finalizado" && <Button variant="contained" disabled>Orden Finalizada</Button>}
+                        </Box>
+
                     </Box>
+
                     {/* Popup contraseña editar */}
-                    <Dialog open={mostrarPassword} onClose={() => setMostrarPassword(false)} maxWidth="xs" fullWidth>
-                        <DialogTitle>Autorización requerida</DialogTitle>
+                    <Dialog
+                        open={!!mostrarPassword}
+                        onClose={() => setMostrarPassword(false)}
+                        maxWidth="xs"
+                        fullWidth
+                    >
+                        <DialogTitle>
+                            {mostrarPassword === "forzar" ? "Autorización para Forzar Finalización" : "Autorización requerida"}
+                        </DialogTitle>
                         <DialogContent>
-                            <TextField label="Contraseña" type="password" value={passwordIngresada} onChange={(e) => setPasswordIngresada(e.target.value)} size="small" fullWidth />
-                            <Button variant="contained" sx={{ marginTop: 2 }} fullWidth
-                                onClick={() => {
-                                    if (passwordIngresada === PASSWORD_SUPERUSER) {
-                                        setMostrarPassword(false);
-                                        setPasswordIngresada("");
-                                        setUsuarioAutorizado(true);
-                                        alert("Autorización correcta. Ahora podés editar los metros.");
-                                    } else {
-                                        alert("Contraseña incorrecta.");
-                                    }
-                                }}>
+                            <TextField
+                                label="Contraseña"
+                                type="password"
+                                value={passwordIngresada}
+                                onChange={(e) => setPasswordIngresada(e.target.value)}
+                                size="small"
+                                fullWidth
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleAutorizar();
+                                }}
+                            />
+                            <Button
+                                variant="contained"
+                                sx={{ marginTop: 2 }}
+                                fullWidth
+                                onClick={handleAutorizar}
+                            >
                                 Autorizar
                             </Button>
                         </DialogContent>
                     </Dialog>
+
                 </DialogContent>
             </Dialog>
         </>

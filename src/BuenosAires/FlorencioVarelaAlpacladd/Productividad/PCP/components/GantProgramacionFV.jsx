@@ -103,8 +103,8 @@ export const GantProgramacionFV = () => {
                             <Tab label="Metros x Articulo" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<ManageSearchIcon />} />
                             <Tab label="Historico" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
                             <Tab label="Rollos x Orden" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
-                            {/* <Tab label="Confirmar Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} /> */}
-                            {/* <Tab label="Trazabilidad" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} /> */}
+                            <Tab label="Confirmar Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} />
+                            <Tab label="Trazabilidad" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
                         </Tabs>
                     </Box>
                     <Box sx={{ width: '100%' }}>
@@ -136,12 +136,12 @@ export const GantProgramacionFV = () => {
                         <CustomTabPanel value={value} index={6}>
                             <RollosPorOrden orden={orden} articulo={articulo} maquina={maquina} />
                         </CustomTabPanel>
-                        {/* <CustomTabPanel value={value} index={7}>
+                        <CustomTabPanel value={value} index={7}>
                             <ConfirmarProduccion />
                         </CustomTabPanel>
                         <CustomTabPanel value={value} index={8}>
                             <TrazabilidadOrdenes />
-                        </CustomTabPanel> */}
+                        </CustomTabPanel>
                     </Box>
                 </div>
 
