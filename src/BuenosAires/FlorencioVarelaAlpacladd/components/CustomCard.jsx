@@ -1,6 +1,6 @@
 import { Card, CardContent, Typography, Box } from "@mui/material"
 
-const CustomCard = ({ title, cantidadCrudo }) => (
+const CustomCard = ({ title, cantidadCrudo, sx, children}) => (
   <Card
     sx={{
       textAlign: "center",
@@ -10,6 +10,7 @@ const CustomCard = ({ title, cantidadCrudo }) => (
       background: "linear-gradient(145deg, #2c4356, #1e2c3a)",
       overflow: "hidden",
       position: "relative",
+      ...sx,
     }}
   >
     <CardContent sx={{ padding: "24px" }}>
@@ -29,32 +30,30 @@ const CustomCard = ({ title, cantidadCrudo }) => (
       >
         {title}
       </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100px",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Typography
-          variant="h4"
-          component="p"
+            {cantidadCrudo !== undefined && (
+        <Box
           sx={{
-            color: "#629584",
-            fontWeight: 700,
-            fontSize: {
-              xs: "2rem",
-              sm: "2.5rem",
-              md: "3rem",
-            },
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100px",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          {cantidadCrudo} km
-        </Typography>
-      </Box>
+          <Typography
+            variant="h4"
+            component="p"
+            sx={{ color: "#629584", fontWeight: 700 }}
+          >
+            {cantidadCrudo} km
+          </Typography>
+        </Box>
+      )}
+
+      {/* Children: cualquier contenido extra SIN km */}
+      {children}
+
     </CardContent>
     <Box
       sx={{
