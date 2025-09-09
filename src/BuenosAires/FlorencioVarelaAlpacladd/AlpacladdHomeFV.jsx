@@ -144,7 +144,8 @@ const AlpacladdHomeFV = () => {
     { name: "Terminado", value: ventas.largoTotal },
   ];
 
-  const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
+  // const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
+  const TotalGeneral = deposito.largoTotal + calidad.largoTotal + ventas.largoTotal;
 
   return (
     <>
