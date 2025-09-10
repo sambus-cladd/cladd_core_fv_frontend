@@ -130,7 +130,7 @@ export const Articulos = ({ rol = 'lr' }) => {
                 © Automatización - La Rioja
                 </Typography>
                 <Typography variant="caption" color="white">
-                IT - Dirección Industrial
+                Dirección Industrial
                 </Typography>
             </Box>
                 </>

@@ -63,7 +63,7 @@ function Productividad() {
           }}
         >
           <Typography variant="caption" color="white">© Automatización - La Rioja</Typography>
-          <Typography variant="caption" color="white">IT - Dirección Industrial</Typography>
+          <Typography variant="caption" color="white">Dirección Industrial</Typography>
         </Box>
 
       </div>
