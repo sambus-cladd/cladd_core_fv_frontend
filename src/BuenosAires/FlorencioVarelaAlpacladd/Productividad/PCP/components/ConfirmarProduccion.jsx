@@ -447,6 +447,7 @@ export default function ConfirmarProduccion() {
                                             }}>
 
                                                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
+                                                <Typography variant="body2" color="text.secondary">Articulo: {item.articulo}</Typography>
                                                 <Typography variant="body2" color="text.secondary">Maquina: {item.maquina}</Typography>
                                                 <Typography variant="body2" color="text.secondary">Proceso: {item.proceso}</Typography>
                                                 <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
