@@ -17,13 +17,28 @@ const ReporteIngresoRollos = () => {
   const [rows2, setRows2] = useState([]);
 
   const columns2 = [
-    { field: 'fecha_ingreso', headerName: 'Fecha Ingreso', flex: 1 },
-    { field: 'rollo', headerName: 'Rollo', flex: 1 },
-    { field: 'articulo', headerName: 'Articulo', flex: 1 },
-    { field: 'orden_lr', headerName: 'Orden', flex: 1 },
-    { field: 'secuencia_lr', headerName: 'Secuencia', flex: 1 },
-    {field: 'largo', headerName: 'Largo', flex: 1, valueFormatter: (params) => `${params.value} m`},
-  ]
+  { field: 'fecha_ingreso', headerName: 'Fecha Ingreso', flex: 1 },
+  { field: 'rollo', headerName: 'Rollo', flex: 1 },
+  { field: 'articulo', headerName: 'Articulo', flex: 1 },
+  {field: 'orden', headerName: 'Orden', flex: 1,
+    valueGetter: (params) => {
+      const valor = params.row.orden_lr || "";
+      const partes = String(valor).split("/");
+      return partes[0] || "";
+    },
+  },
+  { field: 'clave', headerName: 'Clave', flex: 1,
+    valueGetter: (params) => {
+      const valor = params.row.orden_lr || "";
+      const partes = String(valor).split("/");
+      return partes[1] || "";
+    },
+  },
+
+  { field: 'secuencia_lr', headerName: 'Secuencia', flex: 1 },
+  { field: 'largo', headerName: 'Largo', flex: 1, valueFormatter: (params) => `${params.value} m` },
+];
+
   async function fetchRollos() {
     
     try {
