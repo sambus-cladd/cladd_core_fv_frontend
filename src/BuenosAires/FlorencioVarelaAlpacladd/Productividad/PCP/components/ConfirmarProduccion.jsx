@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Card, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
+import { Grid, Card, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, IconButton, Pagination } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import { GetDatosGantFV } from '../API/APIFunctions';
-import { actualizarDatosReales, guardarEstadoOrden, getEstadoOrden, getSecuenciaRollo, getDatosOrdenes } from '../API/APIFunctions';
+import { actualizarDatosReales, guardarEstadoOrden, getEstadoOrden, getSecuenciaRollo, getDatosOrdenes, getOrdenesGantt } from '../API/APIFunctions';
 import { getStockRollosXOrden } from '../../../API/APIFunctions';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -30,6 +29,9 @@ export default function ConfirmarProduccion() {
     const [mostrarPassword, setMostrarPassword] = useState(false);
     const [passwordIngresada, setPasswordIngresada] = useState("");
     const [busquedaActiva, setBusquedaActiva] = useState(false);
+    const [page, setPage] = useState(1);
+    const [rowsPerPage] = useState(12);
+
     const PASSWORD_SUPERUSER = "0000";
     const PASSWORD_FORZAR = "1111";
 
@@ -37,8 +39,9 @@ export default function ConfirmarProduccion() {
         const fetchData = async () => {
             if (busquedaActiva) return;
             try {
-                const response = await GetDatosGantFV();
-                const datosPlanos = response.Dato.flat();
+                const response = await getOrdenesGantt();
+                console.log("RTA GETDATOSGANTFV", response)
+                const datosPlanos = response.data.flat();
 
                 // Para cada orden, traigo los datos de metros usando getDatosOrdenes
                 const datosConMetros = await Promise.all(
@@ -136,6 +139,7 @@ export default function ConfirmarProduccion() {
         // Traer estado de la orden
         let estado = {};
         try {
+            console.log("DEBUG ITEM POPUP:", item);
             const response = await getEstadoOrden(item.id);
             if (response && response.success && response.data) {
                 estado = response.data;
@@ -387,6 +391,20 @@ export default function ConfirmarProduccion() {
         }
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    // calcula los datos de la paginacion
+    const sortedResults = [...resultados].sort(
+        (a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio)
+    );
+
+    const paginatedResults = sortedResults.slice(
+        (page - 1) * rowsPerPage,
+        (page - 1) * rowsPerPage + rowsPerPage
+    );
+
     const metrosTotales = ordenSeleccionada
         ? Object.values(metrosRealesPorOrden[ordenSeleccionada.id] || {}).reduce((a, b) => a + Number(b || 0), 0)
         : 0;
@@ -432,8 +450,9 @@ export default function ConfirmarProduccion() {
                 <Grid item xs={12}>
                     <Card sx={{ width: '100%', borderRadius: '10px', boxShadow: '1px 1px 2px 3px rgba(0,0,0,0.4)', padding: 1, marginTop: '20px' }}>
                         <Grid container spacing={2}>
-                            {resultados.length > 0 ? (
-                                [...resultados].sort((a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio))
+                            {paginatedResults.length > 0 ? (
+                                [...paginatedResults]
+                                    .sort((a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio))
                                     .map((item, index) => (
                                         <Grid item xs={12} sm={6} md={3} key={item.id || index}>
                                             <Box onClick={() => handleOpenPopup(item)} sx={{
@@ -467,6 +486,13 @@ export default function ConfirmarProduccion() {
                             )}
                         </Grid>
                     </Card>
+
+                    {/* Paginacion */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2, }}>
+                        <Pagination count={Math.ceil(resultados.length / rowsPerPage)}
+                            page={page} onChange={handleChangePage} color="primary"
+                        />
+                    </Box>
                 </Grid>
             </Grid>
 
@@ -567,14 +593,11 @@ export default function ConfirmarProduccion() {
 
                             {estadoOrden === "en proceso" && (
                                 <>
-                                    {/* Botón normal solo si los metros están dentro del rango ±8% */}
                                     {metrosTotales >= ordenSeleccionada.metros * 0.92 && metrosTotales <= ordenSeleccionada.metros * 1.08 && (
                                         <Button variant="contained" color="error" onClick={finalizarOrden}>
                                             Finalizar Orden
                                         </Button>
                                     )}
-
-                                    {/* Botón forzar solo si está fuera del rango */}
                                     {(metrosTotales < ordenSeleccionada.metros * 0.92 || metrosTotales > ordenSeleccionada.metros * 1.08) && (
                                         <Button variant="outlined" color="warning" onClick={() => setMostrarPassword("forzar")}>
                                             Forzar Finalización
@@ -582,46 +605,27 @@ export default function ConfirmarProduccion() {
                                     )}
                                 </>
                             )}
-
-
                             {estadoOrden === "finalizado" && <Button variant="contained" disabled>Orden Finalizada</Button>}
                         </Box>
-
                     </Box>
 
                     {/* Popup contraseña editar */}
-                    <Dialog
-                        open={!!mostrarPassword}
-                        onClose={() => setMostrarPassword(false)}
-                        maxWidth="xs"
-                        fullWidth
-                    >
+                    <Dialog open={!!mostrarPassword} onClose={() => setMostrarPassword(false)} maxWidth="xs" fullWidth >
                         <DialogTitle>
                             {mostrarPassword === "forzar" ? "Autorización para Forzar Finalización" : "Autorización requerida"}
                         </DialogTitle>
                         <DialogContent>
-                            <TextField
-                                label="Contraseña"
-                                type="password"
-                                value={passwordIngresada}
-                                onChange={(e) => setPasswordIngresada(e.target.value)}
-                                size="small"
-                                fullWidth
+                            <TextField label="Contraseña" type="password" value={passwordIngresada}
+                                onChange={(e) => setPasswordIngresada(e.target.value)} size="small" fullWidth
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") handleAutorizar();
                                 }}
                             />
-                            <Button
-                                variant="contained"
-                                sx={{ marginTop: 2 }}
-                                fullWidth
-                                onClick={handleAutorizar}
-                            >
+                            <Button variant="contained" sx={{ marginTop: 2 }} fullWidth onClick={handleAutorizar} >
                                 Autorizar
                             </Button>
                         </DialogContent>
                     </Dialog>
-
                 </DialogContent>
             </Dialog>
         </>
