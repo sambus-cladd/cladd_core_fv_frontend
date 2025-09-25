@@ -67,7 +67,7 @@ const routes = [
       {
         name: "Seguimiento de ordenes de trabajo",
         key: "SeguimientoOrdenes",
-        route: "http://192.168.70.101",
+        route: "http://192.168.70.54:5003/",
         target: "_blank",
       },
     ],
