@@ -25,6 +25,8 @@ import GraficoGiroLento from "./BuenosAires/FlorencioVarelaAlpacladd/Productivid
 import StockDeQuimicos from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/StockDeQuimicos";
 import ActulizarQuimico from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/components/FormStockQuimicos";
 
+import RegistroDatosOEE from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/RegistroOEE/RegistroDatosOEE.jsx";
+
 /* BUENOS AIRES - FLORENCIO VARELA  - TERMINACIÓN*/
 import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Terminacion";
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
@@ -99,6 +101,10 @@ function App() {
       <Route
         path="/BuenosAires/FlorencioVarela/Productividad/ActualizarQuimicoFV"
         element={<ActulizarQuimico />}
+      />
+      <Route
+        path="/BuenosAires/FlorencioVarela/Productividad/RegistroOEE/RegistroDatosOEE"
+        element={<RegistroDatosOEE />}
       />
 
       {/* TERMINACION */}

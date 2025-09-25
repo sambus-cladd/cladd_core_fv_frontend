@@ -53,6 +53,12 @@ const routes = [
     route: "/BuenosAires/FlorencioVarela/Productividad/ReportesProductividad",
     target: "_self",
   },
+  // {
+  //   name: "REGISTRO OEE",
+  //   key: "RegistroOEE",
+  //   route: "/BuenosAires/FlorencioVarela/Productividad/RegistroOEE/RegistroDatosOEE",
+  //   target: "_self",
+  // },
 ];
 
 

@@ -1,5 +1,8 @@
 import * as React from "react";
 import { useState } from "react";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+
 import {
   AppBar,
   Box,
@@ -22,6 +25,19 @@ import CladdCore from "../../assets/Images/CLADDCORE.png";
 const Navbar = ({ Titulo, Routes, color }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+
+  const [anchorEl, setAnchorEl] = useState(null);
+const [submenuItems, setSubmenuItems] = useState([]);
+
+const handleMenuOpen = (event, children) => {
+  setAnchorEl(event.currentTarget);
+  setSubmenuItems(children);
+};
+
+const handleMenuClose = () => {
+  setAnchorEl(null);
+  setSubmenuItems([]);
+};
 
   const handleNavigation = (href) => {
     if (href.startsWith("http")) {
@@ -57,26 +73,67 @@ const Navbar = ({ Titulo, Routes, color }) => {
 
         {/* Menú de escritorio */}
         <Box>
-          {Routes.map((route) => (
-            <Button
-              key={route.key}
-              onClick={() => handleNavigation(route.route)}
-              sx={{
-                color: "white",
-                fontFamily: "Poppins",
-                fontSize: "0.8rem",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  color: "#FFD700", // Un dorado suave
-                  transform: "scale(1.05)", // Efecto leve de zoom
-                },
+  {Routes.map((route) =>
+    route.children ? (
+      <React.Fragment key={route.key}>
+        <Button
+          color="inherit"
+          onClick={(e) => handleMenuOpen(e, route.children)}
+          sx={{
+            color: "white",
+            fontFamily: "Poppins",
+            fontSize: "0.8rem",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              backgroundColor: "rgba(255,255,255,0.2)",
+              color: "#FFD700",
+              transform: "scale(1.05)",
+            },
+          }}
+        >
+          {route.name}
+        </Button>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl) && submenuItems.length > 0}
+          onClose={handleMenuClose}
+        >
+          {submenuItems.map((sub) => (
+            <MenuItem
+              key={sub.key}
+              onClick={() => {
+                handleNavigation(sub.route);
+                handleMenuClose();
               }}
             >
-              {route.name}
-            </Button>
+              {sub.name}
+            </MenuItem>
           ))}
-        </Box>
+        </Menu>
+      </React.Fragment>
+    ) : (
+      <Button
+        key={route.key}
+        onClick={() => handleNavigation(route.route)}
+        sx={{
+          color: "white",
+          fontFamily: "Poppins",
+          fontSize: "0.8rem",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            backgroundColor: "rgba(255,255,255,0.2)",
+            color: "#FFD700",
+            transform: "scale(1.05)",
+          },
+        }}
+      >
+        {route.name}
+      </Button>
+    )
+  )}
+</Box>
+
       </Toolbar>
 
       {/* Mobile Navbar */}
@@ -121,15 +178,33 @@ const Navbar = ({ Titulo, Routes, color }) => {
           />
           <Divider sx={{ mb: 1 }} />
           <List>
-            {Routes.map((route) => (
-              <ListItemButton
-                key={route.key}
-                onClick={() => handleNavigation(route.route)}
-              >
-                <ListItemText primary={route.name} />
-              </ListItemButton>
-            ))}
-          </List>
+  {Routes.map((route) =>
+    route.children ? (
+      <React.Fragment key={route.key}>
+        <ListItemButton>
+          <ListItemText primary={route.name} />
+        </ListItemButton>
+        {route.children.map((sub) => (
+          <ListItemButton
+            key={sub.key}
+            sx={{ pl: 4 }}
+            onClick={() => handleNavigation(sub.route)}
+          >
+            <ListItemText primary={sub.name} />
+          </ListItemButton>
+        ))}
+      </React.Fragment>
+    ) : (
+      <ListItemButton
+        key={route.key}
+        onClick={() => handleNavigation(route.route)}
+      >
+        <ListItemText primary={route.name} />
+      </ListItemButton>
+    )
+  )}
+</List>
+
         </Box>
       </Drawer>
     </AppBar>
