@@ -61,7 +61,7 @@ function HeaderYFooter({ children, titulo, color, routes }) {
         }}
       >
         <Typography variant="caption" color="white">© Automatización - La Rioja</Typography>
-        <Typography variant="caption" color="white">IT - Depto. Aplicaciones</Typography>
+        <Typography variant="caption" color="white">Dirección Industrial</Typography>
       </Box>
     </div>
   );

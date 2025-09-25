@@ -30,6 +30,12 @@ const routes = [
       route: "/BuenosAires/FlorencioVarela/StockPlanta",
       target:"_self",
     },
+    {
+      name: "PANEL DE EQUIPOS",
+      key: "PanelEquipos",
+      route: "http://192.168.0.34:5000/",
+      target:"_self",
+    },
   ];
    
   

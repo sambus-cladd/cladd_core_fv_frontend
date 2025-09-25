@@ -32,7 +32,7 @@ const BackgroundWithSVG = ({ children }) => {
           &copy; 2024 - Automatización - La Rioja
         </Typography>
         <Typography variant="caption" color="white">
-          IT - Depto. Aplicaciones
+          Dirección Industrial
         </Typography>
       </Box>
     </Box>

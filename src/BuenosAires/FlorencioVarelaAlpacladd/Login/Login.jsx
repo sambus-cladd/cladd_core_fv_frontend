@@ -218,7 +218,7 @@ const LoginLabFV = () => {
           © Automatización - La Rioja
         </Typography>
         <Typography variant="caption" color="white">
-          IT - Depto. Aplicaciones
+          Dirección Industrial
         </Typography>
       </Box>
     </Grid>

@@ -158,6 +158,16 @@ const getOrdenPorRollo = async (rollo) => {
         throw error;
     }
 };
+const getOrdenesGantt = async () => {
+    try {
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/OrdenesGantt`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getDatosOrdenesGantt:", error);
+        throw error;
+    }
+};
 
 export {
     PutRegistroGantFV,
@@ -178,4 +188,5 @@ export {
     getDatosOrdenes,
     getNumeroOrdenes,
     getOrdenPorRollo,
+    getOrdenesGantt,
 }

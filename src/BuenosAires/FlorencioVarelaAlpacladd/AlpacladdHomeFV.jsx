@@ -6,6 +6,7 @@ import FabricProgress from "./components/FabricProgress";
 import FabricInventoryChart from "./components/FabricInventoryChart";
 import StockDepositosChart from "./components/StockDepositosChart";
 import FabricLinesChart from "./components/FabricLinesChart";
+import { Typography } from '@mui/material';
 
 import { Grid, Box } from '@mui/material';
 
@@ -143,7 +144,8 @@ const AlpacladdHomeFV = () => {
     { name: "Terminado", value: ventas.largoTotal },
   ];
 
-  const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
+  // const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
+  const TotalGeneral = deposito.largoTotal + calidad.largoTotal + ventas.largoTotal;
 
   return (
     <>
@@ -151,28 +153,28 @@ const AlpacladdHomeFV = () => {
 
         <Box sx={{ padding: 3 }}>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Box
-            sx={{
-              width: "100%",
-              background: "linear-gradient(145deg, #2c4356, #1e2c3a)",
-              color: "#E2F1E7",
-              borderRadius: "16px",
-              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-              textAlign: "center",
-              fontSize: {
-                xs: "2rem",
-                sm: "2.5rem",
-                md: "3rem",
-              },
-              fontWeight: "bold",
-              padding: "2px 0",
-              marginBottom: "0px", // Espacio entre la línea y las tarjetas
-            }}
-          >
-            {!isNaN(TotalGeneral) ? TotalGeneral.toLocaleString("es-ES") : "0"} km
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                width: "100%",
+                background: "linear-gradient(145deg, #2c4356, #1e2c3a)",
+                color: "#E2F1E7",
+                borderRadius: "16px",
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                textAlign: "center",
+                fontSize: {
+                  xs: "2rem",
+                  sm: "2.5rem",
+                  md: "3rem",
+                },
+                fontWeight: "bold",
+                padding: "2px 0",
+                marginBottom: "0px", // Espacio entre la línea y las tarjetas
+              }}
+            >
+              {!isNaN(TotalGeneral) ? TotalGeneral.toLocaleString("es-ES") : "0"} km
 
-          </Box>
+            </Box>
           </Grid>
 
           <Grid container spacing={2}>
@@ -187,6 +189,22 @@ const AlpacladdHomeFV = () => {
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
+              <CustomCard title="Inventario Produccion" sx={{ background: "black", color: "white", }} >
+                <Box sx={{
+                    marginTop: 5,
+                    marginBottom: 4.5,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" color="white" fontWeight="bold" sx={{fontSize:25, color: "rgba(203, 198, 198, 0.6)"}}>
+                    En Desarrollo
+                  </Typography>
+                </Box>
+              </CustomCard>
+            </Grid>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Produccion" cantidadCrudo={produccion?.largoTotal || 0} />
               <FabricProgress
                 crudoValue={produccion?.largoTotal ? (produccion.largoCrudo / produccion.largoTotal) * 100 : 0}
@@ -194,7 +212,8 @@ const AlpacladdHomeFV = () => {
                 totalCrudo={produccion?.largoCrudo || 0}
                 totalDenim={produccion?.largoDenim || 0}
               />
-            </Grid>
+            </Grid> */}
+
             <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Calidad" cantidadCrudo={calidad?.largoTotal || 0} />
               <FabricProgress
