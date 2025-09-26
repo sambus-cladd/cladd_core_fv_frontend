@@ -45,6 +45,12 @@ const routes = [
         route: "http://192.168.70.54:5003/",
         target: "_blank",
       },
+      {
+        name: "Seguimiento ordenes de trabajo lavadero",
+        key: "SeguimientoOrdenesLavadero",
+        route: "http://192.168.70.54:5003/lavadero",
+        target: "_blank",
+      },
     ],
   },
   {
