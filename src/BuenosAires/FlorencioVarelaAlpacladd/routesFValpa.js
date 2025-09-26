@@ -1,42 +1,17 @@
 const routes = [
-    {
-      name: "HOME ",
-      key: "Home",
-      route: "/BuenosAires",
-      target:"_self",
-    },
-    {
-      name: "LABORATORIO ",
-      key: "Laboratorio",
-      route: "/BuenosAires/FlorencioVarela/Laboratorio",
-      target:"_self",
-    },
-    {
-      name: "TERMINACION ",
-      key: "TERMINACION",
-      route: "/BuenosAires/FlorencioVarela/Terminacion",
-      target:"_self",
-
-    },
-    {
-      name: "PRODUCTIVIDAD ",
-      key: "Productividad",
-      route: "/BuenosAires/FlorencioVarela/Productividad",
-      target:"_self",
-    },
-    {
-      name: "STOCK EN PLANTA",
-      key: "StockPlanta",
-      route: "/BuenosAires/FlorencioVarela/StockPlanta",
-      target:"_self",
-    },
-    {
-      name: "PANEL DE EQUIPOS",
-      key: "PanelEquipos",
-      route: "http://192.168.0.34:5000/",
-      target:"_self",
-    },
-     {
+  {
+    name: "HOME ",
+    key: "Home",
+    route: "/BuenosAires",
+    target: "_self",
+  },
+  {
+    name: "LABORATORIO ",
+    key: "Laboratorio",
+    route: "/BuenosAires/FlorencioVarela/Laboratorio",
+    target: "_self",
+  },
+  {
     name: "CALIDAD",
     key: "Calidad",
     children: [
@@ -70,9 +45,40 @@ const routes = [
         route: "http://192.168.70.54:5003/",
         target: "_blank",
       },
+      {
+        name: "Seguimiento ordenes de trabajo lavadero",
+        key: "SeguimientoOrdenesLavadero",
+        route: "http://192.168.70.54:5003/lavadero",
+        target: "_blank",
+      },
     ],
   },
-  ];
-   
-  
-  export default routes; 
+  {
+    name: "TERMINACION ",
+    key: "TERMINACION",
+    route: "/BuenosAires/FlorencioVarela/Terminacion",
+    target: "_self",
+
+  },
+  {
+    name: "PRODUCTIVIDAD ",
+    key: "Productividad",
+    route: "/BuenosAires/FlorencioVarela/Productividad",
+    target: "_self",
+  },
+  // {
+  //   name: "STOCK EN PLANTA",
+  //   key: "StockPlanta",
+  //   route: "/BuenosAires/FlorencioVarela/StockPlanta",
+  //   target: "_self",
+  // },
+  {
+    name: "PANEL DE EQUIPOS",
+    key: "PanelEquipos",
+    route: "http://192.168.0.34:5000/",
+    target: "_self",
+  },
+];
+
+
+export default routes; 
