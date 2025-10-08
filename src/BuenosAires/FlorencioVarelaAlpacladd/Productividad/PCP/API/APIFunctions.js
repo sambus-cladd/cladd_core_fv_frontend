@@ -168,7 +168,16 @@ const getOrdenesGantt = async () => {
         throw error;
     }
 };
-
+const getDataPCP = async (orden) => {
+    try {
+        const response = await axios.get(`http://localhost:4300/OEE/getDataPCP/${orden}`);
+        return response.data;
+    } 
+    catch (error) {
+        console.error("Error en getDataPCP:", error);
+        throw error;
+    }
+};
 export {
     PutRegistroGantFV,
     PutModificacionGantFV,
@@ -189,4 +198,5 @@ export {
     getNumeroOrdenes,
     getOrdenPorRollo,
     getOrdenesGantt,
+    getDataPCP,
 }
