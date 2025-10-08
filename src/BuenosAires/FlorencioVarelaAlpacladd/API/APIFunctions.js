@@ -25,7 +25,7 @@ async function PutEnsayoDeRutina(datos) {
     return (respuesta);
 }
 async function getEstadoRollos() {
-    let respuesta = await axios.get( "http://localhost:4300/Home/StockRollos");
+    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "/Home/StockRollos");
     return (respuesta);
 }
 async function getReporteLaboratorio() {
