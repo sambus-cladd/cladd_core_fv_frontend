@@ -21,7 +21,7 @@ const ReportesOEE = () => {
         Bienvenido
       </Typography>
       <Typography variant="subtitle1" sx={{ mt: 2 }}>
-        Módulo Reportes OEE
+        Proximamente Módulo Reportes OEE
       </Typography>
     </Box>
   );
