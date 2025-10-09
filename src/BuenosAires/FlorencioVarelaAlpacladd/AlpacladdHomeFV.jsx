@@ -215,23 +215,6 @@ const AlpacladdHomeFV = () => {
             </Grid> */}
 
             <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Calidad" sx={{ background: "black", color: "white", }} >
-                <Box sx={{
-                    marginTop: 5,
-                    marginBottom: 4.5,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography variant="h6" color="white" fontWeight="bold" sx={{fontSize:25, color: "rgba(203, 198, 198, 0.6)"}}>
-                    En Desarrollo
-                  </Typography>
-                </Box>
-              </CustomCard>
-            </Grid>
-{/* 
-            <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Calidad" cantidadCrudo={calidad?.largoTotal || 0} />
               <FabricProgress
                 crudoValue={calidad?.largoTotal ? (calidad.largoCrudo / calidad.largoTotal) * 100 : 0}
@@ -239,7 +222,7 @@ const AlpacladdHomeFV = () => {
                 totalCrudo={calidad?.largoCrudo || 0}
                 totalDenim={calidad?.largoDenim || 0}
               />
-            </Grid> */}
+            </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Terminado" cantidadCrudo={ventas?.largoTotal || 0} />
               <FabricProgress
@@ -268,7 +251,7 @@ const AlpacladdHomeFV = () => {
               <FabricInventoryChart data={chartData} />
             </Box>
           </Grid>
-          {/* <Grid item xs={12} md={4} display="flex" justifyContent="center">
+          <Grid item xs={12} md={4} display="flex" justifyContent="center">
             <Box sx={{
               width: "100%",
               maxWidth: { xs: "90%", md: "100%" },
@@ -281,7 +264,7 @@ const AlpacladdHomeFV = () => {
             }}>
               <FabricLinesChart data={grupoArticuloData} />
             </Box>
-          </Grid> */}
+          </Grid>
           <Grid item xs={12} md={4} display="flex" justifyContent="center">
             <Box sx={{
               width: "100%",
