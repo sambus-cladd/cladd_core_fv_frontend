@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import Grid from '@mui/material/Grid';
 import dayjs from 'dayjs';
 import DataGridTable from '../../../../../components/DataGrid/DataGridTable';
+import {
+  Button, Dialog, DialogTitle, DialogContent, List,
+  ListItem, ListItemText, DialogActions, Typography, Paper
+} from "@mui/material";
 import { GetHISTORICOGANTT } from '../API/APIFunctions';
 import { getStockRollosXOrden } from "../../../API/APIFunctions";
-import { getSecuenciaRollo } from "../API/APIFunctions";
-import { Button, Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText, DialogActions } from "@mui/material";
+import { getSecuenciaRollo, getResponsables } from "../API/APIFunctions";
 
 const TablaGantt = ({ handleChange }) => {
   const [DatosGantt, setDatosGantt] = useState([]);
@@ -55,10 +58,13 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
   const [openRollos, setOpenRollos] = useState(false);
   const [rollosActuales, setRollosActuales] = useState([]);
   const [ordenActual, setOrdenActual] = useState("");
+  const [openResponsables, setOpenResponsables] = useState(false);
+  const [responsables, setResponsables] = useState([]);
 
   const datos = getDatosValidos(Serie);
   const filas = datos.map((elemento, index) => ({
     id: index,
+    id_orden: elemento.id,
     Orden: elemento.orden,
     Maquina: elemento.maquina,
     MaquinaProceso: elemento.maquina_proceso,
@@ -101,6 +107,28 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
     }
   };
 
+  const handleVerResponsables = async (id_orden, Orden) => {
+    setOrdenActual(Orden);
+    try {
+      const data = await getResponsables(id_orden);
+
+      if (data?.success && data.data?.responsable) {
+        const parsed = Array.isArray(data.data.responsable)
+          ? data.data.responsable
+          : JSON.parse(data.data.responsable);
+        setResponsables(parsed || []);
+      } else {
+        setResponsables([]);
+      }
+
+      setOpenResponsables(true);
+    } catch (err) {
+      console.error("Error cargando responsables:", err);
+      setResponsables([]);
+      setOpenResponsables(true);
+    }
+  };
+
   const columns = [
     {
       field: 'Orden', headerName: 'Orden', flex: 1, minWidth: 100, renderCell: (params) => (
@@ -119,10 +147,18 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
     { field: 'HoraInicio', headerName: 'Hora Inicio', flex: 1, minWidth: 100 },
     { field: 'HoraFin', headerName: 'Hora Fin', flex: 1, minWidth: 100 },
     {
-      field: 'RollosBtn', headerName: 'Rollos Asignados', flex: 1, minWidth: 150,
+      field: 'RollosBtn', headerName: 'Rollos', flex: 1, minWidth: 150,
       renderCell: (params) => (
         <Button variant="outlined" size="small" onClick={() => handleAbrirRollos(params.row.RollosBtn)}>
-          Ver Rollos
+          Ver
+        </Button>
+      )
+    },
+    {
+      field: 'ResponsableBtn', headerName: 'Responsables', flex: 1, minWidth: 150,
+      renderCell: (params) => (
+        <Button variant="outlined" size="small" onClick={() => handleVerResponsables(params.row.id_orden, params.row.Orden)}>
+          Ver
         </Button>
       )
     }
@@ -165,6 +201,34 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
 
         <DialogActions sx={{ padding: 2, borderTop: "1px solid #ddd" }}>
           <Button variant="contained" color="primary" onClick={() => setOpenRollos(false)} sx={{ fontWeight: "bold", textTransform: "none" }} >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Pop up responsables */}
+      <Dialog open={openResponsables} onClose={() => setOpenResponsables(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ borderBottom: "1px solid #ddd", fontWeight: "bold", fontSize: 20, color: "#1976d2" }}>
+          Responsables de la Orden <b>#{ordenActual}</b>
+        </DialogTitle>
+
+        <DialogContent sx={{ maxHeight: '400px', overflowY: 'auto', paddingY: 1 }}>
+          {responsables?.length > 0 ? (
+            responsables.map((r, i) => (
+              <Paper key={i} sx={{ p: 1.5, mb: 1, backgroundColor: "#f9f9f9" }}>
+                <Typography><b>Operario:</b> {r.operario}</Typography>
+                <Typography><b>Nombre:</b> {r.nombre}</Typography>
+                <Typography><b>Turno:</b> {r.turno}</Typography>
+                <Typography><b>Fecha:</b> {dayjs(r.fecha).format("DD/MM/YYYY")}</Typography>
+              </Paper>
+            ))
+          ) : (
+            <Typography>No hay responsables registrados.</Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ padding: 2, borderTop: "1px solid #ddd" }}>
+          <Button variant="contained" color="primary" onClick={() => setOpenResponsables(false)}>
             Cerrar
           </Button>
         </DialogActions>
