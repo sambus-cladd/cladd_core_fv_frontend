@@ -12,19 +12,6 @@ const URLMetrosxarticulo  = APIRoutes[0].MetrosxArticulo
 const URLProdxorden       = APIRoutes[0].ProduccionxOrden
 const URLModificacionFV   = APIRoutes[0].ModificacionFV
 const URLEliminarOrdenPcp = APIRoutes[0].EliminarOrdenPcp
-
-const URLActualizarDatosReales = APIRoutes[0].ActualizarDatosReales
-const URLGuardarEstadoOrden    = APIRoutes[0].GuardarEstadoOrden
-const URLEstadoOrden           = APIRoutes[0].EstadoOrden
-const URLSecuenciaRollo        = APIRoutes[0].SecuenciaRollo
-const URLDatosOrdenes          = APIRoutes[0].DatosOrdenes
-const URLNumOrdenes            = APIRoutes[0].NumOrdenes
-const URLRolloOrdenes          = APIRoutes[0].RolloOrdenes
-const URLOrdenesGantt          = APIRoutes[0].OrdenesGantt
-const URLValidarLegajo         = APIRoutes[0].ValidarLegajo
-const URLAsignarResponsable    = APIRoutes[0].AsignarResponsable
-const URLResponsables          = APIRoutes[0].Responsables
-
 async function PutRegistroGantFV(data) {
     const peticion = await axios.put(URLCargagantFV,data)
     return(peticion.data) 
@@ -85,7 +72,7 @@ async function DeleteOrdenPcp(id){
 
 const actualizarDatosReales = async ({ IdOrden, MetrosReal, HoraInicioReal, HoraFinReal, FechaRegistroReal,HorasTotalReal }) => {
     try {
-        const response = await axios.put(URLActualizarDatosReales, {
+        const response = await axios.put('http://192.168.0.18:4300/Gant/ActualizarDatosReales', {
             IdOrden,
             MetrosReal,
             HoraInicioReal,
@@ -103,7 +90,7 @@ const actualizarDatosReales = async ({ IdOrden, MetrosReal, HoraInicioReal, Hora
 const guardarEstadoOrden = async ({ IdOrden, NumeroOrden, EstadoOrden, HoraInicioReal, 
     HoraFinReal, MetrosTotales, MetrosPorRollo, Responsables }) => {
     try {
-        const response = await axios.put(URLGuardarEstadoOrden, {
+        const response = await axios.put('http://192.168.0.18:4300/Gant/GuardarEstadoOrden', {
             IdOrden,
             NumeroOrden,
             EstadoOrden,
@@ -121,7 +108,7 @@ const guardarEstadoOrden = async ({ IdOrden, NumeroOrden, EstadoOrden, HoraInici
 };
 const getEstadoOrden = async (idOrden) => {
   try {
-    const response = await axios.get(URLEstadoOrden + idOrden);
+    const response = await axios.get(`http://192.168.0.18:4300/Gant/EstadoOrden/${idOrden}`);
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -136,7 +123,7 @@ const getEstadoOrden = async (idOrden) => {
 
 const getSecuenciaRollo = async (rollo) => {
     try {
-        const response = await axios.get(URLSecuenciaRollo + rollo);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/SecuenciaRollo/${rollo}`);
         return response.data;
     } 
     catch (error) {
@@ -147,7 +134,7 @@ const getSecuenciaRollo = async (rollo) => {
 
 const getDatosOrdenes = async (idOrden) => {
   try {
-    const response = await axios.get(URLDatosOrdenes + idOrden);
+    const response = await axios.get(`http://192.168.0.18:4300/Gant/DatosOrdenes/${idOrden}`);
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -162,7 +149,7 @@ const getDatosOrdenes = async (idOrden) => {
 
 const getNumeroOrdenes = async (numero_orden) => {
     try {
-        const response = await axios.get(URLNumOrdenes + numero_orden);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/NumOrdenes/${numero_orden}`);
         return response.data;
     } 
     catch (error) {
@@ -173,7 +160,7 @@ const getNumeroOrdenes = async (numero_orden) => {
 
 const getOrdenPorRollo = async (rollo) => {
     try {
-        const response = await axios.get(URLRolloOrdenes + rollo);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/RolloOrdenes/${rollo}`);
         return response.data;
     } 
     catch (error) {
@@ -183,7 +170,7 @@ const getOrdenPorRollo = async (rollo) => {
 };
 const getOrdenesGantt = async () => {
     try {
-        const response = await axios.get(URLOrdenesGantt);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/OrdenesGantt`);
         return response.data;
     } 
     catch (error) {
@@ -193,7 +180,7 @@ const getOrdenesGantt = async () => {
 };
 const validarLegajo = async (legajo) => {
     try {
-        const response = await axios.get(URLValidarLegajo + legajo);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/ValidarLegajo/${legajo}`);
         console.log("Respuesta validarLegajo:", response.data);
         return response.data;
         
@@ -205,7 +192,7 @@ const validarLegajo = async (legajo) => {
 };
 const asignarResponsable = async (NumeroOrden) => {
     try {
-        const response = await axios.get(URLAsignarResponsable + NumeroOrden);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/AsignarResponsable/${NumeroOrden}`);
         console.log("Respuesta responsaable:", response.data);
         return response.data;
         
@@ -217,7 +204,7 @@ const asignarResponsable = async (NumeroOrden) => {
 };
 const getResponsables = async (idOrden) => {
     try {
-        const response = await axios.get(URLResponsables + idOrden);
+        const response = await axios.get(`http://192.168.0.18:4300/Gant/Responsables/${idOrden}`);
         console.log("Respuesta responsaable:", response.data);
         return response.data;
         
