@@ -9,6 +9,7 @@ import ReportesOEE from './ReportesOEE/ReportesOEE';
 import HomeIcon from '@mui/icons-material/Home';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import SearchIcon from '@mui/icons-material/Search';
+import DvrIcon from '@mui/icons-material/Dvr';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -69,14 +70,15 @@ const ModuloOEE = () => {
     return (
         <>
         <div style={contentStyle}>
-            <Box sx={{ position: "sticky", top: 0, zIndex: 1100, bgcolor: "white", boxShadow: 2 }}>
+            {/* <Box sx={{ position: "sticky", top: 0, zIndex: 1100, bgcolor: "white", boxShadow: 2 }}> */}
+            <Box sx={{ top: 0, zIndex: 1100, bgcolor: "white", boxShadow: 2 }}>
                 <Navbar Titulo="MODULO OEE" color="alpacladd" />
                 <Box sx={{ width: '100%', bgcolor: "#d3d3d3", display: 'flex', overflow: 'auto', justifyContent: 'center', alignItems: 'center' }}>
                     <Tabs value={value} onChange={handleChange} variant='scrollable' scrollButtons="on" allowScrollButtonsMobile >
                         <Tab label="Home" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<HomeIcon />} />
-                        <Tab label="Registro Datos" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<AddCardIcon />} />
-                        <Tab label="Generar OEE" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<AddCardIcon />} />
+                        <Tab label="Registro OEE" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<AddCardIcon />} />
                         <Tab label="Reportes OEE" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<SearchIcon />} />
+                        <Tab label="Graficos OEE" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem' }} icon={<DvrIcon />} />
                     </Tabs>
                 </Box>
             </Box>

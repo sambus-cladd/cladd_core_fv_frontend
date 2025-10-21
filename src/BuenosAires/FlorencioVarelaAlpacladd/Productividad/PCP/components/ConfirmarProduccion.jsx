@@ -1,15 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Card, Typography, Box, TextField, Button, Dialog, DialogTitle, DialogContent, IconButton, Pagination } from '@mui/material';
+import {
+    Grid, Card, Typography, Box, TextField, Button, Dialog,
+    DialogTitle, DialogContent, IconButton, Pagination,
+    FormControl, InputLabel, Select, MenuItem, DialogActions
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import { actualizarDatosReales, guardarEstadoOrden, getEstadoOrden, getSecuenciaRollo, getDatosOrdenes, getOrdenesGantt } from '../API/APIFunctions';
+import {
+    actualizarDatosReales, guardarEstadoOrden, getEstadoOrden,
+    getSecuenciaRollo, getDatosOrdenes, getOrdenesGantt, validarLegajo
+} from '../API/APIFunctions';
 import { getStockRollosXOrden } from '../../../API/APIFunctions';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Chip } from '@mui/material';
 import 'dayjs/locale/es';
 import dayjs from 'dayjs';
+
+const obtenerTurnoActual = () => {
+    const hora = new Date().getHours();
+
+    if (hora >= 6 && hora < 14) return "Mañana";
+    if (hora >= 14 && hora < 22) return "Tarde";
+    return "Noche";
+};
+
 
 export default function ConfirmarProduccion() {
     const [datos, setDatos] = useState([]);
@@ -31,16 +47,23 @@ export default function ConfirmarProduccion() {
     const [busquedaActiva, setBusquedaActiva] = useState(false);
     const [page, setPage] = useState(1);
     const [rowsPerPage] = useState(12);
+    const [turnoActual, setTurnoActual] = useState(obtenerTurnoActual());
+    const [operario, setOperario] = useState("");
+    const [mostrarDialogTurno, setMostrarDialogTurno] = useState(false);
+    const [responsablesPorOrden, setResponsablesPorOrden] = useState({});
+    const [turnoSeleccionado, setTurnoSeleccionado] = useState("");
+    const [legajoOperario, setLegajoOperario] = useState("");
+    const [abrirModalTurno, setAbrirModalTurno] = useState(false);
 
-    const PASSWORD_SUPERUSER = "0000";
-    const PASSWORD_FORZAR = "1111";
+    const PASSWORD_SUPERUSER = "AdminProd";
+    const PASSWORD_FORZAR = "ForzarFin";
 
     useEffect(() => {
         const fetchData = async () => {
             if (busquedaActiva) return;
             try {
                 const response = await getOrdenesGantt();
-                console.log("RTA GETDATOSGANTFV", response)
+                // console.log("RTA GETDATOSGANTFV", response)
                 const datosPlanos = response.data.flat();
 
                 // Para cada orden, traigo los datos de metros usando getDatosOrdenes
@@ -110,12 +133,11 @@ export default function ConfirmarProduccion() {
 
     const GetDatosProd = async (Orden) => {
         if (!Orden) return;
-
         try {
             // Trae los rollos asignados a la orden
             const dataRAW = await getStockRollosXOrden(Orden);
             const rollosPorOrden = dataRAW.data || [];
-            console.log("ROLLOS POR ORDEN SELECCIONADA:", Orden, rollosPorOrden);
+            // console.log("ROLLOS POR ORDEN SELECCIONADA:", Orden, rollosPorOrden);
 
             // Trae la secuencia de cada rollo
             const rollosConSecuencia = await Promise.all(
@@ -125,7 +147,7 @@ export default function ConfirmarProduccion() {
                     return { ...rollo, secuencia_lr: secuencia };
                 })
             );
-            console.log("ROLLOS POR ORDEN CON SECUENCIA:", rollosConSecuencia);
+            // console.log("ROLLOS POR ORDEN CON SECUENCIA:", rollosConSecuencia);
 
             setRollosAsignados(rollosConSecuencia);
         } catch (err) {
@@ -139,7 +161,7 @@ export default function ConfirmarProduccion() {
         // Traer estado de la orden
         let estado = {};
         try {
-            console.log("DEBUG ITEM POPUP:", item);
+            // console.log("DEBUG ITEM POPUP:", item);
             const response = await getEstadoOrden(item.id);
             if (response && response.success && response.data) {
                 estado = response.data;
@@ -162,9 +184,17 @@ export default function ConfirmarProduccion() {
         setEstadoOrden(estado.estado_orden || "sin iniciar");
         setHoraInicioReal(estado.hora_inicio_real ? dayjs(estado.hora_inicio_real) : null);
         setHoraFinReal(estado.hora_fin_real ? dayjs(estado.hora_fin_real) : null);
+        setTurnoSeleccionado("");
+        setLegajoOperario("");
+        setResponsablesPorOrden(prev => ({
+            ...prev,
+            [item.id]: estado.responsable ? JSON.parse(estado.responsable) : []
+        }));
+
 
         await GetDatosProd(item.orden);
         setOpenPopup(true);
+        setAbrirModalTurno(true);
     };
 
     const handleClosePopup = () => {
@@ -179,9 +209,40 @@ export default function ConfirmarProduccion() {
 
     const iniciarOrden = async () => {
         if (!ordenSeleccionada) return;
+
+        const listaExistente = responsablesPorOrden[ordenSeleccionada.id] || [];
         const ahora = dayjs();
+        const nuevaFecha = ahora.format("YYYY-MM-DD");
+
+        // Si no hay ningún responsable, pedir legajo
+        if (listaExistente.length === 0) {
+            alert("Debe registrar el operario antes de iniciar una orden.");
+            setMostrarDialogTurno(true);
+            return;
+        }
+
+        // ✅ Verifica si el último responsable pertenece al mismo día y turno
+        const ultimoResponsable = listaExistente[listaExistente.length - 1];
+        const mismoDiaYTurno =
+            ultimoResponsable.turno === turnoActual &&
+            ultimoResponsable.fecha === nuevaFecha;
+
+        if (!mismoDiaYTurno) {
+            alert("Debe registrar nuevamente el responsable para el turno o fecha actual.");
+            setMostrarDialogTurno(true);
+            return;
+        }
+
+        // Si pasa las validaciones, continuar normalmente
         setHoraInicioReal(ahora);
         setEstadoOrden("en proceso");
+
+        const nuevaLista = [...listaExistente]; // ya incluye al último operario válido
+
+        setResponsablesPorOrden((prev) => ({
+            ...prev,
+            [ordenSeleccionada.id]: nuevaLista,
+        }));
 
         await guardarEstadoOrden({
             IdOrden: ordenSeleccionada.id,
@@ -191,12 +252,15 @@ export default function ConfirmarProduccion() {
             HoraFinReal: null,
             MetrosTotales: 0,
             MetrosPorRollo: {},
+            Responsables: nuevaLista,
         });
     };
 
+
+
+
     const finalizarOrden = async () => {
         if (!ordenSeleccionada) return;
-
         const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
         const checks = checksUsadosPorOrden[ordenSeleccionada.id] || {};
 
@@ -254,7 +318,8 @@ export default function ConfirmarProduccion() {
                     HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
                     HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
                     MetrosTotales: totalMetros,
-                    MetrosPorRollo: todosMetros
+                    MetrosPorRollo: todosMetros,
+                    Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
                 });
 
                 alert("Orden finalizada y datos guardados correctamente.");
@@ -263,6 +328,7 @@ export default function ConfirmarProduccion() {
                 alert("Ocurrió un error al finalizar la orden. Reintente.");
             }
     };
+
     const finalizarOrdenForzado = async () => {
         if (!ordenSeleccionada) return;
 
@@ -311,6 +377,9 @@ export default function ConfirmarProduccion() {
                 HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
                 MetrosTotales: totalMetros,
                 MetrosPorRollo: todosMetros,
+                Operario: operario || "No definido",
+                Turno: turnoActual || "No definido",
+                Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
                 Forzado: true,
             });
 
@@ -371,7 +440,8 @@ export default function ConfirmarProduccion() {
                 HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
                 FechaRegistroReal: dayjs().format("YYYY-MM-DD"),
                 MetrosPorRollo: todosMetros,
-                HorasTotalReal: duracionHoras
+                HorasTotalReal: duracionHoras,
+                Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
             });
 
             await guardarEstadoOrden({
@@ -382,6 +452,7 @@ export default function ConfirmarProduccion() {
                 HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
                 MetrosTotales: totalMetros,
                 MetrosPorRollo: todosMetros,
+                Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
             });
 
             alert(`Metros del rollo ${rollo} guardados correctamente.`);
@@ -408,6 +479,17 @@ export default function ConfirmarProduccion() {
     const metrosTotales = ordenSeleccionada
         ? Object.values(metrosRealesPorOrden[ordenSeleccionada.id] || {}).reduce((a, b) => a + Number(b || 0), 0)
         : 0;
+
+    useEffect(() => {
+        const intervalo = setInterval(() => {
+            const nuevoTurno = obtenerTurnoActual();
+            if (nuevoTurno !== turnoActual) {
+                setTurnoActual(nuevoTurno);
+                setMostrarDialogTurno(true);
+            }
+        }, 60000);
+        return () => clearInterval(intervalo);
+    }, [turnoActual]);
 
     return (
         <>
@@ -506,7 +588,26 @@ export default function ConfirmarProduccion() {
                 <DialogContent>
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={12} md={6}><Typography variant="h4"><b>Orden #{ordenSeleccionada?.orden}</b></Typography></Grid>
-                        <Grid item xs={12} sm={12} md={6}><Typography variant="h6" textAlign="center">Estado: <b>{estadoOrden.toUpperCase()}</b></Typography></Grid>
+                        <Grid item xs={12} sm={12} md={6}><Typography variant="h6" textAlign="center" mt={0.5}>Estado: <b>{estadoOrden.toUpperCase()}</b></Typography></Grid>
+                    </Grid>
+                    <hr />
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={12} md={3}>
+                            <Typography sx={{ fontSize: 18 }}><b>Responsables:</b></Typography>
+                        </Grid>
+                        {/* Mostrar todos los responsables registrados */}
+                        <Grid item xs={12} sm={12} md={9}>
+                            {responsablesPorOrden[ordenSeleccionada?.id]?.length > 0 ? (
+                                responsablesPorOrden[ordenSeleccionada.id].map((r, idx) => (
+                                    <Typography key={idx} variant="body1">
+                                        {/* 🔹Operario: <b>{r.operario}</b> - Turno: <b>{r.turno}</b> */}
+                                        🔹Operario: <b>{r.nombre || "Sin nombre"}</b> - Turno: <b>{r.turno}</b>
+                                    </Typography>
+                                ))
+                            ) : (
+                                <Typography variant="body1">Sin responsables registrados</Typography>
+                            )}
+                        </Grid>
                     </Grid>
                     <hr />
                     <Box sx={{ marginBottom: 2 }}>
@@ -626,6 +727,111 @@ export default function ConfirmarProduccion() {
                             </Button>
                         </DialogContent>
                     </Dialog>
+
+                    {/* Popup ingresar legajo y turno */}
+                    {/* Popup ingresar legajo y turno */}
+                    <Dialog open={mostrarDialogTurno}>
+                        <DialogTitle>Registrar Turno y Operario</DialogTitle>
+                        <DialogContent>
+                            <Typography sx={{ mb: 2 }}>
+                                Turno actual: <b>{turnoActual}</b>
+                            </Typography>
+                            <TextField
+                                label="Legajo Operario"
+                                fullWidth
+                                value={operario}
+                                onChange={(e) => setOperario(e.target.value)}
+                                required
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                onClick={async () => {
+                                    if (!operario) {
+                                        alert("Debe ingresar el legajo del operario.");
+                                        return;
+                                    }
+
+                                    try {
+                                        // ✅ Validar legajo antes de continuar
+                                        const resultadoValidacion = await validarLegajo(operario);
+                                        console.log("📦 Respuesta validarLegajo:", resultadoValidacion);
+
+                                        // 🔍 Manejo flexible de posibles formatos
+                                        const operarioValido = Array.isArray(resultadoValidacion)
+                                            ? resultadoValidacion[0]
+                                            : resultadoValidacion?.data
+                                                ? resultadoValidacion.data
+                                                : resultadoValidacion;
+
+                                        if (!operarioValido || !operarioValido.legajo) {
+                                            alert("El legajo ingresado no es válido. Verifique e intente nuevamente.");
+                                            return;
+                                        }
+
+                                        console.log(
+                                            `✅ Operario válido: ${operarioValido.nombre} (Legajo: ${operarioValido.legajo})`
+                                        );
+
+                                        const listaExistente = responsablesPorOrden[ordenSeleccionada?.id] || [];
+                                        const nuevaFecha = dayjs().format("YYYY-MM-DD");
+
+                                        const yaExiste = listaExistente.some(
+                                            (r) =>
+                                                r.operario === operarioValido.legajo &&
+                                                r.turno === turnoActual &&
+                                                r.fecha === nuevaFecha
+                                        );
+
+                                        const nuevaLista = yaExiste
+                                            ? listaExistente
+                                            : [
+                                                ...listaExistente,
+                                                {
+                                                    operario: operarioValido.legajo,
+                                                    nombre: operarioValido.nombre,
+                                                    turno: turnoActual,
+                                                    fecha: nuevaFecha, // ✅ nueva propiedad
+                                                },
+                                            ];
+
+                                        // Guarda en el estado local
+                                        setResponsablesPorOrden((prev) => ({
+                                            ...prev,
+                                            [ordenSeleccionada?.id]: nuevaLista,
+                                        }));
+
+                                        setMostrarDialogTurno(false);
+
+                                        // Guarda también en la base de datos
+                                        if (ordenSeleccionada) {
+                                            await guardarEstadoOrden({
+                                                IdOrden: ordenSeleccionada.id,
+                                                NumeroOrden: ordenSeleccionada.orden,
+                                                EstadoOrden: estadoOrden,
+                                                HoraInicioReal: horaInicioReal
+                                                    ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss")
+                                                    : null,
+                                                HoraFinReal: horaFinReal
+                                                    ? horaFinReal.format("YYYY-MM-DD HH:mm:ss")
+                                                    : null,
+                                                MetrosTotales: metrosTotales,
+                                                MetrosPorRollo:
+                                                    metrosRealesPorOrden[ordenSeleccionada.id] || {},
+                                                Responsables: nuevaLista,
+                                            });
+                                        }
+                                    } catch (error) {
+                                        console.error("Error al validar o guardar:", error);
+                                        alert("Ocurrió un error al validar el legajo o guardar los datos.");
+                                    }
+                                }}
+                            >
+                                Confirmar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
                 </DialogContent>
             </Dialog>
         </>
