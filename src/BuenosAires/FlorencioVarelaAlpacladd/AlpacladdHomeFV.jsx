@@ -144,8 +144,8 @@ const AlpacladdHomeFV = () => {
     { name: "Terminado", value: ventas.largoTotal },
   ];
 
-  // const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
-  const TotalGeneral = deposito.largoTotal + calidad.largoTotal + ventas.largoTotal;
+   const TotalGeneral = deposito.largoTotal + produccion.largoTotal + calidad.largoTotal + ventas.largoTotal;
+  //const TotalGeneral = deposito.largoTotal + calidad.largoTotal + ventas.largoTotal;
 
   return (
     <>
@@ -188,7 +188,7 @@ const AlpacladdHomeFV = () => {
                 totalDenim={deposito?.largoDenim || 0}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Produccion" sx={{ background: "black", color: "white", }} >
                 <Box sx={{
                     marginTop: 5,
@@ -203,8 +203,8 @@ const AlpacladdHomeFV = () => {
                   </Typography>
                 </Box>
               </CustomCard>
-            </Grid>
-            {/* <Grid item xs={12} sm={6} md={3}>
+            </Grid> */}
+            <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Produccion" cantidadCrudo={produccion?.largoTotal || 0} />
               <FabricProgress
                 crudoValue={produccion?.largoTotal ? (produccion.largoCrudo / produccion.largoTotal) * 100 : 0}
@@ -212,7 +212,7 @@ const AlpacladdHomeFV = () => {
                 totalCrudo={produccion?.largoCrudo || 0}
                 totalDenim={produccion?.largoDenim || 0}
               />
-            </Grid> */}
+            </Grid>
 
             <Grid item xs={12} sm={6} md={3}>
               <CustomCard title="Inventario Calidad" cantidadCrudo={calidad?.largoTotal || 0} />

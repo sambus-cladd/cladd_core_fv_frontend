@@ -27,6 +27,7 @@ import ActulizarQuimico from "./BuenosAires/FlorencioVarelaAlpacladd/Productivid
 
 import RegistroDatosOEE from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/RegistroOEE/RegistroOEE/RegistroDatosOEE.jsx";
 import ModuloOEE from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/RegistroOEE/ModuloOEE.jsx";
+import MonitoreoMaquinas from "./BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas.jsx";
 /* BUENOS AIRES - FLORENCIO VARELA  - TERMINACIÓN*/
 import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Terminacion";
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
@@ -103,9 +104,12 @@ function App() {
         element={<ActulizarQuimico />}
       />
       <Route
-      
         path="/BuenosAires/FlorencioVarela/Productividad/RegistroOEE/ModuloOEE"
         element={<ModuloOEE />}
+      />
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas"
+        element={<MonitoreoMaquinas />}
       />
 
       {/* TERMINACION */}
