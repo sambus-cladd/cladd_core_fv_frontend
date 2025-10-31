@@ -481,15 +481,37 @@ export default function ConfirmarProduccion() {
         : 0;
 
     useEffect(() => {
+        const legajoGuardado = localStorage.getItem("operario_legajo");
+        const turnoGuardado = localStorage.getItem("turno_legajo");
+        const turnoAhora = obtenerTurnoActual();
+
+        if (!legajoGuardado || turnoGuardado !== turnoAhora) {
+            localStorage.removeItem("operario_legajo");
+            localStorage.removeItem("turno_legajo");
+            setOperario("");
+            setMostrarDialogTurno(true);
+        } else {
+            setOperario(legajoGuardado);
+            setTurnoActual(turnoGuardado);
+        }
+    }, []);
+
+    useEffect(() => {
         const intervalo = setInterval(() => {
             const nuevoTurno = obtenerTurnoActual();
+
             if (nuevoTurno !== turnoActual) {
+                localStorage.removeItem("operario_legajo");
+                localStorage.removeItem("turno_legajo");
+                setOperario("");
                 setTurnoActual(nuevoTurno);
                 setMostrarDialogTurno(true);
             }
         }, 60000);
+
         return () => clearInterval(intervalo);
     }, [turnoActual]);
+
 
     return (
         <>
@@ -802,6 +824,8 @@ export default function ConfirmarProduccion() {
                                         }));
 
                                         setMostrarDialogTurno(false);
+                                        localStorage.setItem("operario_legajo", operarioValido.legajo);
+                                        localStorage.setItem("turno_legajo", turnoActual);
 
                                         // Guarda también en la base de datos
                                         if (ordenSeleccionada) {

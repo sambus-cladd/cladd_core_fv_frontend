@@ -229,6 +229,11 @@ async function putCargaStockQuimico(body){
     return(respuesta)
 }
 
+async function getMonitoreoMaquinas(){
+    let respuesta = await axios.get("http://192.168.0.18:4300/Maquinas/RegistrosProduccion");
+    return(respuesta.data)
+}
+
 
 export {
     getStockTerminadoFV,
@@ -276,4 +281,5 @@ export {
     getOperarios,
     getStockQuimicos,
     putCargaStockQuimico,
+    getMonitoreoMaquinas
 }
