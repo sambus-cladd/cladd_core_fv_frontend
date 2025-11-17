@@ -467,9 +467,22 @@ export default function ConfirmarProduccion() {
     };
 
     // calcula los datos de la paginacion
-    const sortedResults = [...resultados].sort(
-        (a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio)
-    );
+    const ordenMaquinas = [108, 123, 124, 146, 12, 160, 10];
+
+    const sortedResults = [...resultados].sort((a, b) => {
+        const indexA = ordenMaquinas.indexOf(Number(a.maquina));
+        const indexB = ordenMaquinas.indexOf(Number(b.maquina));
+
+        if (indexA !== indexB) {
+            return indexA - indexB;
+        }
+
+       const fechaA = new Date(a.hora_inicio_real || a.hora_inicio || a.hora_fin_real || a.hora_fin);
+    const fechaB = new Date(b.hora_inicio_real || b.hora_inicio || b.hora_fin_real || b.hora_fin);
+
+    return fechaB - fechaA;
+    });
+
 
     const paginatedResults = sortedResults.slice(
         (page - 1) * rowsPerPage,
@@ -555,36 +568,34 @@ export default function ConfirmarProduccion() {
                     <Card sx={{ width: '100%', borderRadius: '10px', boxShadow: '1px 1px 2px 3px rgba(0,0,0,0.4)', padding: 1, marginTop: '20px' }}>
                         <Grid container spacing={2}>
                             {paginatedResults.length > 0 ? (
-                                [...paginatedResults]
-                                    .sort((a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio))
-                                    .map((item, index) => (
-                                        <Grid item xs={12} sm={6} md={3} key={item.id || index}>
-                                            <Box onClick={() => handleOpenPopup(item)} sx={{
-                                                backgroundColor: '#f5f5f5',
-                                                borderRadius: '8px',
-                                                padding: 2,
-                                                boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
-                                                transition: 'transform 0.2s ease',
-                                                cursor: 'pointer',
-                                                '&:hover': { transform: 'scale(1.03)', boxShadow: '0px 4px 8px rgba(0,0,0,0.3)' },
-                                            }}>
+                                paginatedResults.map((item, index) => (
+                                    <Grid item xs={12} sm={6} md={3} key={item.id || index}>
+                                        <Box onClick={() => handleOpenPopup(item)} sx={{
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '8px',
+                                            padding: 2,
+                                            boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+                                            transition: 'transform 0.2s ease',
+                                            cursor: 'pointer',
+                                            '&:hover': { transform: 'scale(1.03)', boxShadow: '0px 4px 8px rgba(0,0,0,0.3)' },
+                                        }}>
 
-                                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Articulo: {item.articulo}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Maquina: {item.maquina}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Proceso: {item.proceso}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
-                                                <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
-                                                <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
-                                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                    <Chip label={(estadosPorOrden[item.id] || 'sin iniciar').toUpperCase()}
-                                                        color={(estadosPorOrden[item.id] || 'sin iniciar') === 'sin iniciar' ? 'warning' : (estadosPorOrden[item.id] || '').toLowerCase() === 'en proceso' ? 'primary' : 'success'}
-                                                        sx={{ fontWeight: 'bold', fontSize: 10 }}
-                                                    />
-                                                </Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden} - Maq: ({item.maquina})</Typography>
+                                            <Typography variant="body2" color="text.secondary">Articulo: {item.articulo}</Typography>
+                                            <Typography variant="body2" color="text.secondary"><b>Maquina: {item.maquina}</b></Typography>
+                                            <Typography variant="body2" color="text.secondary">Proceso: {item.proceso}</Typography>
+                                            <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
+                                            <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
+                                            <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
+                                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                <Chip label={(estadosPorOrden[item.id] || 'sin iniciar').toUpperCase()}
+                                                    color={(estadosPorOrden[item.id] || 'sin iniciar') === 'sin iniciar' ? 'warning' : (estadosPorOrden[item.id] || '').toLowerCase() === 'en proceso' ? 'primary' : 'success'}
+                                                    sx={{ fontWeight: 'bold', fontSize: 10 }}
+                                                />
                                             </Box>
-                                        </Grid>
-                                    ))
+                                        </Box>
+                                    </Grid>
+                                ))
                             ) : (
                                 <Grid item xs={12} textAlign="center"><Typography>No hay datos disponibles</Typography></Grid>
                             )}
@@ -763,6 +774,7 @@ export default function ConfirmarProduccion() {
                                 fullWidth
                                 value={operario}
                                 onChange={(e) => setOperario(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && validarLegajo()}
                                 required
                             />
                         </DialogContent>

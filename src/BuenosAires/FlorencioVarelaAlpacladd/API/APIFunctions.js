@@ -234,6 +234,36 @@ async function getMonitoreoMaquinas(){
     return(respuesta.data)
 }
 
+async function getOrdenesGanttPorNumero(orden) {
+    let respuesta = await axios.get(`http://192.168.0.18:4300/Gantt/GetOrdenesGanttPorNumero/${orden}`);
+    return (respuesta.data);
+}
+
+async function putRegistroLaboratorio(body) {
+    try {
+        const respuesta = await axios.put(
+            URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/RegistroLaboratorio",
+            body
+        );
+        return respuesta.data;
+    } catch (error) {
+        console.error("❌ Error en putRegistroLaboratorio:", error);
+        throw error;
+    }
+}
+
+export const getStockRollosXOrden2 = async (orden) => {
+  try {
+    const response = await fetch(`http://192.168.0.18:4300/StockRollos/rollosPorOrden/${orden}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error en getStockRollosXOrden:", error);
+    return [];
+  }
+};
+
+
 
 export {
     getStockTerminadoFV,
@@ -281,5 +311,7 @@ export {
     getOperarios,
     getStockQuimicos,
     putCargaStockQuimico,
-    getMonitoreoMaquinas
+    getMonitoreoMaquinas,
+    getOrdenesGanttPorNumero,
+    putRegistroLaboratorio
 }

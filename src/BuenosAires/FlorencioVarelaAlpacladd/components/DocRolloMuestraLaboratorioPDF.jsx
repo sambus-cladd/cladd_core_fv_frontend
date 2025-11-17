@@ -244,11 +244,11 @@ const styles = StyleSheet.create({
 
 function DocRolloMuestraLaboratorioPDF(props) {
     const { anotaciones, rutina, metrosTotal, Rollo, motivo, articuloTerminado, anidarRutina,
-        subLote, ordenTrabajo, informeResultado, tarima, muestra, QrcodeImageUrl, reImpresion} = props;
+        subLote, ordenTrabajo, informeResultado, tarima, muestra, QrcodeImageUrl, reImpresion } = props;
 
     const date = new Date();
-    const dia = date.toLocaleDateString(); 
-    const hora = date.toLocaleTimeString(); 
+    const dia = date.toLocaleDateString();
+    const hora = date.toLocaleTimeString();
     return (
         <Document>
             <Page size="A6" orientation="landscape" style={styles.page}>
@@ -262,6 +262,7 @@ function DocRolloMuestraLaboratorioPDF(props) {
                             <Text>Fecha: {dia}   </Text>
                             <Text>Hora: {hora}   </Text>
                             <Text style={styles.rutina}>Rutina {rutina} </Text>
+
                             <Text style={styles.motivo}>{motivo} </Text>
                         </View>
                         <View style={styles.QR}>
@@ -355,9 +356,16 @@ function DocRolloMuestraLaboratorioPDF(props) {
                                 <Text style={[styles.tableColText]}>{anotaciones}</Text>
                             </View>
                         </View>
+
+
                     </View>
+                         <Image
+                                style={{ width: 150, height: 25, alignSelf: 'center', marginTop: -10 }}
+                                src={`http://192.168.40.95:4202/codigodebarratenido/${rutina}`}
+                            />
                 </View>
             </Page>
+
             {!reImpresion && muestra.map((item, index) => (
                 <Page size="A6" orientation="landscape" style={styles.page}>
                     {/* Cabecera */}

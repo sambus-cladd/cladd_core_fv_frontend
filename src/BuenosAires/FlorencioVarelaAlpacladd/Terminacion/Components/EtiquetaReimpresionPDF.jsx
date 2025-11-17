@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 200,
-    height: 110,
+    height: 100,
     marginLeft: 10,
   },
   barcodeBlock: {
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   articulo: {
-    fontSize: 25,
+    fontSize: 22,
     fontFamily: 'Bison',
     marginRight: 60,
   },
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   cellValue: {
     width: '15%',
     fontFamily: 'Bison',
-    fontSize: 18,
+    fontSize: 15,
   },
   separador: {
     borderBottom: '1pt solid black',

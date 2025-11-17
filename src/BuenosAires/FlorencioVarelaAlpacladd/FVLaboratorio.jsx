@@ -12,6 +12,8 @@ import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import FormularioEnsayos from './components/FormularioEnsayos.jsx'
 import { useAuth } from '../../AuthContext';
 import ScienceIcon from '@mui/icons-material/Science';
+import { AddCard } from '@mui/icons-material';
+import InformarRegistroLab from './components/InformarRegistroLab.jsx';
 
 export default function FVLaboratorio() {
 
@@ -43,6 +45,8 @@ export default function FVLaboratorio() {
                 return <BuscadorRutina handleTabChange={handleTabsChange} />;
             case 'FormularioRegistro':
                 return <FormularioEnsayos rutina={rutina} handleTabChange={handleTabsChange}/>;
+            case 'RegistroLaboratorio':
+                return <InformarRegistroLab handleTabChange={handleTabsChange}/>;
             case 'StockCalidad':
                 return <StockCalidad />;
             default:
@@ -71,6 +75,8 @@ export default function FVLaboratorio() {
                             <Tab icon={<FormatListNumberedIcon />} value="RutinasActivas" label="RUTINAS ACTIVAS" />
                             <hr />
                             <Tab icon={<ScienceIcon />} value="FormularioRegistro" label="Formulario" />
+                            <hr />
+                            <Tab icon={<AddCard />} value="RegistroLaboratorio" label="Ingreso laboratorio" />
                             <hr />
                             <Tab value="info" disabled label={auth?.usuario} icon={<PersonIcon />} />
                         </Tabs>
