@@ -34,6 +34,7 @@ import InformarRegistroLab from "./BuenosAires/FlorencioVarelaAlpacladd/componen
 import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Terminacion";
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
 import ReimpresionEtiquetas from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas.jsx"
+import RechazosRegistro from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/RechazosRegistro.jsx";
 
 import RequireAuth from "./BuenosAires/FlorencioVarelaAlpacladd/components/RequireAuth";
 import Articulos from "./components/Componentes/Articulos";
@@ -140,12 +141,13 @@ function App() {
         path="/BuenosAires/FlorencioVarela/Terminacion/FichaTecnica"
         element={<Articulos rol={"fv"} />}
       />
-
       <Route
         path="/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas"
         element={<ReimpresionEtiquetas />}
       />
-
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/RechazosRegistro"
+        element={<RechazosRegistro/>}/>
 
 
       {/* LABORATORIO */}

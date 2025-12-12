@@ -59,12 +59,12 @@ const routes = [
   //   route: "/BuenosAires/FlorencioVarela/Productividad/RegistroOEE/ModuloOEE",
   //   target: "_self",
   // },
-  // {
-  //   name: "MONITOREO MAQUINAS",
-  //   key: "MonitoreoMaq",
-  //   route: "/BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas",
-  //   target: "_self",
-  // },
+  {
+    name: "MONITOREO MAQUINAS",
+    key: "MonitoreoMaq",
+    route: "/BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas",
+    target: "_self",
+  },
 
 ];
 

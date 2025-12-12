@@ -6,11 +6,13 @@ import {
 } from "@mui/material";
 import { getOrdenesGanttPorNumero } from "../../../API/APIFunctions";
 import { getStockRollosXOrden2 } from "../../../API/APIFunctions";
-import { PutRegistroGantFV } from "../API/APIFunctions";
+import { PutRegistroGantReprocesoFV } from "../API/APIFunctions";
 import { putEnviarRollosAProduccion } from "../../../API/APIFunctions";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
+import { GetTABLAMAQUINAS } from "../API/APIFunctions";
+import { validarLegajo } from "../API/APIFunctions";
 
 const FormularioReprocesos = () => {
     const [numeroOrden, setNumeroOrden] = useState("");
@@ -21,7 +23,6 @@ const FormularioReprocesos = () => {
     const [rollos, setRollos] = useState([]);
     const [rollosSeleccionados, setRollosSeleccionados] = useState([]);
     const [loadingRollos, setLoadingRollos] = useState(false);
-    // Formulario reproceso
     const [inicio, setInicio] = useState(null);
     const [fin, setFin] = useState(null);
     const [maquina, setMaquina] = useState("");
@@ -29,6 +30,12 @@ const FormularioReprocesos = () => {
     const [proceso, setProceso] = useState("");
     const [horasTotal, setHorasTotal] = useState("");
     const [metros, setMetros] = useState("");
+    const [maquinasProc, setMaquinasProc] = useState([]);
+    const [mostrarDialogOperario, setMostrarDialogOperario] = useState(false);
+    const [legajo, setLegajo] = useState("");
+    const [operarioReproceso, setOperarioReproceso] = useState(null);
+
+
 
     const [mensaje, setMensaje] = useState("");
     const [popup, setPopup] = useState(false);
@@ -49,10 +56,11 @@ const FormularioReprocesos = () => {
     };
 
     const handleSeleccionarOrden = async (orden) => {
+        setOperarioReproceso(null);
 
         const ordenConR = {
             ...orden,
-            articulo: `${orden.articulo}R`,
+            orden: `${orden.orden}R`,
         };
 
         // Autocompletado de formulario
@@ -73,13 +81,13 @@ const FormularioReprocesos = () => {
 
         try {
             const rta = await getStockRollosXOrden2(orden.orden);
-            if (Array.isArray(rta)) {
-                const unicos = rta.filter(
-                    (item, index, self) =>
-                        index === self.findIndex((t) => t.rollo === item.rollo)
-                );
-                setRollos(unicos);
-            }
+            console.log("Rollos obtenidos para la orden", orden.orden, rta);
+            const unicos = rta.filter(
+                (item, index, self) =>
+                    index === self.findIndex((t) => t.rollo === item.rollo)
+            );
+
+            setRollos(unicos);
         } catch {
             setRollos([]);
         }
@@ -87,12 +95,14 @@ const FormularioReprocesos = () => {
     };
 
     const handleToggleRollo = (rolloId) => {
+        const id = Number(rolloId);
         setRollosSeleccionados(prev =>
-            prev.includes(rolloId) ?
-                prev.filter(r => r !== rolloId) :
-                [...prev, rolloId]
+            prev.includes(id)
+                ? prev.filter(r => r !== id)
+                : [...prev, id]
         );
     };
+
 
     useEffect(() => {
         if (inicio && horasTotal) {
@@ -136,12 +146,16 @@ const FormularioReprocesos = () => {
             InicioHora: inicio.format("YYYY-MM-DD HH:mm"),
             FinHora: fin.format("YYYY-MM-DD HH:mm"),
             Rollos: rollosSeleccionados,
+            ResponsableLegajo: operarioReproceso?.legajo || "",
+            ResponsableNombre: operarioReproceso?.nombre || "",
         };
 
         try {
-            await PutRegistroGantFV(body);
+            await PutRegistroGantReprocesoFV(body);
 
-            for (const rollo of rollosSeleccionados) {
+            for (const idRollo of rollosSeleccionados) {
+                const infoRollo = rollos.find(r => Number(r.rollo) === Number(idRollo));
+
                 await putEnviarRollosAProduccion({
                     orden: ordenSeleccionada.orden,
                     maquina,
@@ -150,15 +164,18 @@ const FormularioReprocesos = () => {
                     color: ordenSeleccionada.color,
                     inicio: body.InicioHora,
                     fin: body.FinHora,
-                    rollo
+                    rollo: idRollo,
+                    metros: infoRollo?.rollo_metros ?? 0
                 });
             }
+
 
             setMensaje("Reproceso registrado correctamente");
             setPopup(true);
             setTimeout(() => {
                 setPopup(false);
                 limpiarFormulario();
+                setOperarioReproceso(null);
             }, 1500);
 
         } catch {
@@ -176,7 +193,7 @@ const FormularioReprocesos = () => {
 
         const metrosTotal = rollos
             .filter(r => rollosSeleccionados.includes(r.rollo))
-            .reduce((acc, curr) => acc + Number(curr.metros), 0);
+            .reduce((acc, curr) => acc + Number(curr.rollo_metros), 0);
 
         setMetros(metrosTotal);
     }, [rollosSeleccionados, rollos]);
@@ -202,13 +219,111 @@ const FormularioReprocesos = () => {
         setError(false);
         setPopup(false);
         setErroresForm({});
+        setOperarioReproceso(null);
+
     };
+
+    useEffect(() => {
+        const cargarVelocidades = async () => {
+            try {
+                const response = await GetTABLAMAQUINAS();
+                if (response && response.Dato && Array.isArray(response.Dato[0])) {
+                    setMaquinasProc(response.Dato[0]);
+                } else {
+                    console.error("Formato inesperado en TABLAMAQUINAS:", response);
+                }
+            } catch (error) {
+                console.error("Error cargando velocidades:", error);
+            }
+        };
+
+        cargarVelocidades();
+    }, []);
+    const obtenerVelocidadMaquina = (procesoMaquinaNombre) => {
+        const dato = maquinasProc.find(m => m.proceso === procesoMaquinaNombre);
+        return dato ? Number(dato.velocidad) : 1;
+    };
+    useEffect(() => {
+        if (rollosSeleccionados.length === 0) {
+            setMetros(0);
+            setHorasTotal(0);
+            return;
+        }
+
+        const metrosTotal = rollos
+            .filter(r => rollosSeleccionados.includes(r.rollo))
+            .reduce((acc, curr) => acc + Number(curr.rollo_metros), 0);
+
+        setMetros(metrosTotal);
+
+        const velocidad = obtenerVelocidadMaquina(procesoMaquina);
+
+        if (!velocidad || velocidad <= 0) {
+            console.warn("Velocidad no encontrada para:", procesoMaquina);
+            return;
+        }
+        const horas = metrosTotal / (velocidad * 60);
+        setHorasTotal(Math.ceil(horas));
+
+    }, [rollosSeleccionados, rollos, procesoMaquina, maquinasProc]);
+    useEffect(() => {
+        if (inicio && horasTotal) {
+            const f = dayjs(inicio).add(Number(horasTotal), "hour");
+            setFin(f);
+        }
+    }, [inicio, horasTotal]);
+
+    const confirmarOperario = async () => {
+        if (!legajo) {
+            alert("Debe ingresar el legajo del operario.");
+            return;
+        }
+
+        try {
+            const resultado = await validarLegajo(legajo);
+
+            const operarioValido = Array.isArray(resultado)
+                ? resultado[0]
+                : resultado?.data
+                    ? resultado.data
+                    : resultado;
+
+            if (!operarioValido || !operarioValido.legajo) {
+                alert("El legajo ingresado no es válido.");
+                return;
+            }
+            const sector = operarioValido.sector?.toString().trim().toLowerCase();
+            if (sector !== "supervisor") {
+                alert("Solo un SUPERVISOR puede autorizar este reproceso.");
+                return;
+            }
+
+            setOperarioReproceso({
+                legajo: operarioValido.legajo,
+                nombre: operarioValido.nombre,
+                fecha: dayjs().format("YYYY-MM-DD")
+            });
+
+            localStorage.setItem("reproceso_legajo", operarioValido.legajo);
+            localStorage.setItem("reproceso_nombre", operarioValido.nombre);
+
+            setMostrarDialogOperario(false);
+            setLegajo("");
+
+            registrarReproceso();
+
+        } catch (e) {
+            console.error("Error validando operario:", e);
+            alert("Ocurrió un error al validar el operario.");
+        }
+    };
+
 
 
     return (
         <Box p={2}>
             {/* Buscador */}
-            <Box display="flex" justifyContent="center" gap={1} mb={2}>
+            <Box display="flex" justifyContent="center" gap={1} mb={1}>
                 <TextField
                     label="Numero de orden"
                     size="small"
@@ -297,6 +412,7 @@ const FormularioReprocesos = () => {
                                             label="Orden"
                                             value={ordenSeleccionada.orden}
                                             onChange={e => setOrdenSeleccionada(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                             error={erroresForm.maquina}
                                         />
                                     </Grid>
@@ -307,6 +423,7 @@ const FormularioReprocesos = () => {
                                             label="Maquina"
                                             value={maquina}
                                             onChange={e => setMaquina(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                             error={erroresForm.maquina}
                                         />
                                     </Grid>
@@ -317,6 +434,7 @@ const FormularioReprocesos = () => {
                                             label="Proc. Maquina"
                                             value={procesoMaquina}
                                             onChange={e => setProcesoMaquina(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                         />
                                     </Grid>
 
@@ -326,6 +444,7 @@ const FormularioReprocesos = () => {
                                             label="Proceso"
                                             value={proceso}
                                             onChange={e => setProceso(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                             error={erroresForm.proceso}
                                         />
                                     </Grid>
@@ -336,49 +455,50 @@ const FormularioReprocesos = () => {
                                             label="Articulo"
                                             value={articuloForm}
                                             onChange={e => setArticuloForm(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                             error={erroresForm.metros}
                                         />
                                     </Grid>
-                                    {/* <Grid item xs={4}>
+                                    <Grid item xs={4}>
+
                                         <TextField
                                             fullWidth
                                             label="Metros"
                                             type="number"
                                             value={metros}
-                                            onChange={e => setMetros(e.target.value)}
+                                            InputProps={{ readOnly: true }}
                                             error={erroresForm.metros}
                                         />
-                                    </Grid> */}
-                                    <Grid item xs={4}>
-
-                                    <TextField
-                                        fullWidth
-                                        label="Metros"
-                                        type="number"
-                                        value={metros}
-                                        InputProps={{ readOnly: true }}
-                                        error={erroresForm.metros}
-                                    />
                                     </Grid>
-
 
                                     <Grid item xs={4}>
                                         <TextField
                                             fullWidth
+                                            variant="filled"
                                             label="Horas Total"
-                                            type="number"
                                             value={horasTotal}
-                                            onChange={e => setHorasTotal(e.target.value)}
-                                            error={erroresForm.horasTotal}
+                                            InputProps={{ readOnly: true }}
+                                            focused
                                         />
                                     </Grid>
 
                                 </Grid>
 
                                 <Box textAlign="right" mt={2}>
-                                    <Button variant="contained" onClick={registrarReproceso} sx={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => {
+                                            if (!operarioReproceso) {
+                                                setMostrarDialogOperario(true);
+                                                return;
+                                            }
+                                            registrarReproceso();
+                                        }}
+                                        sx={{ fontWeight: 'bold', fontSize: '15px' }}
+                                    >
                                         Registrar Reproceso
                                     </Button>
+
                                 </Box>
 
                             </Card>
@@ -410,7 +530,7 @@ const FormularioReprocesos = () => {
                                                     label={
                                                         <Box>
                                                             <Typography><b>Rollo:</b> {r.rollo}</Typography>
-                                                            <Typography><b>Metros:</b> {r.metros}</Typography>
+                                                            <Typography><b>Metros:</b> {r.rollo_metros}</Typography>
                                                         </Box>
                                                     }
                                                 />
@@ -422,9 +542,6 @@ const FormularioReprocesos = () => {
                                 </CardContent>
                             </Card>
                         </Grid>
-
-
-
                     </Grid>
 
                 </Box>
@@ -432,12 +549,38 @@ const FormularioReprocesos = () => {
 
 
             {/* POPUPS */}
-            <Dialog open={popup}>
-                <DialogTitle sx={{ color: "green" }}>{mensaje}</DialogTitle>
+            <Dialog open={popup} PaperProps={{ sx: { backgroundColor: "#49a13dff", borderRadius: 3, padding: 0.5 } }}>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#ffff", backgroundColor: "#49a13dff", borderRadius: 3 }}>{mensaje}</DialogTitle>
             </Dialog>
 
-            <Dialog open={error}>
-                <DialogTitle sx={{ color: "red" }}>{mensaje}</DialogTitle>
+            <Dialog open={error} PaperProps={{ sx: { backgroundColor: "#ff0000ff", borderRadius: 3, padding: 0.5 } }}>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#ffff", backgroundColor: "#ff0000ff", borderRadius: 3 }}>{mensaje}</DialogTitle>
+            </Dialog>
+
+            <Dialog open={mostrarDialogOperario}>
+                <DialogTitle>Registrar Responsable</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ mb: 1 }}>
+                        Ingrese el legajo del <b>Supervisor</b> a cargo.
+                    </Typography>
+
+                    <TextField
+                        label="Legajo"
+                        fullWidth
+                        value={legajo}
+                        onChange={(e) => setLegajo(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && confirmarOperario()}
+                    />
+                </DialogContent>
+
+                <DialogActions>
+                    <Button color="error" onClick={() => setMostrarDialogOperario(false)}>
+                        Cancelar
+                    </Button>
+                    <Button variant="contained" onClick={confirmarOperario}>
+                        Confirmar
+                    </Button>
+                </DialogActions>
             </Dialog>
 
         </Box>

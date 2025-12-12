@@ -16,20 +16,20 @@ async function getStockTerminadoFV() {
 }
 
 async function getRutinasLaboratorio(rutina) {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/getReporte/rutina/" + rutina)
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/getReporte/rutina/" + rutina)
     return (respuesta)
 }
 
 async function PutEnsayoDeRutina(datos) {
-    let respuesta = await axios.put( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/registrar_ensayo", datos)
+    let respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/registrar_ensayo", datos)
     return (respuesta);
 }
 async function getEstadoRollos() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "Home/StockRollos");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "Home/StockRollos");
     return (respuesta);
 }
 async function getReporteLaboratorio() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/getReporte");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/getReporte");
     return (respuesta);
 }
 async function putInventarioPlanta(body) {
@@ -37,21 +37,21 @@ async function putInventarioPlanta(body) {
     return respuesta;
 }
 async function putFinalizarEnsayo(body) {
-    let respuesta = await axios.put( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/FinalizarEnsayo", body);
+    let respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/FinalizarEnsayo", body);
     return respuesta;
 }
 
 async function getDatosEnsayo(rutina) {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/rutinas/ensayo/" + rutina);
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/rutinas/ensayo/" + rutina);
     return respuesta;
 }
 
 async function putCambiarEtapaEnsayo(body) {
-    let respuesta = await axios.put( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/CambiarEtapa", body);
+    let respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/CambiarEtapa", body);
     return respuesta;
 }
 async function getResultadosPosiblesEnsayos() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/ensayo/TablaResultados");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/ensayo/TablaResultados");
     return respuesta;
 }
 async function getEspecificacionArticulos(articuloFinal, motivo) {
@@ -70,24 +70,31 @@ async function getTodasRutinas() {
 }
 
 async function getTarimasUsadas() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/ensayo/TablaTarimas");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/ensayo/TablaTarimas");
     return respuesta;
 }
 
 async function getUltimaRutinaLab() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/UltimaRutina");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/UltimaRutina");
     return respuesta;
 }
 
 async function getArticulosFV() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/tablaFV/ArticuloFinal");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/tablaFV/ArticuloFinal");
     return respuesta;
 }
 
 async function putRegistrarMuestra(body) {
-    let respuesta = await axios.put( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/registrar_rutina", body);
+    let respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/laboratorio/registrar_rutina", body);
     return respuesta;
 }
+
+async function validarDatosMuestras(rollo) {
+    return await axios.get(
+        `${URL_SERVIDOR}${PUERTO_FV_LABORATORIO}BuenosAires/Laboratorio/ValidarDatosMuestras/${rollo}`
+    );
+}
+
 
 async function getArticuloInicialFV(articuloFinal) {
     let response = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + `BuenosAires/laboratorio/tablaFV/ArticuloInicial/${articuloFinal}`);
@@ -116,7 +123,7 @@ async function getResumenRutinas() {
     return response;
 }
 async function getRutinasTerminadas() {
-    let respuesta = await axios.get( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/RutinasFinalizadas");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/RutinasFinalizadas");
     return respuesta;
 }
 
@@ -174,6 +181,10 @@ async function getStockRollosXArt(articulo) {
     let response = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + `StockRollos/${articulo}`);
     return response;
 }
+async function getRollosRechazoXArt(articulo) {
+    let response = await axios.get(URL_SERVIDOR + PUERTO_FV_LABORATORIO + `Rechazos/RollosArticulo/${articulo}`);
+    return response;
+}
 async function getStockRollosXOrden(orden) {
     const response = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + `StockRollos/rollosPorOrden/${orden}`);
     return response;
@@ -196,7 +207,7 @@ async function getDatosDashboardSubProd(data) {
 }
 
 async function getReporteEnsayosXArticulo(body) {
-    let respuesta = await axios.post( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/Reporte/Articulo", body);
+    let respuesta = await axios.post(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/Reporte/Articulo", body);
     return respuesta;
 }
 
@@ -209,42 +220,39 @@ async function getReporteTiempoXFechas(body) {
     let respuesta = await axios.post(URL_SERVIDOR + PUERTO_FV_LABORATORIO + `BuenosAires/Laboratorio/Reporte/tiempos/rutinaxFechas`, body);
     return respuesta;
 }
-async function getDatosDePiezas(body){
-    let respuesta = await axios.post( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Calidad/etiqueta/imprimir", body);
+async function getDatosDePiezas(body) {
+    let respuesta = await axios.post(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Calidad/etiqueta/imprimir", body);
     return respuesta;
 }
 
-async function getOperarios(){
-    let respuesta = await axios( URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Usuarios/Operarios");
+async function getOperarios() {
+    let respuesta = await axios(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Usuarios/Operarios");
     return respuesta;
 }
 
-async function getStockQuimicos(){
-    let respuesta = await axios.get( "http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "StockQuimicos");
-    return(respuesta.data)
+async function getStockQuimicos() {
+    let respuesta = await axios.get("http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "StockQuimicos");
+    return (respuesta.data)
 }
 
-async function putCargaStockQuimico(body){
-    let respuesta = await axios.put( "http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "Carga/StockQuimicos", body);
-    return(respuesta)
+async function putCargaStockQuimico(body) {
+    let respuesta = await axios.put("http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "Carga/StockQuimicos", body);
+    return (respuesta)
 }
 
-async function getMonitoreoMaquinas(){
-    let respuesta = await axios.get("http://192.168.0.18:4300/Maquinas/RegistrosProduccion");
-    return(respuesta.data)
+async function getMonitoreoMaquinas() {
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "Maquinas/RegistrosProduccion");
+    return (respuesta.data)
 }
 
 async function getOrdenesGanttPorNumero(orden) {
-    let respuesta = await axios.get(`http://192.168.0.18:4300/Gantt/GetOrdenesGanttPorNumero/${orden}`);
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + `Gantt/GetOrdenesGanttPorNumero/${orden}`);
     return (respuesta.data);
 }
 
 async function putRegistroLaboratorio(body) {
     try {
-        const respuesta = await axios.put(
-            URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/RegistroLaboratorio",
-            body
-        );
+        const respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_LABORATORIO + "BuenosAires/Laboratorio/RegistroLaboratorio", body);
         return respuesta.data;
     } catch (error) {
         console.error("❌ Error en putRegistroLaboratorio:", error);
@@ -253,15 +261,55 @@ async function putRegistroLaboratorio(body) {
 }
 
 export const getStockRollosXOrden2 = async (orden) => {
-  try {
-    const response = await fetch(`http://192.168.0.18:4300/StockRollos/rollosPorOrden/${orden}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error en getStockRollosXOrden:", error);
-    return [];
-  }
+    try {
+        const response = await fetch(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + `Gant/rollosPorOrdenStock/${orden}`);
+        const data = await response.json();
+        return data.data || [];
+    } catch (error) {
+        console.error("Error en getStockRollosXOrden:", error);
+        return [];
+    }
 };
+
+async function putRegistrarRechazo(body) {
+    try {
+        const respuesta = await axios.post(
+            URL_SERVIDOR + PUERTO_FV_LABORATORIO + "Rechazos/RegistrarRechazo",
+            body
+        );
+        return respuesta.data;
+    } catch (error) {
+        console.error("Error en pustRegistrarRechazo:", error);
+        return { success: false, error };
+    }
+}
+
+async function getVerificarRollo(lote) {
+    try {
+        const respuesta = await axios.get(
+            URL_SERVIDOR + PUERTO_FV_LABORATORIO + `Rechazos/VerificarRollos/${lote}`,
+        );
+        const data = respuesta.data?.data;
+        return respuesta.data?.data?.rollo ? true : false;
+        return !!rollo;
+
+    } catch (error) {
+        console.error("Error en getVerificarRollo:", error);
+        return false
+    }
+}
+
+async function getMotivosRechazos() {
+    try {
+        const respuesta = await axios.get(
+            URL_SERVIDOR + PUERTO_FV_LABORATORIO + "Rechazos/MotivosRechazos"
+        );
+        return respuesta.data?.data || [];
+    } catch (error) {
+        console.error("Error al obtener motivos:", error);
+        return [];
+    }
+}
 
 
 
@@ -313,5 +361,10 @@ export {
     putCargaStockQuimico,
     getMonitoreoMaquinas,
     getOrdenesGanttPorNumero,
-    putRegistroLaboratorio
+    putRegistroLaboratorio,
+    validarDatosMuestras,
+    putRegistrarRechazo,
+    getRollosRechazoXArt,
+    getVerificarRollo,
+    getMotivosRechazos,
 }

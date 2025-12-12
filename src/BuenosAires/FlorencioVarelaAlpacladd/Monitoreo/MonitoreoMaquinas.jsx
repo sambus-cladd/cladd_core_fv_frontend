@@ -6,6 +6,7 @@ import DvrIcon from "@mui/icons-material/Dvr";
 import { getMonitoreoMaquinas } from "../API/APIFunctions";
 import { Navbar } from "../../../components";
 import { Navigate } from "react-router-dom";
+import { Tooltip } from "@mui/material";
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -49,19 +50,29 @@ const MonitoreoMaquinas = () => {
             const agrupado = {};
 
             if (respuesta?.success && Array.isArray(respuesta.data)) {
-                // Agrupar por maquina y suma metros restantes
                 respuesta.data.forEach((item) => {
-                    const maquina = item.maquina || "SIN MÁQUINA";
+                    const maquina = item.maquina || "SIN MAQUINA";
+
+                    // convertir metros_restantes a numero
                     const metrosRestantes = Math.max(0, Number(item.metros_restantes) || 0);
-                    if (!agrupado[maquina]) agrupado[maquina] = 0;
-                    agrupado[maquina] += metrosRestantes;
+                    if (!agrupado[maquina]) {
+                        agrupado[maquina] = { total: 0, ordenes: [] };
+                    }
+                    // Suma de metros restantes para el total del card
+                    agrupado[maquina].total += metrosRestantes;
+                    // Orden con datos completos
+                    agrupado[maquina].ordenes.push({
+                        orden: item.orden,
+                        metros_cargados: Number(item.metros_cargados),
+                        metros_registrados: Number(item.metros_registrados),
+                        metros_restantes: metrosRestantes
+                    });
                 });
             }
-
-            // Array de maquinas en orden deseado
             const resultado = ordenDeseado.map((maquina) => ({
                 maquina,
-                totalKm: (agrupado[maquina] || 0) / 1000,
+                totalKm: (agrupado[maquina]?.total || 0) / 1000,
+                ordenes: agrupado[maquina]?.ordenes || []
             }));
 
             setDatos(resultado);
@@ -75,7 +86,7 @@ const MonitoreoMaquinas = () => {
     useEffect(() => {
         document.title = "CladdCore FV - Monitoreo Maquinas";
         cargarDatos();
-    
+
         const intervalo = setInterval(() => {
             cargarDatos();
         }, 60000);
@@ -83,7 +94,6 @@ const MonitoreoMaquinas = () => {
     }, []);
 
     if (loading) return <CircularProgress />;
-
 
     return (
         <div
@@ -109,38 +119,73 @@ const MonitoreoMaquinas = () => {
                         <Grid container spacing={2}>
                             {datos.map((item) => (
                                 <Grid item xs={12} sm={6} md={3} key={item.maquina}>
-                                    <Card sx={{ p: 2, textAlign: "center", backgroundColor: "#1A4862", color: "white",
-                                        borderRadius: "16px", boxShadow: "0px 4px 12px rgba(0,0,0,0.2)", 
-                                        width: 250, height: 180 }}>
-                                        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                                            MAQUINA {item.maquina}
-                                        </Typography>
-                                        <Typography variant="body3" sx={{ mt: 1, fontWeight: "bold" }}>
-                                            [PRODUCCION]
-                                        </Typography>
-                                        <hr />
-                                        <Typography variant="h4" sx={{ fontWeight: "bold", color: "#fffff", mt: 1 }} >
-                                            {item.totalKm.toFixed(2)} Km
-                                        </Typography>
-                                        <hr />
-                                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }} >
-                                            <Button size="small" variant="contained" sx={{ backgroundColor: "#ffff",
-                                                color: "#00334E", fontWeight: "bold",
-                                                textTransform: "none", borderRadius: "8px",
-                                                "&:hover": { backgroundColor: "#dfdbdbff", }, }}>REPORTE</Button>
+                                    <Tooltip
+                                        title={
+                                            item.ordenes.length === 0
+                                                ? "Sin ordenes en proceso"
+                                                : (
+                                                    <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                        {item.ordenes.map((o, index) => (
+                                                            <Box key={index} sx={{ borderBottom: "1px solid #ccc", pb: 1 }}>
+                                                                <Typography sx={{ fontWeight: "bold" }}>🟢Orden: {o.orden}</Typography>
+                                                                <Typography>Metros totales: {o.metros_cargados}</Typography>
+                                                                <Typography>Metros registrados: {o.metros_registrados}</Typography>
+                                                                <Typography sx={{ color: "yellow" }}>
+                                                                    ⬇ Metros restantes: {o.metros_restantes}
+                                                                </Typography>
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                )
+                                        }
+                                        placement="right" 
+                                        arrow
+                                        slotProps={{ tooltip: { sx: { backgroundColor: "#555555ff", color: "#fff", fontSize: "14px", maxWidth: "260px" } },
+                                            arrow: { sx: { color: "#555555ff" } }
+                                        }}
+                                    >
+                                        <Card sx={{
+                                            p: 2, textAlign: "center", backgroundColor: "#1A4862", color: "white",
+                                            borderRadius: "16px", boxShadow: "0px 4px 12px rgba(0,0,0,0.2)",
+                                            width: 250, height: 180
+                                        }}>
+                                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                                                MAQUINA {item.maquina}
+                                            </Typography>
+                                            <Typography variant="body3" sx={{ mt: 1, fontWeight: "bold" }}>
+                                                [PRODUCCION]
+                                            </Typography>
+                                            <hr />
+                                            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#fffff", mt: 1 }} >
+                                                {item.totalKm.toFixed(2)} Km
+                                            </Typography>
+                                            <hr />
+                                            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }} >
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>REPORTE</Button>
 
-                                            <Button size="small" variant="contained" sx={{ backgroundColor: "#ffff",
-                                                color: "#00334E", fontWeight: "bold",
-                                                textTransform: "none", borderRadius: "8px",
-                                                "&:hover": { backgroundColor: "#dfdbdbff", }, }}>DIA</Button>
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>DIA</Button>
 
-                                            <Button size="small" variant="contained" sx={{ backgroundColor: "#ffff", 
-                                                color: "#00334E", fontWeight: "bold",
-                                                textTransform: "none", borderRadius: "8px", 
-                                                "&:hover": { backgroundColor: "#dfdbdbff", }, }}>MES</Button>
-                                        </Box>
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>MES</Button>
+                                            </Box>
 
-                                    </Card>
+                                        </Card>
+                                    </Tooltip>
+
                                 </Grid>
                             ))}
                         </Grid>
@@ -148,7 +193,7 @@ const MonitoreoMaquinas = () => {
                 </CustomTabPanel>
             </Box>
 
-            <Box display="flex" flexDirection="column" 
+            <Box display="flex" flexDirection="column"
                 sx={{
                     position: "fixed",
                     bottom: 16,

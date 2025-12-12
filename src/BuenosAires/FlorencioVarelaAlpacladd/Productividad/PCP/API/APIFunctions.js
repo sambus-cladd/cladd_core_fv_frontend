@@ -2,6 +2,7 @@ import axios from 'axios'
 import APIRoutes from "./APIRoutes";
 
 const URLCargagantFV    = APIRoutes[0].CargaGantFV
+const URLCargaGantReprocesoFV    = APIRoutes[0].CargaGantReprocesoFV
 const URLDatosgantFV    = APIRoutes[0].DatosGantFV
 const URLTablamaquina   = APIRoutes[0].TablaMaquinas
 const URLTablaprocesos  = APIRoutes[0].TablaProcesos
@@ -15,6 +16,11 @@ const URLEliminarOrdenPcp = APIRoutes[0].EliminarOrdenPcp
 async function PutRegistroGantFV(data) {
     const peticion = await axios.put(URLCargagantFV,data)
     return(peticion.data) 
+}
+
+async function PutRegistroGantReprocesoFV(data) {
+    let respuesta = await axios.put(URLCargaGantReprocesoFV, data)
+    return (respuesta);
 }
 
 async function PutModificacionGantFV(data) {
@@ -217,6 +223,7 @@ const getResponsables = async (idOrden) => {
 
 export {
     PutRegistroGantFV,
+    PutRegistroGantReprocesoFV,
     PutModificacionGantFV,
     GetDatosGantFV,
     GetTABLAMAQUINAS,
