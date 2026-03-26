@@ -4,7 +4,11 @@ import RenglonFormTriple from "./RenglonFormTriple";
 import RenglonFormSigno from './RenglonFormSigno';
 import RenglonFormPasadas from './RenglonFormPasadas';
 import { useState, useEffect } from "react";
-import { getDatosEnsayo, getEspecificacionArticulos, getResultadosPosiblesEnsayos, getRutinasLaboratorio, putCambiarEtapaEnsayo, PutEnsayoDeRutina, putFinalizarEnsayo } from "../API/APIFunctions";
+import {
+    getDatosEnsayo, getEspecificacionArticulos,
+    getResultadosPosiblesEnsayos, getRutinasLaboratorio,
+    putCambiarEtapaEnsayo, PutEnsayoDeRutina, putFinalizarEnsayo
+} from "../API/APIFunctions";
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
@@ -101,6 +105,15 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
     const [dibujo, setDibujo] = useState('');
     const [resultadoRutinaTerminada, setResultadoRutinaTerminada] = useState('');
     const [loading, setLoading] = useState(true);
+    const [grabTramaSinLavar, setGrabTramaSinLavar] = useState(null);
+    const [grabUrdidoSinLavar, setGrabUrdidoSinLavar] = useState(null);
+    const [grabTramaSinLavar2, setGrabTramaSinLavar2] = useState(null);
+    const [grabUrdidoSinLavar2, setGrabUrdidoSinLavar2] = useState(null);
+    const [grabTramaSinLavarCal, setGrabTramaSinLavarCal] = useState(null);
+    const [grabUrdidoSinLavarCal, setgrabUrdidoSinLavarCal] = useState(null);
+    const [anchoLavadoCal, setAnchoLavadoCal] = useState(null);
+    const [refElasticidad, setRefElasticidad] = useState(null);
+
 
 
     // const { auth } = useAuth();
@@ -112,9 +125,9 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
     const [tipo, setTipo] = useState('success');
     const [isOpen, setIsOpen] = useState(false);
 
-    const { rutinaId } = useParams(); // trae desde la URL
+    const { rutinaId } = useParams();
     useEffect(() => {
-        const rutinaFinal = rutinaId || rutina; // usa la prop o el valor de la URL
+        const rutinaFinal = rutinaId || rutina;
         if (rutinaFinal) {
             getDataRutina(rutinaFinal);
         }
@@ -129,28 +142,28 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
     }, [rutinaId]);
 
     useEffect(() => {
-    const fetchData = async () => {
-        try {
-            await getDataRutina(rutina);
-            await fetchDatosDeEnsayo(rutina);
-            await fetchResultadosPosibles();
-        } catch (error) {
-            setMensaje(`Error al cargar los datos de la rutina ${rutina}`);
-            setTipo("error");
-            setIsOpen(true);
-        } finally {
-            setLoading(false); // <- Liberás la UI acá
+        const fetchData = async () => {
+            try {
+                await getDataRutina(rutina);
+                await fetchDatosDeEnsayo(rutina);
+                await fetchResultadosPosibles();
+            } catch (error) {
+                setMensaje(`Error al cargar los datos de la rutina ${rutina}`);
+                setTipo("error");
+                setIsOpen(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+    useEffect(() => {
+        if (loading) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
         }
-    };
-    fetchData();
-}, []);
-useEffect(() => {
-  if (loading) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = 'auto';
-  }
-}, [loading]);
+    }, [loading]);
 
 
 
@@ -359,30 +372,50 @@ useEffect(() => {
         if (datos.desliz_costura_tu_2 !== null) setDeslizCosturaTU2(datos.desliz_costura_tu_2);
         if (datos.rigidez_1 !== null) setRigidez1(datos.rigidez_1);
         if (datos.rigidez_2 !== null) setRigidez2(datos.rigidez_2);
+        if (datos.grab_trama_sin_lavar !== null) setGrabTramaSinLavar(datos.grab_trama_sin_lavar);
+        if (datos.grab_urdido_sin_lavar !== null) setGrabUrdidoSinLavar(datos.grab_urdido_sin_lavar);
+        if (datos.grab_trama_sin_lavar_2 !== null) setGrabTramaSinLavar2(datos.grab_trama_sin_lavar_2);
+        if (datos.grab_urdido_sin_lavar_2 !== null) setGrabUrdidoSinLavar2(datos.grab_urdido_sin_lavar_2);
     }
 
     async function fetchDatosDeEnsayo(rutina) {
-        try {
-            let respuesta = await getDatosEnsayo(rutina);
-            if (Array.isArray(respuesta.data) && respuesta.data.length > 0 && respuesta.data[0] !== null) {
-                setearDatos(respuesta.data[0]);
+  try {
+    let respuesta = await getDatosEnsayo(rutina);
 
-                if (respuesta.data[0].dibujo !== null) {
-                    setDibujo(respuesta.data[0].dibujo);
-                    console.log("Dibujo cargado desde ensayo:", respuesta.data[0].dibujo);
-                }
-            }
-            else {
-                setMensaje(`No se encontraron ensayos registrados para la rutina ${rutina}`);
-                setTipo("error");
-                setIsOpen(true);
-            }
-        } catch (error) {
-            setMensaje("error: " + error);
-            setTipo("error");
-            setIsOpen(true);
-        }
+    // 🟩 Agrego console.log para ver todo lo que llega
+    console.log("🔍 RESPUESTA COMPLETA DEL BACKEND getDatosEnsayo:", respuesta);
+
+    if (respuesta.data) {
+      // Si el backend retorna un solo objeto (no array)
+      const datos = Array.isArray(respuesta.data) ? respuesta.data[0] : respuesta.data;
+
+      console.log("📦 DATOS PARSEADOS:", datos); // 👈 Esto muestra el objeto real que estás usando
+
+      setearDatos(datos);
+
+      if (datos.dibujo !== null) setDibujo(datos.dibujo);
+
+      // 👇 Nuevo: guardar la referencia de elasticidad
+      if (datos.ref_elasticidad !== undefined && datos.ref_elasticidad !== null) {
+        console.log("✅ ref_elasticidad detectado:", datos.ref_elasticidad);
+        setRefElasticidad(datos.ref_elasticidad);
+      } else {
+        console.warn("⚠️ No se encontró ref_elasticidad en los datos");
+      }
+    } else {
+      setMensaje(`No se encontraron ensayos registrados para la rutina ${rutina}`);
+      setTipo("error");
+      setIsOpen(true);
     }
+  } catch (error) {
+    console.error("❌ Error en fetchDatosDeEnsayo:", error);
+    setMensaje("error: " + error);
+    setTipo("error");
+    setIsOpen(true);
+  }
+}
+
+
 
 
     async function handleCambioDeEtapa(etapa) {
@@ -548,9 +581,15 @@ useEffect(() => {
                 rigidez1: rigidez1,
                 rigidez2: rigidez2,
                 rigidezCalculo: rigidezCalculo,
-                dibujo: dibujo
+                dibujo: dibujo,
+                grabTramaSinLavar: grabTramaSinLavar,
+                grabUrdidoSinLavar: grabUrdidoSinLavar,
+                grabTramaSinLavar2: grabTramaSinLavar2,
+                grabUrdidoSinLavar2: grabUrdidoSinLavar2,
+                grabTramaSinLavarCal: grabTramaSinLavarCal,
+                grabUrdidoSinLavarCal: grabUrdidoSinLavarCal
             };
-            console.log("Datos enviados:", datos);
+            // console.log("Datos enviados:", datos);
 
             let respuesta = await PutEnsayoDeRutina(datos);
             if (respuesta.status >= 200 && respuesta.status < 300) {
@@ -571,55 +610,88 @@ useEffect(() => {
 
     const handleStep = async (step) => {
         try {
-            const { rol } = auth || {}; // Desestructuración segura
-            const currentStep = steps[step]; // Etapa seleccionada
+            const { rol } = auth || {};
+            const currentStep = steps[step];
 
-            // Guardar datos siempre al inicio
             await guardarDatos();
-
-            // Lógica para NO administrador
             if (rol !== 'Administrador') {
                 if (etapa === "Finalizado") {
-                    // Si no es administrador, puede guardar solo en la misma etapa
                     if (step === activeStep) {
                         setMensaje("Datos guardados correctamente en la etapa finalizada.");
                         setTipo("success");
                         setIsOpen(true);
                     } else {
-                        // No puede cambiar la etapa desde "Finalizado"
                         setMensaje("No puedes cambiar el estado de una rutina finalizada!");
                         setTipo("error");
                         setIsOpen(true);
                     }
-                    return; // Fin del flujo para no administradores
+                    return;
                 }
             }
 
-            // Lógica para Administrador
             setActiveStep(step);
             setNuevaEtapa(currentStep);
             setEtapa(currentStep);
 
             if (currentStep !== "Finalizado") {
-                // Cambiar etapa normalmente si no es "Finalizado"
                 handleCambioDeEtapa(currentStep);
             } else {
-                // Si es "Finalizado", mostrar el modal
                 handleOpen();
             }
 
         } catch (error) {
-            // Manejo de errores
+
             console.error("Error in handleStep:", error);
             setMensaje("Error al guardar los datos o cambiar de etapa.");
             setTipo("error");
             setIsOpen(true);
         }
     };
-    console.log("ROL:", auth?.rol);
-    console.log("ETAPA:", etapa);
-    console.log("RESULTADOS POSIBLES:", resultadosPosibles);
-    console.log("RESULTADO:", resultadoEnsayo?.trim().toUpperCase());
+
+    useEffect(() => {
+        const valores = [grabTramaSinLavar, grabTramaSinLavar2]
+            .map(v => parseFloat(v))
+            .filter(v => !isNaN(v));
+
+        if (valores.length > 0) {
+            const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
+            setGrabTramaSinLavarCal(promedio.toFixed(2));
+        } else {
+            setGrabTramaSinLavarCal(null);
+        }
+    }, [grabTramaSinLavar, grabTramaSinLavar2]);
+
+    useEffect(() => {
+        const valores = [grabUrdidoSinLavar, grabUrdidoSinLavar2]
+            .map(v => parseFloat(v))
+            .filter(v => !isNaN(v));
+
+        if (valores.length > 0) {
+            const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
+            setgrabUrdidoSinLavarCal(promedio.toFixed(2));
+        } else {
+            setgrabUrdidoSinLavarCal(null);
+        }
+    }, [grabUrdidoSinLavar, grabUrdidoSinLavar2]);
+
+    useEffect(() => {
+        const anchoLavado = parseFloat(anchoLavadoCalculo);
+        const anchoSinLavar = parseFloat(anchoSinLavarCalculo);
+
+        if (!isNaN(anchoLavado) && !isNaN(anchoSinLavar) && anchoSinLavar !== 0) {
+            const resultado = (1 - (anchoLavado / anchoSinLavar)) * 100;
+            setAnchoLavadoCal(resultado.toFixed(2)); // % de encogimiento
+        } else {
+            setAnchoLavadoCal(null);
+        }
+    }, [anchoLavadoCalculo, anchoSinLavarCalculo]);
+
+
+
+    // console.log("ROL:", auth?.rol);
+    // console.log("ETAPA:", etapa);
+    // console.log("RESULTADOS POSIBLES:", resultadosPosibles);
+    // console.log("RESULTADO:", resultadoEnsayo?.trim().toUpperCase());
 
     const resultadoNormalizado = resultadoEnsayo?.trim().toUpperCase();
 
@@ -633,33 +705,33 @@ useEffect(() => {
         etapa !== 'Finalizado';
 
 
-if (loading) {
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 9999,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(164, 164, 164, 0.78)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'column',
-      backdropFilter: 'blur(4px)',
-      WebkitBackdropFilter: 'blur(4px)',
-    }}>
-      <div style={{ marginBottom: 20, fontSize: 20, color: '#333' }}>
-        Recopilando datos...
-      </div>
-      <CircularProgress color="primary" size={60} />
-      <div style={{ marginTop: 20, fontSize: 16, color: '#555' }}>
-        Aguarde un momento por favor.
-      </div>
-    </div>
-  );
-}
+    if (loading) {
+        return (
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                zIndex: 9999,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(164, 164, 164, 0.78)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+            }}>
+                <div style={{ marginBottom: 20, fontSize: 20, color: '#333' }}>
+                    Recopilando datos...
+                </div>
+                <CircularProgress color="primary" size={60} />
+                <div style={{ marginTop: 20, fontSize: 16, color: '#555' }}>
+                    Aguarde un momento por favor.
+                </div>
+            </div>
+        );
+    }
 
 
     return (
@@ -833,6 +905,12 @@ if (loading) {
                                     <RenglonForm ensayo="GRAB" tipo={"trama sin lavar"}
                                         id={4}
                                         // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        variable1={grabTramaSinLavar}
+                                        setVariable1={setGrabTramaSinLavar}
+                                        variable2={grabTramaSinLavar2}
+                                        setVariable2={setGrabTramaSinLavar2}
+                                        unidadCalculo={""}
+                                        calculo={grabTramaSinLavarCal}
                                         readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
@@ -842,16 +920,17 @@ if (loading) {
                                         <span style={{ fontSize: 16, color: '#1976D2', fontWeight: 'bold' }}>Ancho </span>
                                         <span style={{ fontSize: 14 }}>lav</span>
                                     </Typography>
-                                    <TextField id={5} value={anchoLavadoCalculo} onChange={
-                                        (e) => setAnchoLavadoCalculo(e.target.value)}
+                                    <TextField id={5} value={anchoLavadoCalculo}
+                                        onChange={(e) => setAnchoLavadoCalculo(e.target.value)}
                                         variant="outlined" size="small" fullWidth
                                         InputProps={{
                                             // readOnly: etapa === 'Finalizado' && auth.rol !== 'Administrador'
                                             readOnly: !permiteEditarCampos
                                         }}
                                     />
-                                    <Typography sx={{ fontSize: 16 }}> Ref:
+                                    <Typography sx={{ fontSize: 16 }}> Cal:  <strong>{anchoLavadoCal ? `${anchoLavadoCal}%` : '-'}</strong>
                                     </Typography>
+
                                 </Grid>
                                 <Grid item xs={1.2} sx={{ px: 0.5 }}>
                                     <Typography sx={{ fontFamily: 'Poppins' }}>
@@ -913,6 +992,12 @@ if (loading) {
                                 <Grid item xs={2.4}>
                                     <RenglonForm ensayo="GRAB " tipo={"urdido sin lavar"} id={9}
                                         // readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
+                                        variable1={grabUrdidoSinLavar}
+                                        setVariable1={setGrabUrdidoSinLavar}
+                                        variable2={grabUrdidoSinLavar2}
+                                        setVariable2={setGrabUrdidoSinLavar2}
+                                        unidadCalculo={""}
+                                        calculo={grabUrdidoSinLavarCal}
                                         readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
@@ -987,9 +1072,11 @@ if (loading) {
                                         variable1={elasticidadLavada1} setVariable1={setElasticidadLavada1} unidadCalculo={"%"}
                                         variable2={elasticidadLavada2} setVariable2={setElasticidadLavada2} unidadMedida={"%"}
                                         calculo={elasticidadLavadaCalculo} setCalculo={setElasticidadLavadaCalculo}
+                                        referencia={refElasticidad ? refElasticidad : "-"}
                                         tipoCalculo={'Estabilidad'} readOnly={etapa === 'Finalizado' && auth.rol !== 'Administrador'}
                                     />
                                 </Grid>
+
                                 <Grid item xs={2.4}>
                                     <RenglonForm ensayo="PESO " tipo={"sin lavar"} id={16}
                                         variable1={pesoSinLavar1} setVariable1={setPesoSinLavar1} unidadCalculo={`g/m2`}
@@ -1048,7 +1135,7 @@ if (loading) {
                                         referencia={referencias["DEFORMACION Lavada  [%]"]?.ref}
                                         validar_std={referencias["DEFORMACION Lavada  [%]"]?.validar}
                                         esObligatorio={referencias["DEFORMACION Lavada  [%]"]?.esObligatorio}
-                                        // readOnly={!permiteEditarCampos}
+                                    // readOnly={!permiteEditarCampos}
                                     />
                                 </Grid>
                                 <Grid item xs={2.4}>

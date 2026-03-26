@@ -23,6 +23,7 @@ import { set } from 'date-fns';
 import MyDocument from './DocPedidoRollo';
 import { getRollosEnProduccionXArt, getStockRollosXArt, putEnviarRollosAProduccion } from '../../../API/APIFunctions';
 import { getNumeroOrdenes, GetDatosGantFV } from '../API/APIFunctions';
+import { getRollosRechazoXArt } from '../../../API/APIFunctions';
 
 function FormularioGantPcp() {
     dayjs.extend(duration);
@@ -345,25 +346,62 @@ function FormularioGantPcp() {
         }
     }
 
+    // const fetchStockRollos = async () => {
+    //     try {
+    //         let response = await getStockRollosXArt(Articulo);
+    //         let formattedOptions = [];
+    //         if (Array.isArray(response.data) && response.data.length > 0) {
+    //             setRollosdeArticulo(response.data);
+    //             formattedOptions = response.data.map(item => ({
+    //                 value: item.rollo + `-` + parseInt(item.largo),
+    //                 label: `${item.rollo} ${item.orden_lr} (${item.secuencia_lr}) - ${item.largo} m`,
+    //             }));
+    //         }
+
+    //         setOptions(formattedOptions);
+    //     } catch (error) {
+    //         console.error('Error fetching stock rollos:', error);
+    //         setOptions([]); // Resetea las opciones en caso de error
+    //     }
+    // };
     const fetchStockRollos = async () => {
         try {
             let response = await getStockRollosXArt(Articulo);
             let formattedOptions = [];
+
             if (Array.isArray(response.data) && response.data.length > 0) {
                 setRollosdeArticulo(response.data);
                 formattedOptions = response.data.map(item => ({
                     value: item.rollo + `-` + parseInt(item.largo),
                     label: `${item.rollo} ${item.orden_lr} (${item.secuencia_lr}) - ${item.largo} m`,
                 }));
+
+                setOptions(formattedOptions);
+                return;
             }
 
-            setOptions(formattedOptions);
+            let rechazoResponse = await getRollosRechazoXArt(Articulo);
+
+            if (Array.isArray(rechazoResponse.data) && rechazoResponse.data.length > 0) {
+                setRollosdeArticulo(rechazoResponse.data);
+
+                formattedOptions = rechazoResponse.data.map(item => ({
+                    value: item.rollo + `-` + parseInt(item.largo),
+                    label: `(RECHAZO) ${item.rollo} - ${item.largo} m`,
+                }));
+
+
+                setOptions(formattedOptions);
+                return;
+            }
+            setOptions([]);
+            setRollosdeArticulo([]);
+
         } catch (error) {
-            console.error('Error fetching stock rollos:', error);
-            setOptions([]); // Resetea las opciones en caso de error
+            console.error("Error buscando rollos:", error);
+            setOptions([]);
         }
     };
-
 
     const calcularHoraFin = () => {
         if (InicioHora && HorasT) {
@@ -395,7 +433,6 @@ function FormularioGantPcp() {
 
             let respuesta = await PutRegistroGantFV(DatosGant)
             console.warn('Respuesta de PutRegistroGantFV:', respuesta);
-            // if (respuesta.serverStatus === 34) {
             if (respuesta?.affectedRows > 0 && respuesta?.serverStatus >= 2) {
                 setMensaje('Orden registrada correctamente');
                 toggleOpenDialogWithDelay();
@@ -411,16 +448,15 @@ function FormularioGantPcp() {
         }
     };
 
-    // Logs de depuración antes del return principal
-    console.log('Orden:', Orden);
-    console.log('Maquina:', Maquina);
-    console.log('Articulo:', Articulo);
-    console.log('codmaquinas:', codmaquinas);
-    console.log('maquinasprocfil:', maquinasprocfil);
-    console.log('procesosfil:', procesosfil);
-    console.log('colores:', colores);
-    console.log('options (rollos):', options);
-    console.log('selected (rollos seleccionados):', selected);
+    // console.log('Orden:', Orden);
+    // console.log('Maquina:', Maquina);
+    // console.log('Articulo:', Articulo);
+    // console.log('codmaquinas:', codmaquinas);
+    // console.log('maquinasprocfil:', maquinasprocfil);
+    // console.log('procesosfil:', procesosfil);
+    // console.log('colores:', colores);
+    // console.log('options (rollos):', options);
+    // console.log('selected (rollos seleccionados):', selected);
 
     const filtrarMaquinasGiroLentoDisponibles = () => {
         if (!InicioHora || !HorasT) return;
@@ -494,22 +530,22 @@ function FormularioGantPcp() {
                     setMetrosCorrectos(true);
                     const registroCorrecto = listaConMaquinas.find(x => parseInt(x.metros_totales, 10) === metrosIngresados);
                     setVerificacionMensaje(
-                    <><Typography variant="body1" sx={{ color: 'green' }}>
+                        <><Typography variant="body1" sx={{ color: 'green' }}>
                             <b>Datos correctos.</b>
                         </Typography>
-                        <Typography variant="body1" sx={{ ml: 1, mb: 2, mt: 1, borderBottom: '1px solid #ddd' }}>
-                            🟢Orden: <b>{registroCorrecto.numero_orden}</b>, Maquina: <b>{registroCorrecto.maquina}</b>
-                        </Typography></>
-                );
+                            <Typography variant="body1" sx={{ ml: 1, mb: 2, mt: 1, borderBottom: '1px solid #ddd' }}>
+                                🟢Orden: <b>{registroCorrecto.numero_orden}</b>, Maquina: <b>{registroCorrecto.maquina}</b>
+                            </Typography></>
+                    );
                 } else {
                     setMetrosCorrectos(false);
                     setVerificacionMensaje(
                         <><Typography variant="body1" sx={{ color: 'red' }}>
                             <b>Los metros ingresados no coinciden.</b>
                         </Typography>
-                        <Typography variant="body1" sx={{ mt: 1, fontSize: 20, borderBottom: '1px solid #ddd' }}>
-                            Valores correctos posibles:
-                        </Typography>
+                            <Typography variant="body1" sx={{ mt: 1, fontSize: 20, borderBottom: '1px solid #ddd' }}>
+                                Valores correctos posibles:
+                            </Typography>
                             {listaConMaquinas.map((x, index) => (
                                 <Typography key={index} variant="body1" sx={{ ml: 1, mb: 2, mt: 1, borderBottom: '1px solid #ddd' }}>
                                     🟢Orden: <b>{x.numero_orden}</b>, Maquina: <b>{x.maquina}</b>, Metros: <b>{parseInt(x.metros_totales, 10)}</b>
@@ -769,7 +805,6 @@ function FormularioGantPcp() {
                                                     // console.log("hora fin: ", finHoraCalculada);
 
                                                     // setFinHora(finHoraCalculada);
-
                                                 }
                                             }}
                                         />
@@ -895,7 +930,6 @@ function FormularioGantPcp() {
                                         disabled={!metrosCorrectos}
                                         onClick={() => {
                                             let Aux = {
-
                                                 Orden: Orden,
                                                 Maquina: Maquina,
                                                 MaquinaProc: MaquinaProceso,

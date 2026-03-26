@@ -28,10 +28,13 @@ import ActulizarQuimico from "./BuenosAires/FlorencioVarelaAlpacladd/Productivid
 import RegistroDatosOEE from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/RegistroOEE/RegistroOEE/RegistroDatosOEE.jsx";
 import ModuloOEE from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/RegistroOEE/ModuloOEE.jsx";
 import MonitoreoMaquinas from "./BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas.jsx";
+import FormularioReprocesos from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/FormularioReprocesos.jsx";
+import InformarRegistroLab from "./BuenosAires/FlorencioVarelaAlpacladd/components/InformarRegistroLab.jsx";
 /* BUENOS AIRES - FLORENCIO VARELA  - TERMINACIÓN*/
 import Terminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/Terminacion";
 import StockCalidad from "./BuenosAires/FlorencioVarelaAlpacladd/components/StockCalidad";
 import ReimpresionEtiquetas from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas.jsx"
+import RechazosRegistro from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/RechazosRegistro.jsx";
 
 import RequireAuth from "./BuenosAires/FlorencioVarelaAlpacladd/components/RequireAuth";
 import Articulos from "./components/Componentes/Articulos";
@@ -111,6 +114,15 @@ function App() {
         path="/BuenosAires/FlorencioVarelaAlpacladd/Monitoreo/MonitoreoMaquinas"
         element={<MonitoreoMaquinas />}
       />
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/FormularioReprocesos"
+        element={<FormularioReprocesos />}
+      />
+
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/components/InformarRegistroLab"
+        element={<InformarRegistroLab />}
+      />
 
       {/* TERMINACION */}
       <Route
@@ -129,12 +141,13 @@ function App() {
         path="/BuenosAires/FlorencioVarela/Terminacion/FichaTecnica"
         element={<Articulos rol={"fv"} />}
       />
-
       <Route
         path="/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas"
         element={<ReimpresionEtiquetas />}
       />
-
+      <Route
+        path="/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/RechazosRegistro"
+        element={<RechazosRegistro/>}/>
 
 
       {/* LABORATORIO */}

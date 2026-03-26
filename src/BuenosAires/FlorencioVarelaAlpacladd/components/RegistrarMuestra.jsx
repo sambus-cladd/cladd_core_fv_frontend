@@ -14,6 +14,8 @@ import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
 import HeaderYFooter from '../../../components/Plantilla/HeaderYFooter';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { validarDatosMuestras } from '../API/APIFunctions';
+import MensajeDialogConfirm from '../../../components/Plantilla/MensajeDialogConfirm';
 
 const options = ['Crudo', 'Lavado Potencial', 'Quick Wash', 'Terminado', 'Reprueba', 'Stock (sin lab.)', 'Personalizado', 'Boill Off'];
 
@@ -50,6 +52,13 @@ function RegistrarMuestra() {
   const [loading, setLoading] = useState(false);
   const [estadoTela, setEstadoTela] = useState('');
   const [procesoRama, setRama] = useState("");
+  const [popupValidacion, setPopupValidacion] = useState({
+    open: false,
+    mensaje: "",
+    confirmar: null,
+    cancelar: null
+  });
+
 
 
   const columns = [
@@ -411,79 +420,107 @@ function RegistrarMuestra() {
     return true;
   }
   const handleClick = async () => {
-    setLoading(true);
-    if (!validar()) {
-      setLoading(false);
-      return;
-    }
-    else {
-      try {
-        let nuevaRutinaBase = await generarNuevaRutina();
-        let codigoRollo = encodeURIComponent(rollo.slice(-5));
-        const qr = 'http://192.168.40.95:4006/codigoqrrevisado/' + codigoRollo;
+  setLoading(true);
 
-        for (let x = 0; x < muestra.length; x++) {
-          //incremento el codigo de rutina
-          let rutinaConsecutiva = nuevaRutinaBase.slice(0, 4) + (parseInt(nuevaRutinaBase.slice(4)) + x).toString().padStart(4, '0');
-          // 65 es el código ASCII de 'A'
-          let letra = String.fromCharCode(65 + x);
+  if (!validar()) {
+    setLoading(false);
+    return;
+  }
 
-          let body = {
-            motivo: value.toUpperCase(),
-            lote: rollo,
-            anidar_rutina: anidarRutina,
-            sub_lote: sublotValue,
-            orden_trabajo: ordenTrabajo,
-            articulo_crudo: ArticuloValue,
-            articulo_terminado: articuloTerminado,
-            prioridad: prioridad,
-            informe_resultado: informeResultado,
-            metros_total: metrosTotal,
-            rutina: rutinaConsecutiva,
-            muestra: muestra[x],
-            tarima: tarima,
-            operario: auth?.usuario,
-            letra: letra,
-            grupo_articulo_final: estadoTela,
-            lugar_muestra: procesoRama,
-          };
+  // Validacion del rollo en la BD
+  try {
+    const resp = await validarDatosMuestras(rollo);
+    const data = resp.data;
 
-          try {
-            let respuesta = await putRegistrarMuestra(body);
-            if (respuesta.status >= 200 && respuesta.status < 300) {
-              renovarTarimas ? setRenovarTarimas(false) : setRenovarTarimas(true);
-              setMensaje("Muestra registrada correctamente");
-              setTipo('success');
-              setIsOpen(true);
-            } else {
-              setMensaje("Error al registrar la rutina");
-              setTipo('error');
-              setIsOpen(true);
-              setLoading(false);
-            }
-          } catch (error) {
-            setMensaje("Error al registrar la rutina");
-            setTipo('error');
-            setIsOpen(true);
-            setLoading(false);
-          }
+    if (!data.valido) {
+      // Mostrar popup confirmable
+      setPopupValidacion({
+        open: true,
+        mensaje: `${data.motivo} ¿Desea continuar registrando la muestra de todas formas?`,
+        confirmar: async () => {
+          setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
 
-          if (x === 0) {
-            handleImprimir(rutinaConsecutiva, qr);
-          }
+          // Proceder al registro REAL
+          await registrarMuestras();
+        },
+        cancelar: () => {
+          console.log("✖ Cancelado por el usuario");
+          setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
+          setLoading(false);
         }
-        refrescarTabla ? setRefrescarTabla(false) : setRefrescarTabla(true);
-        setLoading(false);
-      }
-      catch (error) {
-        setMensaje("Error al registrar la rutina");
-        setTipo('error');
+      });
+
+      return; 
+    }
+
+    // Si es valido registrar directamente
+    await registrarMuestras();
+
+  } catch (error) {
+    setMensaje("Error validando el rollo");
+    setTipo("error");
+    setIsOpen(true);
+    setLoading(false);
+  }
+};
+async function registrarMuestras() {
+  try {
+    let nuevaRutinaBase = await generarNuevaRutina();
+    let codigoRollo = encodeURIComponent(rollo.slice(-5));
+    const qr = 'http://192.168.40.95:4006/codigoqrrevisado/' + codigoRollo;
+
+    for (let x = 0; x < muestra.length; x++) {
+
+      let rutinaConsecutiva =
+        nuevaRutinaBase.slice(0,4) +
+        (parseInt(nuevaRutinaBase.slice(4)) + x).toString().padStart(4,"0");
+
+      let letra = String.fromCharCode(65 + x);
+
+      let body = {
+        motivo: value.toUpperCase(),
+        lote: rollo,
+        anidar_rutina: anidarRutina,
+        sub_lote: sublotValue,
+        orden_trabajo: ordenTrabajo,
+        articulo_crudo: ArticuloValue,
+        articulo_terminado: articuloTerminado,
+        prioridad: prioridad,
+        informe_resultado: informeResultado,
+        metros_total: metrosTotal,
+        rutina: rutinaConsecutiva,
+        muestra: muestra[x],
+        tarima: tarima,
+        operario: auth?.usuario,
+        letra: letra,
+        grupo_articulo_final: estadoTela,
+        lugar_muestra: procesoRama,
+      };
+
+      let respuesta = await putRegistrarMuestra(body);
+
+      if (respuesta.status >= 200 && respuesta.status < 300) {
+        setMensaje("Muestra registrada correctamente");
+        setTipo('success');
         setIsOpen(true);
-        setLoading(false);
+        renovarTarimas ? setRenovarTarimas(false) : setRenovarTarimas(true);
       }
 
+      if (x === 0) handleImprimir(rutinaConsecutiva, qr);
     }
-  };
+
+    refrescarTabla ? setRefrescarTabla(false) : setRefrescarTabla(true);
+    setLoading(false);
+
+  } catch (error) {
+    console.error(error);
+    setMensaje("Error al registrar la rutina");
+    setTipo("error");
+    setIsOpen(true);
+    setLoading(false);
+  }
+}
+
 
   async function handleSelectArticulo(event, newValue) {
     setArticuloTerminado(newValue);
@@ -506,6 +543,11 @@ function RegistrarMuestra() {
       setTarima(newValue);
     }
   }
+function handleChangeRollo(event) {
+  setRollo(event.target.value);
+}
+
+
 
   return (
     <>
@@ -573,7 +615,8 @@ function RegistrarMuestra() {
                     label="Lote/Nº Rollo"
                     variant="outlined"
                     value={rollo}
-                    onChange={handleSecondFieldChange}
+                    onChange={handleChangeRollo}
+
                     InputProps={{
                       endAdornment: (
                         <PinIcon position="end">
@@ -806,7 +849,6 @@ function RegistrarMuestra() {
 
                 </Grid>
 
-                {/* Iterar sobre el estado numCampos para renderizar los campos de texto */}
                 {[...Array(numCampos)].map((_, index) => (
                   <Grid key={index} item xs={6} sm={6} md={6} padding={1}>
                     <TextField
@@ -816,7 +858,7 @@ function RegistrarMuestra() {
                       id={`outlined-basic-${index}`}
                       placeholder={`Muestra N°${index + 1}`}
                       fontFamily="Poppins"
-                      value={muestra[index] || ''} // Use the state value or an empty string if undefined
+                      value={muestra[index] || ''}
                       variant="outlined"
                       onChange={(event) => handleFormChangeText(event, index)}
                       InputProps={{
@@ -846,7 +888,6 @@ function RegistrarMuestra() {
                 </FormControl>
               </Grid>
 
-
               {/* MENSAJE Y BOTON */}
               <Grid container direction="row" justifyContent="flex-end" alignItems="flex-start" padding={1}>
                 <Grid item xs={4} sm={4} md={4} padding={0.5}>
@@ -874,6 +915,13 @@ function RegistrarMuestra() {
 
         </Grid>
         <MensajeDialog isOpen={isOpen} mensaje={mensaje} tipo={tipo} duracion={3000} onClose={() => setIsOpen(false)} />
+
+        <MensajeDialogConfirm
+          open={popupValidacion.open}
+          mensaje={popupValidacion.mensaje}
+          onConfirm={popupValidacion.confirmar}
+          onCancel={popupValidacion.cancelar}
+        />
       </HeaderYFooter>
     </>
   );

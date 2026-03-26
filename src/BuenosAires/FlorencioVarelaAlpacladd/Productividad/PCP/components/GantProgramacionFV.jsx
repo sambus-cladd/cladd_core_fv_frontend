@@ -20,6 +20,7 @@ import MetrosXArticulos from './MetrosXArticulos'
 import ModificacionGantPcp from './ModificacionGantPcp';
 import ConfirmarProduccion from './ConfirmarProduccion';
 import TrazabilidadOrdenes from './TrazabilidadOrdenes';
+import FormularioReprocesos from './FormularioReprocesos';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -102,9 +103,12 @@ export const GantProgramacionFV = () => {
                             <Tab label="Modificaciones" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<DriveFileRenameOutlineIcon />} />
                             <Tab label="Metros x Articulo" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<ManageSearchIcon />} />
                             <Tab label="Historico" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
-                            <Tab label="Rollos x Orden" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
+                            <Tab label="Reprocesos" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} />
+                            {/* <Tab label="Rollos x Orden" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} /> */}
                             <Tab label="Confirmar Producción" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} />
                             <Tab label="Trazabilidad" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<SearchIcon />} />
+                            {/* <Tab label="Reprocesos" sx={{ minWidth: '120px', padding: '4px 6px', fontSize: '0.75rem'}} icon={<AddCardIcon />} /> */}
+
                         </Tabs>
                     </Box>
                     <Box sx={{ width: '100%' }}>
@@ -134,13 +138,17 @@ export const GantProgramacionFV = () => {
                             <HistoricoGantt handleChange={handleChange} />
                         </CustomTabPanel>
                         <CustomTabPanel value={value} index={6}>
-                            <RollosPorOrden orden={orden} articulo={articulo} maquina={maquina} />
+                            {/* <RollosPorOrden orden={orden} articulo={articulo} maquina={maquina} /> */}
+                            <FormularioReprocesos />
                         </CustomTabPanel>
                         <CustomTabPanel value={value} index={7}>
                             <ConfirmarProduccion />
                         </CustomTabPanel>
                         <CustomTabPanel value={value} index={8}>
                             <TrazabilidadOrdenes />
+                        </CustomTabPanel>
+                        <CustomTabPanel value={value} index={9}>
+                            <FormularioReprocesos />
                         </CustomTabPanel>
                     </Box>
                 </div>

@@ -41,6 +41,12 @@ const routes = [
       route: "/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReimpresionEtiquetas",
       target: "_self",
     },
+    {
+      name: "RECHAZOS",
+      key: "REGISTRO DE RECHAZOS",
+      route: "/BuenosAires/FlorencioVarelaAlpacladd/Terminacion/RechazosRegistro",
+      target: "_self",
+    },
   ];
    
   

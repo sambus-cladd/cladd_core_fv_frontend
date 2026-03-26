@@ -63,14 +63,13 @@ export default function ConfirmarProduccion() {
             if (busquedaActiva) return;
             try {
                 const response = await getOrdenesGantt();
-                // console.log("RTA GETDATOSGANTFV", response)
                 const datosPlanos = response.data.flat();
 
                 // Para cada orden, traigo los datos de metros usando getDatosOrdenes
                 const datosConMetros = await Promise.all(
                     datosPlanos.map(async (item) => {
                         try {
-                            const res = await getDatosOrdenes(item.id); // item.id segun la función
+                            const res = await getDatosOrdenes(item.id);
                             const metrosTotales = res?.data?.metros_totales ?? 0;
                             return { ...item, metrosTotales };
                         } catch (err) {
@@ -83,7 +82,6 @@ export default function ConfirmarProduccion() {
                 setDatos(datosConMetros);
                 setResultados(datosConMetros);
 
-                // Traer estados de orden
                 if (!busquedaActiva) setResultados(datosConMetros);
                 const estados = {};
                 const promesas = datosConMetros.map(async (it) => {
@@ -134,12 +132,8 @@ export default function ConfirmarProduccion() {
     const GetDatosProd = async (Orden) => {
         if (!Orden) return;
         try {
-            // Trae los rollos asignados a la orden
             const dataRAW = await getStockRollosXOrden(Orden);
             const rollosPorOrden = dataRAW.data || [];
-            // console.log("ROLLOS POR ORDEN SELECCIONADA:", Orden, rollosPorOrden);
-
-            // Trae la secuencia de cada rollo
             const rollosConSecuencia = await Promise.all(
                 rollosPorOrden.map(async (rollo) => {
                     const res = await getSecuenciaRollo(rollo.rollo);
@@ -147,7 +141,6 @@ export default function ConfirmarProduccion() {
                     return { ...rollo, secuencia_lr: secuencia };
                 })
             );
-            // console.log("ROLLOS POR ORDEN CON SECUENCIA:", rollosConSecuencia);
 
             setRollosAsignados(rollosConSecuencia);
         } catch (err) {
@@ -158,10 +151,8 @@ export default function ConfirmarProduccion() {
 
     const handleOpenPopup = async (item) => {
         setOrdenSeleccionada(item);
-        // Traer estado de la orden
         let estado = {};
         try {
-            // console.log("DEBUG ITEM POPUP:", item);
             const response = await getEstadoOrden(item.id);
             if (response && response.success && response.data) {
                 estado = response.data;
@@ -180,7 +171,6 @@ export default function ConfirmarProduccion() {
                 ? Object.keys(JSON.parse(estado.metros_por_rollo)).reduce((acc, r) => ({ ...acc, [r]: true }), {})
                 : {}
         }));
-
         setEstadoOrden(estado.estado_orden || "sin iniciar");
         setHoraInicioReal(estado.hora_inicio_real ? dayjs(estado.hora_inicio_real) : null);
         setHoraFinReal(estado.hora_fin_real ? dayjs(estado.hora_fin_real) : null);
@@ -194,7 +184,7 @@ export default function ConfirmarProduccion() {
 
         await GetDatosProd(item.orden);
         setOpenPopup(true);
-        setAbrirModalTurno(true);
+        setMostrarDialogTurno(false);
     };
 
     const handleClosePopup = () => {
@@ -214,14 +204,12 @@ export default function ConfirmarProduccion() {
         const ahora = dayjs();
         const nuevaFecha = ahora.format("YYYY-MM-DD");
 
-        // Si no hay ningún responsable, pedir legajo
         if (listaExistente.length === 0) {
             alert("Debe registrar el operario antes de iniciar una orden.");
             setMostrarDialogTurno(true);
             return;
         }
 
-        // ✅ Verifica si el último responsable pertenece al mismo día y turno
         const ultimoResponsable = listaExistente[listaExistente.length - 1];
         const mismoDiaYTurno =
             ultimoResponsable.turno === turnoActual &&
@@ -233,11 +221,10 @@ export default function ConfirmarProduccion() {
             return;
         }
 
-        // Si pasa las validaciones, continuar normalmente
         setHoraInicioReal(ahora);
         setEstadoOrden("en proceso");
 
-        const nuevaLista = [...listaExistente]; // ya incluye al último operario válido
+        const nuevaLista = [...listaExistente];
 
         setResponsablesPorOrden((prev) => ({
             ...prev,
@@ -255,9 +242,6 @@ export default function ConfirmarProduccion() {
             Responsables: nuevaLista,
         });
     };
-
-
-
 
     const finalizarOrden = async () => {
         if (!ordenSeleccionada) return;
@@ -357,7 +341,6 @@ export default function ConfirmarProduccion() {
             const diffMs = ahora.diff(horaInicioReal);
             duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
         }
-
         try {
             await actualizarDatosReales({
                 IdOrden: ordenSeleccionada.id,
@@ -368,7 +351,6 @@ export default function ConfirmarProduccion() {
                 MetrosPorRollo: todosMetros,
                 HorasTotalReal: duracionHoras
             });
-
             await guardarEstadoOrden({
                 IdOrden: ordenSeleccionada.id,
                 NumeroOrden: ordenSeleccionada.orden,
@@ -400,7 +382,6 @@ export default function ConfirmarProduccion() {
                 alert("Contraseña incorrecta.");
             }
         }
-
         if (mostrarPassword === "forzar") {
             if (passwordIngresada === PASSWORD_FORZAR) {
                 alert("Autorización correcta. Se forzará la finalización.");
@@ -425,13 +406,11 @@ export default function ConfirmarProduccion() {
 
         const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
         const totalMetros = Object.values(todosMetros).reduce((a, b) => a + Number(b || 0), 0);
-
         let duracionHoras = 0;
         if (horaInicioReal && dayjs.isDayjs(horaInicioReal) && horaFinReal && dayjs.isDayjs(horaFinReal)) {
             const diffMs = horaFinReal.diff(horaInicioReal);
             duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
         }
-
         try {
             await actualizarDatosReales({
                 IdOrden: ordenSeleccionada.id,
@@ -443,7 +422,6 @@ export default function ConfirmarProduccion() {
                 HorasTotalReal: duracionHoras,
                 Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
             });
-
             await guardarEstadoOrden({
                 IdOrden: ordenSeleccionada.id,
                 NumeroOrden: ordenSeleccionada.orden,
@@ -461,15 +439,23 @@ export default function ConfirmarProduccion() {
             alert("Ocurrió un error al guardar los datos.");
         }
     };
-
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     // calcula los datos de la paginacion
-    const sortedResults = [...resultados].sort(
-        (a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio)
-    );
+    const ordenMaquinas = [108, 123, 124, 146, 12, 160, 10];
+    const sortedResults = [...resultados].sort((a, b) => {
+        const indexA = ordenMaquinas.indexOf(Number(a.maquina));
+        const indexB = ordenMaquinas.indexOf(Number(b.maquina));
+
+        if (indexA !== indexB) {
+            return indexA - indexB;
+        }
+        const fechaA = new Date(a.hora_inicio_real || a.hora_inicio || a.hora_fin_real || a.hora_fin);
+        const fechaB = new Date(b.hora_inicio_real || b.hora_inicio || b.hora_fin_real || b.hora_fin);
+        return fechaB - fechaA;
+    });
 
     const paginatedResults = sortedResults.slice(
         (page - 1) * rowsPerPage,
@@ -512,6 +498,77 @@ export default function ConfirmarProduccion() {
         return () => clearInterval(intervalo);
     }, [turnoActual]);
 
+    const confirmarOperario = async () => {
+        if (!operario) {
+            alert("Debe ingresar el legajo del operario.");
+            return;
+        }
+
+        try {
+            const resultadoValidacion = await validarLegajo(operario);
+            console.log("📦 Respuesta validarLegajo:", resultadoValidacion);
+
+            const operarioValido = Array.isArray(resultadoValidacion)
+                ? resultadoValidacion[0]
+                : resultadoValidacion?.data
+                    ? resultadoValidacion.data
+                    : resultadoValidacion;
+
+            if (!operarioValido || !operarioValido.legajo) {
+                alert("El legajo ingresado no es válido.");
+                return;
+            }
+
+            const listaExistente = responsablesPorOrden[ordenSeleccionada?.id] || [];
+            const nuevaFecha = dayjs().format("YYYY-MM-DD");
+
+            const yaExiste = listaExistente.some(
+                (r) =>
+                    r.operario === operarioValido.legajo &&
+                    r.turno === turnoActual &&
+                    r.fecha === nuevaFecha
+            );
+
+            const nuevaLista = yaExiste
+                ? listaExistente
+                : [
+                    ...listaExistente,
+                    {
+                        operario: operarioValido.legajo,
+                        nombre: operarioValido.nombre,
+                        turno: turnoActual,
+                        fecha: nuevaFecha,
+                    },
+                ];
+
+            setResponsablesPorOrden((prev) => ({
+                ...prev,
+                [ordenSeleccionada?.id]: nuevaLista,
+            }));
+
+            setMostrarDialogTurno(false);
+
+            localStorage.setItem("operario_legajo", operarioValido.legajo);
+            localStorage.setItem("turno_legajo", turnoActual);
+
+            if (ordenSeleccionada) {
+                await guardarEstadoOrden({
+                    IdOrden: ordenSeleccionada.id,
+                    NumeroOrden: ordenSeleccionada.orden,
+                    EstadoOrden: estadoOrden,
+                    HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
+                    HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
+                    MetrosTotales: metrosTotales,
+                    MetrosPorRollo: metrosRealesPorOrden[ordenSeleccionada.id] || {},
+                    Responsables: nuevaLista,
+                });
+            }
+
+        } catch (error) {
+            console.error("Error al validar o guardar:", error);
+            alert("Ocurrió un error al validar el legajo.");
+        }
+    };
 
     return (
         <>
@@ -555,36 +612,36 @@ export default function ConfirmarProduccion() {
                     <Card sx={{ width: '100%', borderRadius: '10px', boxShadow: '1px 1px 2px 3px rgba(0,0,0,0.4)', padding: 1, marginTop: '20px' }}>
                         <Grid container spacing={2}>
                             {paginatedResults.length > 0 ? (
-                                [...paginatedResults]
-                                    .sort((a, b) => new Date(b.hora_inicio) - new Date(a.hora_inicio))
-                                    .map((item, index) => (
-                                        <Grid item xs={12} sm={6} md={3} key={item.id || index}>
-                                            <Box onClick={() => handleOpenPopup(item)} sx={{
-                                                backgroundColor: '#f5f5f5',
-                                                borderRadius: '8px',
-                                                padding: 2,
-                                                boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
-                                                transition: 'transform 0.2s ease',
-                                                cursor: 'pointer',
-                                                '&:hover': { transform: 'scale(1.03)', boxShadow: '0px 4px 8px rgba(0,0,0,0.3)' },
-                                            }}>
+                                paginatedResults.map((item, index) => (
+                                    <Grid item xs={12} sm={6} md={3} key={item.id || index}>
+                                        <Box onClick={() => handleOpenPopup(item)} sx={{
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '8px',
+                                            padding: 2,
+                                            boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+                                            transition: 'transform 0.2s ease',
+                                            cursor: 'pointer',
+                                            '&:hover': { transform: 'scale(1.03)', boxShadow: '0px 4px 8px rgba(0,0,0,0.3)' },
+                                        }}>
 
-                                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Articulo: {item.articulo}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Maquina: {item.maquina}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Proceso: {item.proceso}</Typography>
-                                                <Typography variant="body2" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
-                                                <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
-                                                <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
-                                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                    <Chip label={(estadosPorOrden[item.id] || 'sin iniciar').toUpperCase()}
-                                                        color={(estadosPorOrden[item.id] || 'sin iniciar') === 'sin iniciar' ? 'warning' : (estadosPorOrden[item.id] || '').toLowerCase() === 'en proceso' ? 'primary' : 'success'}
-                                                        sx={{ fontWeight: 'bold', fontSize: 10 }}
-                                                    />
-                                                </Box>
+                                            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
+                                            <hr />
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Maquina: {item.maquina}</Typography>
+                                            <Typography variant="body1" color="text.secondary">Articulo: {item.articulo}</Typography>
+                                            {/* <Typography variant="body2" color="text.secondary"><b>Maquina: {item.maquina}</b></Typography> */}
+                                            <Typography variant="body1" color="text.secondary">Proceso: {item.proceso}</Typography>
+                                            <Typography variant="body1" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
+                                            <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
+                                            <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
+                                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                <Chip label={(estadosPorOrden[item.id] || 'sin iniciar').toUpperCase()}
+                                                    color={(estadosPorOrden[item.id] || 'sin iniciar') === 'sin iniciar' ? 'warning' : (estadosPorOrden[item.id] || '').toLowerCase() === 'en proceso' ? 'primary' : 'success'}
+                                                    sx={{ fontWeight: 'bold', fontSize: 10 }}
+                                                />
                                             </Box>
-                                        </Grid>
-                                    ))
+                                        </Box>
+                                    </Grid>
+                                ))
                             ) : (
                                 <Grid item xs={12} textAlign="center"><Typography>No hay datos disponibles</Typography></Grid>
                             )}
@@ -608,6 +665,8 @@ export default function ConfirmarProduccion() {
                     </IconButton>
                 </DialogTitle>
                 <DialogContent>
+                    <Typography variant="h6" color="text.secondary" sx={{ textAlign: "center", justifyContent: "center" }}><b>MAQUINA {ordenSeleccionada?.maquina} </b></Typography>
+                    <hr />
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={12} md={6}><Typography variant="h4"><b>Orden #{ordenSeleccionada?.orden}</b></Typography></Grid>
                         <Grid item xs={12} sm={12} md={6}><Typography variant="h6" textAlign="center" mt={0.5}>Estado: <b>{estadoOrden.toUpperCase()}</b></Typography></Grid>
@@ -622,7 +681,6 @@ export default function ConfirmarProduccion() {
                             {responsablesPorOrden[ordenSeleccionada?.id]?.length > 0 ? (
                                 responsablesPorOrden[ordenSeleccionada.id].map((r, idx) => (
                                     <Typography key={idx} variant="body1">
-                                        {/* 🔹Operario: <b>{r.operario}</b> - Turno: <b>{r.turno}</b> */}
                                         🔹Operario: <b>{r.nombre || "Sin nombre"}</b> - Turno: <b>{r.turno}</b>
                                     </Typography>
                                 ))
@@ -667,35 +725,61 @@ export default function ConfirmarProduccion() {
                                                 const seqA = Number(a.secuencia_lr) || 0;
                                                 const seqB = Number(b.secuencia_lr) || 0;
                                                 return seqA - seqB;
-                                            }).map((r, idx) => (
-                                                <Grid item xs={12} sm={6} key={r.rollo || idx}>
-                                                    <Typography variant="body1">Rollo: <b>{r.rollo}</b> Sec: <b>{r.secuencia_lr || 'N/A'}</b></Typography>
-                                                    <Box display="flex" alignItems="center" gap="1">
-                                                        <TextField type="text" label="Metros Reales" variant="outlined" size="small" fullWidth
-                                                            inputProps={{ maxLength: 4, max: 9999 }}
-                                                            value={metrosRealesPorOrden[ordenSeleccionada.id]?.[r.rollo] || ""}
-                                                            onChange={(e) => {
-                                                                const valor = e.target.value;
-                                                                if (valor.length <= 4) {
-                                                                    setMetrosRealesPorOrden(prev => ({
-                                                                        ...prev,
-                                                                        [ordenSeleccionada.id]: {
-                                                                            ...prev[ordenSeleccionada.id],
-                                                                            [r.rollo]: valor
-                                                                        }
-                                                                    }));
-                                                                }
-                                                            }}
-                                                            disabled={(estadoOrden === "finalizado" && !usuarioAutorizado) || (checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado)}
-                                                        />
-                                                        <IconButton color="primary" size="small" sx={{ mt: 1, marginLeft: 1, borderRadius: "8px", backgroundColor: "#e3f2fd", "&:hover": { backgroundColor: "#bbdefb" } }} onClick={() => guardarMetrosRollo(r.rollo)}
-                                                            disabled={checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado}
-                                                        >
-                                                            <CheckIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Box>
-                                                </Grid>
-                                            ))}
+                                            })
+                                            .map((r, idx) => {
+
+                                                const numeroRollo = idx + 1;
+                                                return (
+                                                    <Grid item xs={12} sm={6} key={r.rollo || idx}>
+                                                        <Typography variant="body1">
+                                                            <b>R{numeroRollo}</b> - Rollo: <b>{r.rollo}</b> - Sec: <b>{r.secuencia_lr || 'N/A'}</b>
+                                                        </Typography>
+
+                                                        <Box display="flex" alignItems="center" gap="1">
+                                                            <TextField
+                                                                type="text"
+                                                                label="Metros Reales"
+                                                                variant="outlined"
+                                                                size="small"
+                                                                fullWidth
+                                                                inputProps={{ maxLength: 4, max: 9999 }}
+                                                                value={metrosRealesPorOrden[ordenSeleccionada.id]?.[r.rollo] || ""}
+                                                                onChange={(e) => {
+                                                                    const valor = e.target.value;
+                                                                    if (valor.length <= 4) {
+                                                                        setMetrosRealesPorOrden(prev => ({
+                                                                            ...prev,
+                                                                            [ordenSeleccionada.id]: {
+                                                                                ...prev[ordenSeleccionada.id],
+                                                                                [r.rollo]: valor
+                                                                            }
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                disabled={(estadoOrden === "finalizado" && !usuarioAutorizado)
+                                                                    || (checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado)}
+                                                            />
+
+                                                            <IconButton
+                                                                color="primary"
+                                                                size="small"
+                                                                sx={{
+                                                                    mt: 1,
+                                                                    marginLeft: 1,
+                                                                    borderRadius: "8px",
+                                                                    backgroundColor: "#e3f2fd",
+                                                                    "&:hover": { backgroundColor: "#bbdefb" }
+                                                                }}
+                                                                onClick={() => guardarMetrosRollo(r.rollo)}
+                                                                disabled={checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado}
+                                                            >
+                                                                <CheckIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </Grid>
+                                                );
+                                            })}
+
                                     </Grid>
                                 </Box>
                             ) : <Typography variant="body2" color="text.secondary" marginTop={2}>No hay rollos asignados</Typography>
@@ -713,7 +797,6 @@ export default function ConfirmarProduccion() {
                             <Button variant="outlined" startIcon={<CloseIcon />} color="error" onClick={handleClosePopup}>Cerrar</Button>
                             {estadoOrden === "sin iniciar" && <Button variant="contained" onClick={iniciarOrden}>Iniciar Orden</Button>}
                             {/* {estadoOrden === "en proceso" && <Button variant="contained" onClick={finalizarOrden} color="error">Finalizar Orden</Button>} */}
-
                             {estadoOrden === "en proceso" && (
                                 <>
                                     {metrosTotales >= ordenSeleccionada.metros * 0.92 && metrosTotales <= ordenSeleccionada.metros * 1.08 && (
@@ -751,7 +834,6 @@ export default function ConfirmarProduccion() {
                     </Dialog>
 
                     {/* Popup ingresar legajo y turno */}
-                    {/* Popup ingresar legajo y turno */}
                     <Dialog open={mostrarDialogTurno}>
                         <DialogTitle>Registrar Turno y Operario</DialogTitle>
                         <DialogContent>
@@ -763,99 +845,21 @@ export default function ConfirmarProduccion() {
                                 fullWidth
                                 value={operario}
                                 onChange={(e) => setOperario(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && confirmarOperario()}
                                 required
                             />
                         </DialogContent>
                         <DialogActions>
                             <Button
-                                onClick={async () => {
-                                    if (!operario) {
-                                        alert("Debe ingresar el legajo del operario.");
-                                        return;
-                                    }
-
-                                    try {
-                                        // ✅ Validar legajo antes de continuar
-                                        const resultadoValidacion = await validarLegajo(operario);
-                                        console.log("📦 Respuesta validarLegajo:", resultadoValidacion);
-
-                                        // 🔍 Manejo flexible de posibles formatos
-                                        const operarioValido = Array.isArray(resultadoValidacion)
-                                            ? resultadoValidacion[0]
-                                            : resultadoValidacion?.data
-                                                ? resultadoValidacion.data
-                                                : resultadoValidacion;
-
-                                        if (!operarioValido || !operarioValido.legajo) {
-                                            alert("El legajo ingresado no es válido. Verifique e intente nuevamente.");
-                                            return;
-                                        }
-
-                                        console.log(
-                                            `✅ Operario válido: ${operarioValido.nombre} (Legajo: ${operarioValido.legajo})`
-                                        );
-
-                                        const listaExistente = responsablesPorOrden[ordenSeleccionada?.id] || [];
-                                        const nuevaFecha = dayjs().format("YYYY-MM-DD");
-
-                                        const yaExiste = listaExistente.some(
-                                            (r) =>
-                                                r.operario === operarioValido.legajo &&
-                                                r.turno === turnoActual &&
-                                                r.fecha === nuevaFecha
-                                        );
-
-                                        const nuevaLista = yaExiste
-                                            ? listaExistente
-                                            : [
-                                                ...listaExistente,
-                                                {
-                                                    operario: operarioValido.legajo,
-                                                    nombre: operarioValido.nombre,
-                                                    turno: turnoActual,
-                                                    fecha: nuevaFecha, // ✅ nueva propiedad
-                                                },
-                                            ];
-
-                                        // Guarda en el estado local
-                                        setResponsablesPorOrden((prev) => ({
-                                            ...prev,
-                                            [ordenSeleccionada?.id]: nuevaLista,
-                                        }));
-
-                                        setMostrarDialogTurno(false);
-                                        localStorage.setItem("operario_legajo", operarioValido.legajo);
-                                        localStorage.setItem("turno_legajo", turnoActual);
-
-                                        // Guarda también en la base de datos
-                                        if (ordenSeleccionada) {
-                                            await guardarEstadoOrden({
-                                                IdOrden: ordenSeleccionada.id,
-                                                NumeroOrden: ordenSeleccionada.orden,
-                                                EstadoOrden: estadoOrden,
-                                                HoraInicioReal: horaInicioReal
-                                                    ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss")
-                                                    : null,
-                                                HoraFinReal: horaFinReal
-                                                    ? horaFinReal.format("YYYY-MM-DD HH:mm:ss")
-                                                    : null,
-                                                MetrosTotales: metrosTotales,
-                                                MetrosPorRollo:
-                                                    metrosRealesPorOrden[ordenSeleccionada.id] || {},
-                                                Responsables: nuevaLista,
-                                            });
-                                        }
-                                    } catch (error) {
-                                        console.error("Error al validar o guardar:", error);
-                                        alert("Ocurrió un error al validar el legajo o guardar los datos.");
-                                    }
-                                }}
-                            >
+                                color="error" variant="outlined" onClick={() => { setMostrarDialogTurno(false); handleClosePopup(); }} >
+                                Cancelar
+                            </Button>
+                            <Button variant="outlined" onClick={confirmarOperario}>
                                 Confirmar
                             </Button>
+
                         </DialogActions>
                     </Dialog>
-
                 </DialogContent>
             </Dialog>
         </>

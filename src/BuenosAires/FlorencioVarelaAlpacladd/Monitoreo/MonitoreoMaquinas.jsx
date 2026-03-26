@@ -1,195 +1,217 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  Grid,
-  Card,
-  Typography,
-  CircularProgress,
-  Box,
-  Tabs,
-  Tab,
-} from "@mui/material";
+import { Grid, Card, Typography, CircularProgress, Box, Tabs, Tab, Button } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import DvrIcon from "@mui/icons-material/Dvr";
 import { getMonitoreoMaquinas } from "../API/APIFunctions";
 import { Navbar } from "../../../components";
 import { Navigate } from "react-router-dom";
+import { Tooltip } from "@mui/material";
 
 function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+    const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 2 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && (
+                <Box sx={{ p: 2 }}>
+                    <Typography>{children}</Typography>
+                </Box>
+            )}
+        </div>
+    );
 }
 
 CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
+    children: PropTypes.node,
+    index: PropTypes.number.isRequired,
+    value: PropTypes.number.isRequired,
 };
 
 const MonitoreoMaquinas = () => {
-  const [value, setValue] = useState(1); // 🔹 Arranca en "Monitoreo Máquinas"
-  const [datos, setDatos] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [value, setValue] = useState(1);
+    const [datos, setDatos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  useEffect(() => {
-    document.title = "CladdCore FV - Monitoreo Máquinas";
-
-    const cargarDatos = async () => {
-      try {
-        const respuesta = await getMonitoreoMaquinas();
-        if (respuesta?.success && Array.isArray(respuesta.data)) {
-          // Agrupar por máquina y sumar metros
-          const agrupado = respuesta.data.reduce((acc, item) => {
-            const maquina = item.maquina || "SIN MÁQUINA";
-            const largo = item.largo_rollo ? Number(item.largo_rollo) : 0;
-            if (!acc[maquina]) acc[maquina] = 0;
-            acc[maquina] += largo;
-            return acc;
-          }, {});
-
-          // Convertir en array (en km)
-          const resultado = Object.entries(agrupado).map(([maquina, total]) => ({
-            maquina,
-            totalKm: total / 1000,
-          }));
-
-          setDatos(resultado);
-        }
-      } catch (err) {
-        console.error("❌ Error al cargar monitoreo:", err);
-      } finally {
-        setLoading(false);
-      }
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
     };
 
-    cargarDatos();
-  }, []);
+    const cargarDatos = async () => {
+        try {
+            const respuesta = await getMonitoreoMaquinas();
+            const ordenDeseado = ["108", "123", "124", "146", "12", "160", "10"];
+            const agrupado = {};
 
-  if (loading) return <CircularProgress />;
+            if (respuesta?.success && Array.isArray(respuesta.data)) {
+                respuesta.data.forEach((item) => {
+                    const maquina = item.maquina || "SIN MAQUINA";
 
-  return (
-    <div
-      className="CladdHome"
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
-    >
-      {/* 🔹 Navbar principal */}
-      <Navbar Titulo="MONITOREO" color="alpacladd" />
+                    // convertir metros_restantes a numero
+                    const metrosRestantes = Math.max(0, Number(item.metros_restantes) || 0);
+                    if (!agrupado[maquina]) {
+                        agrupado[maquina] = { total: 0, ordenes: [] };
+                    }
+                    // Suma de metros restantes para el total del card
+                    agrupado[maquina].total += metrosRestantes;
+                    // Orden con datos completos
+                    agrupado[maquina].ordenes.push({
+                        orden: item.orden,
+                        metros_cargados: Number(item.metros_cargados),
+                        metros_registrados: Number(item.metros_registrados),
+                        metros_restantes: metrosRestantes
+                    });
+                });
+            }
+            const resultado = ordenDeseado.map((maquina) => ({
+                maquina,
+                totalKm: (agrupado[maquina]?.total || 0) / 1000,
+                ordenes: agrupado[maquina]?.ordenes || []
+            }));
 
-      {/* 🔹 Tabs navegación */}
-      <Box
-        sx={{
-          width: "100%",
-          bgcolor: "#d3d3d3",
-          display: "flex",
-          overflow: "auto",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          variant="scrollable"
-          scrollButtons="on"
-          allowScrollButtonsMobile
+            setDatos(resultado);
+        } catch (err) {
+            console.error("Error al cargar monitoreo:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        document.title = "CladdCore FV - Monitoreo Maquinas";
+        cargarDatos();
+
+        const intervalo = setInterval(() => {
+            cargarDatos();
+        }, 60000);
+        return () => clearInterval(intervalo);
+    }, []);
+
+    if (loading) return <CircularProgress />;
+
+    return (
+        <div
+            className="CladdHome"
+            style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
         >
-          <Tab
-            label="Home"
-            icon={<HomeIcon />}
-            sx={{ minWidth: "120px", padding: "4px 6px", fontSize: "0.75rem" }}
-          />
-          <Tab
-            label="Monitoreo Máquinas"
-            icon={<DvrIcon />}
-            sx={{ minWidth: "160px", padding: "4px 6px", fontSize: "0.75rem" }}
-          />
-        </Tabs>
-      </Box>
+            <Navbar Titulo="MONITOREO" color="alpacladd" />
 
-      {/* 🔹 Paneles */}
-      <Box sx={{ width: "100%" }}>
-        {/* Home redirige al Productividad */}
-        <CustomTabPanel value={value} index={0}>
-          <Navigate to="/BuenosAires/FlorencioVarela/Productividad" />
-        </CustomTabPanel>
+            <Box sx={{ width: "100%", bgcolor: "#d3d3d3", display: "flex", overflow: "auto", justifyContent: "center", alignItems: "center", }}>
+                <Tabs value={value} onChange={handleChange} variant="scrollable" scrollButtons="on" allowScrollButtonsMobile >
+                    <Tab label="Home" icon={<HomeIcon />} sx={{ minWidth: "120px", padding: "4px 6px", fontSize: "0.75rem" }} />
+                    <Tab label="Monitoreo Máquinas" icon={<DvrIcon />} sx={{ minWidth: "160px", padding: "4px 6px", fontSize: "0.75rem" }} />
+                </Tabs>
+            </Box>
 
-        {/* Monitoreo Máquinas */}
-        <CustomTabPanel value={value} index={1}>
-          <Box sx={{ flexGrow: 1, p: 2 }}>
-            <Grid container spacing={2}>
-              {datos.map((item) => (
-                <Grid item xs={12} sm={6} md={3} key={item.maquina}>
-                  <Card
-                    sx={{
-                      p: 2,
-                      textAlign: "center",
-                      backgroundColor: "#0D3F5E",
-                      color: "white",
-                      borderRadius: "16px",
-                      boxShadow: "0px 4px 12px rgba(0,0,0,0.2)",
-                    }}
-                  >
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                      Máquina {item.maquina}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                      Tela en producción:
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: "bold", color: "#4FC3F7", mt: 1 }}
-                    >
-                      {item.totalKm.toFixed(2)} km
-                    </Typography>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </CustomTabPanel>
-      </Box>
+            <Box sx={{ width: "100%" }}>
+                <CustomTabPanel value={value} index={0}>
+                    <Navigate to="/BuenosAires/FlorencioVarela/Productividad" />
+                </CustomTabPanel>
 
-      {/* 🔹 Footer */}
-      <Box
-        display="flex"
-        flexDirection="column"
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          padding: "4px 8px",
-          borderRadius: "4px",
-        }}
-      >
-        <Typography variant="caption" color="white">
-          © Automatización - La Rioja
-        </Typography>
-        <Typography variant="caption" color="white">
-          Dirección Industrial
-        </Typography>
-      </Box>
-    </div>
-  );
+                <CustomTabPanel value={value} index={1}>
+                    <Box sx={{ flexGrow: 1, p: 2 }}>
+                        <Grid container spacing={2}>
+                            {datos.map((item) => (
+                                <Grid item xs={12} sm={6} md={3} key={item.maquina}>
+                                    <Tooltip
+                                        title={
+                                            item.ordenes.length === 0
+                                                ? "Sin ordenes en proceso"
+                                                : (
+                                                    <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                        {item.ordenes.map((o, index) => (
+                                                            <Box key={index} sx={{ borderBottom: "1px solid #ccc", pb: 1 }}>
+                                                                <Typography sx={{ fontWeight: "bold" }}>🟢Orden: {o.orden}</Typography>
+                                                                <Typography>Metros totales: {o.metros_cargados}</Typography>
+                                                                <Typography>Metros registrados: {o.metros_registrados}</Typography>
+                                                                <Typography sx={{ color: "yellow" }}>
+                                                                    ⬇ Metros restantes: {o.metros_restantes}
+                                                                </Typography>
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                )
+                                        }
+                                        placement="right" 
+                                        arrow
+                                        slotProps={{ tooltip: { sx: { backgroundColor: "#555555ff", color: "#fff", fontSize: "14px", maxWidth: "260px" } },
+                                            arrow: { sx: { color: "#555555ff" } }
+                                        }}
+                                    >
+                                        <Card sx={{
+                                            p: 2, textAlign: "center", backgroundColor: "#1A4862", color: "white",
+                                            borderRadius: "16px", boxShadow: "0px 4px 12px rgba(0,0,0,0.2)",
+                                            width: 250, height: 180
+                                        }}>
+                                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                                                MAQUINA {item.maquina}
+                                            </Typography>
+                                            <Typography variant="body3" sx={{ mt: 1, fontWeight: "bold" }}>
+                                                [PRODUCCION]
+                                            </Typography>
+                                            <hr />
+                                            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#fffff", mt: 1 }} >
+                                                {item.totalKm.toFixed(2)} Km
+                                            </Typography>
+                                            <hr />
+                                            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }} >
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>REPORTE</Button>
+
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>DIA</Button>
+
+                                                <Button size="small" variant="contained" sx={{
+                                                    backgroundColor: "#ffff",
+                                                    color: "#00334E", fontWeight: "bold",
+                                                    textTransform: "none", borderRadius: "8px",
+                                                    "&:hover": { backgroundColor: "#dfdbdbff", },
+                                                }}>MES</Button>
+                                            </Box>
+
+                                        </Card>
+                                    </Tooltip>
+
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                </CustomTabPanel>
+            </Box>
+
+            <Box display="flex" flexDirection="column"
+                sx={{
+                    position: "fixed",
+                    bottom: 16,
+                    right: 16,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                }}
+            >
+                <Typography variant="caption" color="white">
+                    © Automatización - La Rioja
+                </Typography>
+                <Typography variant="caption" color="white">
+                    Dirección Industrial
+                </Typography>
+            </Box>
+        </div>
+    );
 };
 
 export default MonitoreoMaquinas;

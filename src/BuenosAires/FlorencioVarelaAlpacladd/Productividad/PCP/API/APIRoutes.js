@@ -2,6 +2,7 @@
 const APIURL = "http://192.168.0.18:4300/";
 
 const CargaGantFV       = APIURL+"AlpacladdFVProductividadREGISTROGANT"
+const CargaGantReprocesoFV       = APIURL+"Gant/RegistroGantReproceso"
 const DatosGantFV       = APIURL+"AlpacladdFVProductividadDATOSGANT"
 const TablaMaquinas     = APIURL+"AlpacladdFVProductividadTABLAMAQUINAS"
 const TablaProcesos     = APIURL+"AlpacladdFVProductividadTABLAPROCESOS"
@@ -16,6 +17,7 @@ const EliminarOrdenPcp  = APIURL+'AlpacladdFVProductividadDeleteOrdenPcp/'
 const APIRoutes = [
     {
         CargaGantFV      :   CargaGantFV,
+        CargaGantReprocesoFV      :   CargaGantReprocesoFV,
         DatosGantFV      :   DatosGantFV,
         TablaMaquinas    :   TablaMaquinas,
         TablaProcesos    :   TablaProcesos,
