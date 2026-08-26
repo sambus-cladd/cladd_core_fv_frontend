@@ -20,6 +20,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp } from '../API/APIFunctions'
 import { set } from 'date-fns';
+import { pcpCardSx, primaryBtnSx, fieldSx, dialogTitleSx } from './pcpUiStyles';
 
 
 function FormularioGantPcp() {
@@ -385,10 +386,10 @@ function FormularioGantPcp() {
                         fontSize: "0.8rem",
                         fontWeight: 650,
                         margin: "0rem",
-                        backgroundColor: "#f4f4f4",
+                        backgroundColor: "rgba(26, 72, 98, 0.04)",
                         '& .super-app-theme--header': {
-                            backgroundColor: '#BABABA', // Cambia el color de fondo a azul
-                            color: 'white', // Cambia el color de texto a blanco
+                            backgroundColor: 'rgba(26, 72, 98, 0.12)',
+                            color: '#1A4862',
                             fontFamily: 'Poppins',
                             fontSize: "0.9rem",
                             fontWeight: 700,
@@ -445,15 +446,22 @@ function FormularioGantPcp() {
 
     return (
         <>
+            <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '1rem', mb: 0.5 }}>
+                Modificaciones
+            </Typography>
+            <Typography sx={{ fontFamily: 'Poppins', color: '#4a6177', fontSize: '0.85rem', mb: 1.5 }}>
+                Buscá una orden y actualizá sus datos
+            </Typography>
             {/* contenedor principal */}
             <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" >
 
                 {/* GRID FORM */}
                 <Grid item xs={8} sm={8} md={8} padding={1}>
-                    <Card sx={{ minWidth: '100%', borderRadius: "10px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)", paddingTop: 0, marginTop: '20px' }}>
+                    <Card sx={{ minWidth: '100%', ...pcpCardSx, paddingTop: 0, marginTop: '4px' }}>
                         {/* MODIFICACIONES */}
                         <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={0.5} marginTop={1}>
-                            <Typography fontFamily={'Poppins'} fontSize={18} fontWeight={500} >
+                            <Typography fontFamily={'Poppins'} fontSize={18} fontWeight={700} color="#1A4862">
                                 Ingresar Orden
                             </Typography>
                         </Grid>
@@ -485,7 +493,14 @@ function FormularioGantPcp() {
                                     id='Button-Buscar'
                                     fullWidth
                                     variant="contained"
-                                    style={{ color: 'white' }}
+                                    sx={{
+                                      background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+                                      color: 'white',
+                                      borderRadius: '10px',
+                                      boxShadow: 'none',
+                                      minHeight: 48,
+                                      '&:hover': { background: '#1A4862' },
+                                    }}
                                     onClick={handleButtonBuscar}
                                 >
                                     <SearchIcon />
@@ -514,7 +529,7 @@ function FormularioGantPcp() {
                                                 }
                                             }
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                     {/* <DateTimePicker
                                         fullWidth
@@ -543,7 +558,7 @@ function FormularioGantPcp() {
                                             // console.log("final: ", newHoraFinal);
                                             setFinHora(newHoraFinal);
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
@@ -728,17 +743,17 @@ function FormularioGantPcp() {
                             <Grid item xs={3} sm={3} md={4} justifyContent="flex-end" alignItems="flex-end">
                                 <Button
                                     variant='contained'
-                                    style={{ color: 'white' }}
+                                    sx={{ ...primaryBtnSx, color: 'white' }}
                                     onClick={vaciarForm}
                                 >
-                                    <Typography variant="button" fontFamily="Poppins" fontSize={18}>
+                                    <Typography variant="button" fontFamily="Poppins" fontSize={16} fontWeight={600}>
                                         Limpiar
                                     </Typography>
                                 </Button>
                             </Grid>
                             {/* BOTON MODIFICAR */}
                             <Grid item xs={3} sm={3} md={6} justifyContent="flex-end" alignItems="flex-end">
-                                <Button variant="contained" style={{ color: 'white' }}
+                                <Button variant="contained" sx={{ ...primaryBtnSx, color: 'white' }}
                                     onClick={() => {
                                         let Aux = {
                                             IdOrden: IdOrdenPcp,
@@ -765,10 +780,11 @@ function FormularioGantPcp() {
                     </Card>
                 </Grid>
             </Grid>
+            </Box>
 
             <Modal open={openModalTabla} onClose={handleCloseModalTabla}>
-                <Box sx={style}>
-                    <Typography fontFamily={'Poppins'}>Seleccione Orden: </Typography>
+                <Box sx={{ ...style, borderRadius: '12px', border: '1px solid rgba(26,72,98,0.06)' }}>
+                    <Typography fontFamily={'Poppins'} fontWeight={700} color="#1A4862" mb={1}>Seleccione Orden: </Typography>
                     <TablaOrdenes Serie={ordenes} />
                 </Box>
             </Modal>

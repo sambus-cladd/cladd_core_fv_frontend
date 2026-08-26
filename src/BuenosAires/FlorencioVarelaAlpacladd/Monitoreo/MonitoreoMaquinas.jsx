@@ -111,7 +111,7 @@ const MonitoreoMaquinas = () => {
 
             <Box sx={{ width: "100%" }}>
                 <CustomTabPanel value={value} index={0}>
-                    <Navigate to="/BuenosAires/FlorencioVarela/Productividad" />
+                    <Navigate to="/BuenosAires/FlorencioVarela/AlpacladdHome" />
                 </CustomTabPanel>
 
                 <CustomTabPanel value={value} index={1}>

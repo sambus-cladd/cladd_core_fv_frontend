@@ -1,33 +1,33 @@
+const _base = import.meta.env.VITE_API_FV_BASE || "http://192.168.0.18:4300";
+const APIURL = _base.endsWith("/") ? _base : `${_base}/`;
 
-const APIURL = "http://192.168.0.18:4300/";
-
-const CargaGantFV       = APIURL+"AlpacladdFVProductividadREGISTROGANT"
-const CargaGantReprocesoFV       = APIURL+"Gant/RegistroGantReproceso"
-const DatosGantFV       = APIURL+"AlpacladdFVProductividadDATOSGANT"
-const TablaMaquinas     = APIURL+"AlpacladdFVProductividadTABLAMAQUINAS"
-const TablaProcesos     = APIURL+"AlpacladdFVProductividadTABLAPROCESOS"
-const TablaCodMaquinas  = APIURL+'AlpacladdFVProductividadTABLACODMAQUINAS'
-const TablaColores      = APIURL+'AlpacladdFVProductividadTABLACOLORES'
-const HistoricoGantt    = APIURL+'AlpacladdFVProductividadHISTORICOGANTT'
-const MetrosxArticulo   = APIURL+'AlpacladdFVProductividadMetrosXArticulos'
-const ProduccionxOrden  = APIURL+'AlpacladdFVProductividadProdxOrden/'
-const ModificacionFV    = APIURL+'AlpacladdFVProductividadMODIFICACIONGANT'
-const EliminarOrdenPcp  = APIURL+'AlpacladdFVProductividadDeleteOrdenPcp/'
+const CargaGantFV       = APIURL + "AlpacladdFVProductividadREGISTROGANT"
+const CargaGantReprocesoFV = APIURL + "Gant/RegistroGantReproceso"
+const DatosGantFV       = APIURL + "AlpacladdFVProductividadDATOSGANT"
+const TablaMaquinas     = APIURL + "AlpacladdFVProductividadTABLAMAQUINAS"
+const TablaProcesos     = APIURL + "AlpacladdFVProductividadTABLAPROCESOS"
+const TablaCodMaquinas  = APIURL + 'AlpacladdFVProductividadTABLACODMAQUINAS'
+const TablaColores      = APIURL + 'AlpacladdFVProductividadTABLACOLORES'
+const HistoricoGantt    = APIURL + 'AlpacladdFVProductividadHISTORICOGANTT'
+const MetrosxArticulo   = APIURL + 'AlpacladdFVProductividadMetrosXArticulos'
+const ProduccionxOrden  = APIURL + 'AlpacladdFVProductividadProdxOrden/'
+const ModificacionFV    = APIURL + 'AlpacladdFVProductividadMODIFICACIONGANT'
+const EliminarOrdenPcp  = APIURL + 'AlpacladdFVProductividadDeleteOrdenPcp/'
 
 const APIRoutes = [
     {
-        CargaGantFV      :   CargaGantFV,
-        CargaGantReprocesoFV      :   CargaGantReprocesoFV,
-        DatosGantFV      :   DatosGantFV,
-        TablaMaquinas    :   TablaMaquinas,
-        TablaProcesos    :   TablaProcesos,
-        TablaCodMaquinas :   TablaCodMaquinas,
-        TablaColores     :   TablaColores,
-        HistoricoGantt   :   HistoricoGantt,
-        MetrosxArticulo  :   MetrosxArticulo,
-        ProduccionxOrden :   ProduccionxOrden,
-        ModificacionFV   :   ModificacionFV,
-        EliminarOrdenPcp :   EliminarOrdenPcp,
+        CargaGantFV,
+        CargaGantReprocesoFV,
+        DatosGantFV,
+        TablaMaquinas,
+        TablaProcesos,
+        TablaCodMaquinas,
+        TablaColores,
+        HistoricoGantt,
+        MetrosxArticulo,
+        ProduccionxOrden,
+        ModificacionFV,
+        EliminarOrdenPcp,
     }
 ]
 

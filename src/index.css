@@ -34,6 +34,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(252, 250, 239);
   color: #222;
+  overflow-x: hidden;
   /* overflow-y: hidden; */
 }
 

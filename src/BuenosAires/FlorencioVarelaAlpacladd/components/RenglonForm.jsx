@@ -108,6 +108,7 @@ function RenglonForm({ id, ensayo, referencia, variable1, setVariable1, variable
                             inputProps={{
                                 readOnly: readOnly,
                               }}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                         />
                     </Grid>
                     <Grid item xs={6}>
@@ -117,16 +118,17 @@ function RenglonForm({ id, ensayo, referencia, variable1, setVariable1, variable
                             inputProps={{
                                 readOnly: readOnly, 
                               }}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                         />
                     </Grid>
                     <Grid container direction="row" justifyContent="flex-start" alignItems="flex-start" px={1}>
                         <Grid item xs={6}>
                             <LightTooltip title={minRef !== undefined && maxRef !== undefined ? (`Mín: ${minRef} ${unidadMedida} / Máx: ${maxRef} ${unidadMedida}`) : ""}>
-                                <Typography sx={{ fontSize: 16 }}>Ref: {referencia !== undefined ? `${referencia} ${unidadMedida}` : ''} </Typography>
+                                <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>Ref: {referencia !== undefined ? `${referencia} ${unidadMedida}` : ''} </Typography>
                             </LightTooltip>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography sx={{ fontSize: 16 }}>Cál: <span style={{ fontWeight: "bold" }}>{!isNaN(calculo) && calculo !== null ? (`${calculo} ${unidadCalculo}`) : ""} </span></Typography>
+                            <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>Cál: <span style={{ fontWeight: "bold", color: '#1A4862' }}>{!isNaN(calculo) && calculo !== null ? (`${calculo} ${unidadCalculo}`) : ""} </span></Typography>
                         </Grid>
                     </Grid>
                 </Grid >

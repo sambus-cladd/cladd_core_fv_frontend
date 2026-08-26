@@ -1,6 +1,6 @@
 import {  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
 
-export default function MensajeDialogConfirm({ open, mensaje, onConfirm, nCancel }) {
+export default function MensajeDialogConfirm({ open, mensaje, onConfirm, onCancel }) {
   return (
     <Dialog open={open} onClose={onCancel}>
       <DialogTitle sx={{ fontFamily: "Poppins", fontWeight: 600 }} >

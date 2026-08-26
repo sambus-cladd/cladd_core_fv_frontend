@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import routes from './routesFValpa';
 import HeaderYFooter from '../../components/Plantilla/HeaderYFooter';
-import CustomCard from "./components/CustomCard";
-import FabricProgress from "./components/FabricProgress";
+import InventarioSeccionCard from "./components/InventarioSeccionCard";
 import FabricInventoryChart from "./components/FabricInventoryChart";
 import StockDepositosChart from "./components/StockDepositosChart";
 import FabricLinesChart from "./components/FabricLinesChart";
-import { Typography } from '@mui/material';
-
-import { Grid, Box } from '@mui/material';
+import { Typography, Grid, Box, Paper } from '@mui/material';
 
 import { getEstadoRollos } from './API/APIFunctions';
 import { getStockTerminadoFV } from './API/APIFunctions';
+import { colors, gradients, shadows, typography, formatKmEntero } from '../../styles/alpacladdFvDesignTokens';
 
 
 const AlpacladdHomeFV = () => {
@@ -149,140 +147,153 @@ const AlpacladdHomeFV = () => {
 
   return (
     <>
-      <HeaderYFooter titulo='ALPACLADD FLORENCIO VARELA' routes={routes}>
+      <HeaderYFooter titulo="ALPACLADD" routes={routes} color="alpacladd">
+        <Box
+          sx={{
+            flex: 1,
+            width: "100%",
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+        <Box sx={{ px: 1.25, pt: { xs: 1.75, sm: 2.25, md: 2.5 }, pb: 0.35, flexShrink: 0 }}>
+          <Grid container spacing={1.35} alignItems="flex-start">
+            <Grid item xs={12} sm={6} md={3}>
+              <InventarioSeccionCard
+                variant="cruda"
+                title="Inventario tela cruda"
+                largoTotal={deposito?.largoTotal || 0}
+                largoCrudo={deposito?.largoCrudo || 0}
+                largoDenim={deposito?.largoDenim || 0}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <InventarioSeccionCard
+                variant="produccion"
+                title="Inventario producción"
+                largoTotal={produccion?.largoTotal || 0}
+                largoCrudo={produccion?.largoCrudo || 0}
+                largoDenim={produccion?.largoDenim || 0}
+              />
+            </Grid>
 
-        <Box sx={{ padding: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <InventarioSeccionCard
+                variant="calidad"
+                title="Inventario calidad"
+                largoTotal={calidad?.largoTotal || 0}
+                largoCrudo={calidad?.largoCrudo || 0}
+                largoDenim={calidad?.largoDenim || 0}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <InventarioSeccionCard
+                variant="terminado"
+                title="Inventario terminado"
+                largoTotal={ventas?.largoTotal || 0}
+                largoCrudo={ventas?.largoCrudo || 0}
+                largoDenim={ventas?.largoDenim || 0}
+              />
+            </Grid>
+          </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Paper
+            elevation={0}
+            sx={{
+              mt: { xs: 1.75, sm: 2, md: 2.25 },
+              width: "100%",
+              borderRadius: "14px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "stretch",
+              boxShadow: shadows.dashboardLg,
+              border: `1px solid ${colors.borderSlate08}`,
+            }}
+          >
             <Box
               sx={{
-                width: "100%",
-                background: "linear-gradient(145deg, #2c4356, #1e2c3a)",
-                color: "#E2F1E7",
-                borderRadius: "16px",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                textAlign: "center",
-                fontSize: {
-                  xs: "2rem",
-                  sm: "2.5rem",
-                  md: "3rem",
-                },
-                fontWeight: "bold",
-                padding: "2px 0",
-                marginBottom: "0px", // Espacio entre la línea y las tarjetas
+                background: gradients.kpiHeader,
+                px: 2,
+                py: { xs: 0.75, sm: 0.9 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: { xs: "center", sm: "flex-start" },
+                minWidth: { sm: 200 },
               }}
             >
-              {!isNaN(TotalGeneral) ? TotalGeneral.toLocaleString("es-ES") : "0"} km
-
+              <Typography
+                sx={{
+                  fontFamily: typography.fontFamily,
+                  fontWeight: 700,
+                  color: "#fafbfa",
+                  fontSize: { xs: "0.82rem", sm: "0.92rem" },
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Total inventario
+              </Typography>
             </Box>
-          </Grid>
-
-          <Grid container spacing={2}>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Tela Cruda" cantidadCrudo={deposito?.largoTotal || 0} />
-              <FabricProgress
-                crudoValue={deposito?.largoTotal ? (deposito.largoCrudo / deposito.largoTotal) * 100 : 0}
-                denimValue={deposito?.largoTotal ? (deposito.largoDenim / deposito.largoTotal) * 100 : 0}
-                totalCrudo={deposito?.largoCrudo || 0}
-                totalDenim={deposito?.largoDenim || 0}
-              />
-            </Grid>
-            {/* <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Produccion" sx={{ background: "black", color: "white", }} >
-                <Box sx={{
-                    marginTop: 5,
-                    marginBottom: 4.5,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography variant="h6" color="white" fontWeight="bold" sx={{fontSize:25, color: "rgba(203, 198, 198, 0.6)"}}>
-                    En Desarrollo
-                  </Typography>
-                </Box>
-              </CustomCard>
-            </Grid> */}
-            <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Produccion" cantidadCrudo={produccion?.largoTotal || 0} />
-              <FabricProgress
-                crudoValue={produccion?.largoTotal ? (produccion.largoCrudo / produccion.largoTotal) * 100 : 0}
-                denimValue={produccion?.largoTotal ? (produccion.largoDenim / produccion.largoTotal) * 100 : 0}
-                totalCrudo={produccion?.largoCrudo || 0}
-                totalDenim={produccion?.largoDenim || 0}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Calidad" cantidadCrudo={calidad?.largoTotal || 0} />
-              <FabricProgress
-                crudoValue={calidad?.largoTotal ? (calidad.largoCrudo / calidad.largoTotal) * 100 : 0}
-                denimValue={calidad?.largoTotal ? (calidad.largoDenim / calidad.largoTotal) * 100 : 0}
-                totalCrudo={calidad?.largoCrudo || 0}
-                totalDenim={calidad?.largoDenim || 0}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <CustomCard title="Inventario Terminado" cantidadCrudo={ventas?.largoTotal || 0} />
-              <FabricProgress
-                crudoValue={ventas?.largoTotal ? (ventas.largoCrudo / ventas.largoTotal) * 100 : 0}
-                denimValue={ventas?.largoTotal ? (ventas.largoDenim / ventas.largoTotal) * 100 : 0}
-                totalCrudo={ventas?.largoCrudo || 0}
-                totalDenim={ventas?.largoDenim || 0}
-              />
-            </Grid>
-
-          </Grid>
+            <Box
+              sx={{
+                flex: 1,
+                backgroundColor: colors.white,
+                py: { xs: 0.95, sm: 1.1 },
+                px: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  ...typography.kpiValue,
+                  fontSize: { xs: "1.95rem", sm: "2.35rem", md: "2.65rem" },
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.1,
+                }}
+              >
+                {!isNaN(TotalGeneral) ? formatKmEntero(TotalGeneral) : "0"} km
+              </Typography>
+            </Box>
+          </Paper>
         </Box>
         
-        <Grid container spacing={2} mt={2} justifyContent="center" alignItems="center" textAlign="center">
-          <Grid item xs={12} md={4} display="flex" justifyContent="center">
-            <Box sx={{
-              width: "100%",
-              maxWidth: { xs: "90%", md: "100%" },
-              height: "auto",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRight: { md: "2px solid #ccc", xs: "none" },
-              padding: 1
-            }}>
+        <Grid
+          container
+          spacing={0.85}
+          alignItems="stretch"
+          sx={{
+            flex: "0 1 auto",
+            minHeight: 0,
+            px: 0.35,
+            pb: 0.35,
+            mt: { xs: 1.75, sm: 2, md: 2.25 },
+          }}
+          justifyContent="center"
+          textAlign="center"
+        >
+          <Grid item xs={12} md={4} sx={{ display: "flex", minHeight: 0 }}>
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%", p: 0.35 }}>
               <FabricInventoryChart data={chartData} />
             </Box>
           </Grid>
-          <Grid item xs={12} md={4} display="flex" justifyContent="center">
-            <Box sx={{
-              width: "100%",
-              maxWidth: { xs: "90%", md: "100%" },
-              height: "auto",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRight: { md: "2px solid #ccc", xs: "none" },
-              padding: 1
-            }}>
+          <Grid item xs={12} md={4} sx={{ display: "flex", minHeight: 0 }}>
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%", p: 0.35 }}>
               <FabricLinesChart data={grupoArticuloData} />
             </Box>
           </Grid>
-          <Grid item xs={12} md={4} display="flex" justifyContent="center">
-            <Box sx={{
-              width: "100%",
-              maxWidth: { xs: "90%", md: "100%" },
-              height: "auto",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 1
-            }}>
+          <Grid item xs={12} md={4} sx={{ display: "flex", minHeight: 0 }}>
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%", p: 0.35 }}>
               <StockDepositosChart data={stockDepositos} />
             </Box>
           </Grid>
         </Grid>
 
-
-
-
+        </Box>
       </HeaderYFooter>
 
     </>

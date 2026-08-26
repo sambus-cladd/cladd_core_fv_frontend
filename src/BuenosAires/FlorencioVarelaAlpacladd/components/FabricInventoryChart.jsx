@@ -1,39 +1,70 @@
+import { Box } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import DashboardSurface from "./DashboardSurface";
+import ChartLegendList from "./ChartLegendList";
+import { chartPieColors, formatKmEntero } from "../../../styles/alpacladdFvDesignTokens";
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Box, Typography } from "@mui/material";
-
-const COLORS = ["#5c7063", "#4b5e4f", "#2c4d5a", "#1f3c47"];
+const CHART_HEIGHT = 232;
 
 const FabricInventoryChart = ({ data }) => {
+  const rows = data || [];
+  const total = rows.reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const legendItems = rows.map((entry, index) => ({
+    name: entry.name,
+    color: chartPieColors[index % chartPieColors.length],
+    value: Number(entry.value) || 0,
+    percent: total > 0 ? ((Number(entry.value) || 0) / total) * 100 : 0,
+  }));
+
   return (
-    <Box sx={{ textAlign: "center", mt: 3, width: "100%", maxWidth: 600, mx: "auto" }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-        Stock Total de Tela
-      </Typography>
-      
-      {/* Contenedor Responsivo */}
-      <ResponsiveContainer width="100%" height={350}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="40%"
-            innerRadius="40%"
-            outerRadius="60%"
-            fill="#8884d8"
-            paddingAngle={5}
-            dataKey="value"
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(value) => `${value} km`} />
-          <Legend verticalAlign="bottom" height={50} />
-        </PieChart>
-      </ResponsiveContainer>
-    </Box>
+    <DashboardSurface
+      title="Stock total de tela"
+      compactHeader
+      fillColumn
+      dividerSx={{ my: 0.15 }}
+      sx={{ p: { xs: 0.45, md: 0.55 }, minHeight: 0, flex: 1, width: "100%" }}
+    >
+      <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ flexShrink: 0, width: "100%" }}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <Pie
+                data={rows}
+                cx="50%"
+                cy="50%"
+                innerRadius="17%"
+                outerRadius="88%"
+                fill="#8884d8"
+                paddingAngle={2}
+                dataKey="value"
+                nameKey="name"
+                label={false}
+              >
+                {rows.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={chartPieColors[index % chartPieColors.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, name) => [`${formatKmEntero(value)} km`, name]}
+                labelStyle={{ fontWeight: 600 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            pt: 0.25,
+          }}
+        >
+          <ChartLegendList items={legendItems} />
+        </Box>
+      </Box>
+    </DashboardSurface>
   );
 };
 

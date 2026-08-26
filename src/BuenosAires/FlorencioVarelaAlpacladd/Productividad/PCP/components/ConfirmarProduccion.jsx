@@ -1,133 +1,267 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Grid, Card, Typography, Box, TextField, Button, Dialog,
+    Typography, Box, TextField, Button, Dialog,
     DialogTitle, DialogContent, IconButton, Pagination,
-    FormControl, InputLabel, Select, MenuItem, DialogActions
+    DialogActions, Snackbar, Alert, Chip, CircularProgress
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import {
     actualizarDatosReales, guardarEstadoOrden, getEstadoOrden,
-    getSecuenciaRollo, getDatosOrdenes, getOrdenesGantt, validarLegajo
+    getSecuenciaRollo, getOrdenesGantt, validarLegajo
 } from '../API/APIFunctions';
 import { getStockRollosXOrden } from '../../../API/APIFunctions';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Chip } from '@mui/material';
 import 'dayjs/locale/es';
 import dayjs from 'dayjs';
+import {
+    colors, typography, statusCard
+} from '../../../../../styles/alpacladdFvDesignTokens';
+import {
+    loadCache, saveCache, fingerprintList, compareFingerprints
+} from './confirmarProduccionCache';
 
 const obtenerTurnoActual = () => {
     const hora = new Date().getHours();
-
-    if (hora >= 6 && hora < 14) return "Mañana";
-    if (hora >= 14 && hora < 22) return "Tarde";
-    return "Noche";
+    if (hora >= 6 && hora < 14) return 'Mañana';
+    if (hora >= 14 && hora < 22) return 'Tarde';
+    return 'Noche';
 };
 
+const primaryBtnSx = {
+    background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+    fontFamily: 'Poppins',
+    fontWeight: 600,
+    textTransform: 'none',
+    borderRadius: '10px',
+    boxShadow: 'none',
+    '&:hover': { background: '#1A4862' },
+};
+
+const filterPillSx = (active) => ({
+    fontFamily: 'Poppins',
+    fontWeight: 600,
+    textTransform: 'none',
+    borderRadius: '999px',
+    px: 1.5,
+    border: `1px solid ${active ? colors.tabIndicator : 'rgba(26,72,98,0.18)'}`,
+    backgroundColor: active ? 'rgba(25,118,210,0.12)' : '#fff',
+    color: active ? colors.tabIndicator : colors.textMuted,
+    boxShadow: active ? '0 2px 6px rgba(25,118,210,0.18)' : 'none',
+    '&:hover': {
+        backgroundColor: active ? 'rgba(25,118,210,0.18)' : 'rgba(26,72,98,0.04)',
+        borderColor: colors.tabIndicator,
+    },
+});
+
+const ORDEN_MAQUINAS = [108, 123, 124, 146, 12, 160, 10];
+
+const normalizeEstado = (estado) => {
+    if (!estado || typeof estado !== 'string') return 'sin iniciar';
+    return estado.trim().toLowerCase() || 'sin iniciar';
+};
+
+const chipColor = (estado) => {
+    const e = normalizeEstado(estado);
+    if (e === 'sin iniciar') return 'warning';
+    if (e === 'en proceso') return 'primary';
+    return 'success';
+};
 
 export default function ConfirmarProduccion() {
     const [datos, setDatos] = useState([]);
     const [openPopup, setOpenPopup] = useState(false);
     const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
     const [rollosAsignados, setRollosAsignados] = useState([]);
-    const [estadoOrden, setEstadoOrden] = useState("sin iniciar");
+    const [estadoOrden, setEstadoOrden] = useState('sin iniciar');
     const [horaInicioReal, setHoraInicioReal] = useState(null);
     const [horaFinReal, setHoraFinReal] = useState(null);
     const [metrosRealesPorOrden, setMetrosRealesPorOrden] = useState({});
     const [checksUsadosPorOrden, setChecksUsadosPorOrden] = useState({});
-    const [busqueda, setBusqueda] = useState("");
+    const [busqueda, setBusqueda] = useState('');
     const [resultados, setResultados] = useState([]);
     const [estadosPorOrden, setEstadosPorOrden] = useState({});
     const [filtroEstado, setFiltroEstado] = useState(null);
     const [usuarioAutorizado, setUsuarioAutorizado] = useState(false);
     const [mostrarPassword, setMostrarPassword] = useState(false);
-    const [passwordIngresada, setPasswordIngresada] = useState("");
+    const [passwordIngresada, setPasswordIngresada] = useState('');
     const [busquedaActiva, setBusquedaActiva] = useState(false);
     const [page, setPage] = useState(1);
     const [rowsPerPage] = useState(12);
     const [turnoActual, setTurnoActual] = useState(obtenerTurnoActual());
-    const [operario, setOperario] = useState("");
+    const [operario, setOperario] = useState('');
     const [mostrarDialogTurno, setMostrarDialogTurno] = useState(false);
     const [responsablesPorOrden, setResponsablesPorOrden] = useState({});
-    const [turnoSeleccionado, setTurnoSeleccionado] = useState("");
-    const [legajoOperario, setLegajoOperario] = useState("");
-    const [abrirModalTurno, setAbrirModalTurno] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+    const [loadingIniciar, setLoadingIniciar] = useState(false);
+    const [loadingFinalizar, setLoadingFinalizar] = useState(false);
+    const [loadingLegajo, setLoadingLegajo] = useState(false);
+    const [loadingMetrosRollo, setLoadingMetrosRollo] = useState(null);
+    const [pendingLegajoAction, setPendingLegajoAction] = useState(null);
 
-    const PASSWORD_SUPERUSER = "AdminProd";
-    const PASSWORD_FORZAR = "ForzarFin";
+    const openPopupRef = useRef(false);
+    const filtroEstadoRef = useRef(filtroEstado);
+    const busquedaActivaRef = useRef(busquedaActiva);
+    const busquedaRef = useRef(busqueda);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (busquedaActiva) return;
-            try {
-                const response = await getOrdenesGantt();
-                const datosPlanos = response.data.flat();
+    const PASSWORD_SUPERUSER = 'AdminProd';
+    const PASSWORD_FORZAR = 'ForzarFin';
 
-                // Para cada orden, traigo los datos de metros usando getDatosOrdenes
-                const datosConMetros = await Promise.all(
-                    datosPlanos.map(async (item) => {
-                        try {
-                            const res = await getDatosOrdenes(item.id);
-                            const metrosTotales = res?.data?.metros_totales ?? 0;
-                            return { ...item, metrosTotales };
-                        } catch (err) {
-                            console.error("Error obteniendo metros de la orden:", item.orden, err);
-                            return { ...item, metrosTotales: 0 };
-                        }
-                    })
-                );
-
-                setDatos(datosConMetros);
-                setResultados(datosConMetros);
-
-                if (!busquedaActiva) setResultados(datosConMetros);
-                const estados = {};
-                const promesas = datosConMetros.map(async (it) => {
-                    try {
-                        const r = await getEstadoOrden(it.id);
-                        estados[it.id] = (r?.success && r?.data?.estado_orden) ? r.data.estado_orden : "sin iniciar";
-                    } catch {
-                        estados[it.id] = "sin iniciar";
-                    }
-                });
-                await Promise.allSettled(promesas);
-                setEstadosPorOrden(estados);
-
-            } catch (error) {
-                console.error("Error al obtener los datos de gantt", error);
-            }
-        };
-
-        fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
-    }, [busquedaActiva]);
-
-    const handleBuscar = () => {
-        const filtro = busqueda.trim();
-        if (filtro === "") {
-            setResultados(datos);
-            setBusquedaActiva(false);
-        } else {
-            const filtrados = datos.filter(item =>
-                String(item.orden || "") === filtro
-            );
-            setResultados(filtrados);
-            setBusquedaActiva(true);
-        }
+    const showSnack = (message, severity = 'info') => {
+        setSnackbar({ open: true, message, severity });
     };
 
-    useEffect(() => {
-        let lista = [...datos];
-        if (filtroEstado) {
-            lista = lista.filter(item =>
-                (estadosPorOrden[item.id] || "sin iniciar").toLowerCase() === filtroEstado.toLowerCase()
+    useEffect(() => { openPopupRef.current = openPopup; }, [openPopup]);
+    useEffect(() => { filtroEstadoRef.current = filtroEstado; }, [filtroEstado]);
+    useEffect(() => { busquedaActivaRef.current = busquedaActiva; }, [busquedaActiva]);
+    useEffect(() => { busquedaRef.current = busqueda; }, [busqueda]);
+
+    const applyClientFilters = useCallback((items, estadosMap, filtro, terminoBusqueda) => {
+        let lista = [...(items || [])];
+        const term = (terminoBusqueda || '').trim();
+        if (term) {
+            lista = lista.filter((item) => String(item.orden || '') === term);
+        }
+        if (filtro) {
+            lista = lista.filter(
+                (item) => normalizeEstado(estadosMap[item.id] || item.estado_orden) === normalizeEstado(filtro)
             );
         }
-        setResultados(lista);
-    }, [datos, busqueda, filtroEstado, estadosPorOrden]);
+        return lista;
+    }, []);
+
+    const buildEstadosFromItems = (items, prevEstados = {}) => {
+        const estados = { ...prevEstados };
+        (items || []).forEach((item) => {
+            if (item?.id == null) return;
+            if (item.estado_orden != null && String(item.estado_orden).trim() !== '') {
+                estados[item.id] = normalizeEstado(item.estado_orden);
+            } else if (!estados[item.id]) {
+                estados[item.id] = 'sin iniciar';
+            }
+        });
+        return estados;
+    };
+
+    const normalizeItems = (rawItems) =>
+        (rawItems || []).map((item) => ({
+            ...item,
+            metrosTotales: Number(
+                item.metros_confirmados ?? item.metrosTotales ?? item.metros_totales ?? item.metros_real ?? item.metros ?? 0
+            ),
+            estado_orden: normalizeEstado(item.estado_orden),
+        }));
+
+    const resolveMissingEstados = async (items, estadosSeed) => {
+        const estados = { ...estadosSeed };
+        const missing = (items || []).filter((it) => {
+            const hasJoin = it.estado_orden != null && String(it.estado_orden).trim() !== '';
+            return !hasJoin && !estados[it.id];
+        });
+        if (missing.length === 0) return estados;
+
+        await Promise.allSettled(
+            missing.map(async (it) => {
+                try {
+                    const r = await getEstadoOrden(it.id);
+                    estados[it.id] =
+                        r?.success && r?.data?.estado_orden
+                            ? normalizeEstado(r.data.estado_orden)
+                            : 'sin iniciar';
+                } catch {
+                    estados[it.id] = 'sin iniciar';
+                }
+            })
+        );
+        return estados;
+    };
+
+    const revalidateList = useCallback(async ({ force = false, silent = false } = {}) => {
+        if (!force && openPopupRef.current && silent) return;
+        if (busquedaActivaRef.current && !force) return;
+
+        try {
+            const response = await getOrdenesGantt();
+            const datosPlanos = normalizeItems(
+                Array.isArray(response?.data) ? response.data.flat() : []
+            );
+
+            const prevCache = loadCache();
+            let estados = buildEstadosFromItems(datosPlanos, prevCache?.estados || {});
+            estados = await resolveMissingEstados(datosPlanos, estados);
+
+            const prevFp = fingerprintList(prevCache?.items || [], prevCache?.estados || {});
+            const nextFp = fingerprintList(datosPlanos, estados);
+            const diff = compareFingerprints(prevFp, nextFp);
+
+            if (!diff.changed && prevCache?.items?.length) {
+                return;
+            }
+
+            setDatos(datosPlanos);
+            setEstadosPorOrden(estados);
+            setResultados(
+                applyClientFilters(
+                    datosPlanos,
+                    estados,
+                    filtroEstadoRef.current,
+                    busquedaActivaRef.current ? busquedaRef.current : ''
+                )
+            );
+            saveCache({ items: datosPlanos, estados });
+        } catch (error) {
+            console.error('Error al obtener los datos de gantt', error);
+            if (!silent) showSnack('No se pudieron cargar las órdenes', 'error');
+        }
+    }, [applyClientFilters]);
+
+    // Hydrate cache instantly, then revalidate
+    useEffect(() => {
+        const cached = loadCache();
+        if (cached?.items?.length) {
+            setDatos(cached.items);
+            setEstadosPorOrden(cached.estados || {});
+            setResultados(cached.items);
+        }
+
+        const legajoGuardado = localStorage.getItem('operario_legajo');
+        const turnoGuardado = localStorage.getItem('turno_legajo');
+        const turnoAhora = obtenerTurnoActual();
+        if (legajoGuardado && turnoGuardado === turnoAhora) {
+            setOperario(legajoGuardado);
+            setTurnoActual(turnoGuardado);
+        } else {
+            localStorage.removeItem('operario_legajo');
+            localStorage.removeItem('turno_legajo');
+            setOperario('');
+            setTurnoActual(turnoAhora);
+        }
+
+        revalidateList({ force: true });
+        const interval = setInterval(() => revalidateList({ silent: true }), 60000);
+        return () => clearInterval(interval);
+    }, [revalidateList]);
+
+    useEffect(() => {
+        if (busquedaActiva) return;
+        setResultados(applyClientFilters(datos, estadosPorOrden, filtroEstado, ''));
+        setPage(1);
+    }, [datos, filtroEstado, estadosPorOrden, busquedaActiva, applyClientFilters]);
+
+    useEffect(() => {
+        const intervalo = setInterval(() => {
+            const nuevoTurno = obtenerTurnoActual();
+            if (nuevoTurno !== turnoActual) {
+                localStorage.removeItem('operario_legajo');
+                localStorage.removeItem('turno_legajo');
+                setOperario('');
+                setTurnoActual(nuevoTurno);
+            }
+        }, 60000);
+        return () => clearInterval(intervalo);
+    }, [turnoActual]);
 
     const GetDatosProd = async (Orden) => {
         if (!Orden) return;
@@ -137,16 +271,46 @@ export default function ConfirmarProduccion() {
             const rollosConSecuencia = await Promise.all(
                 rollosPorOrden.map(async (rollo) => {
                     const res = await getSecuenciaRollo(rollo.rollo);
-                    const secuencia = res.success ? res.data.secuencia_lr : "N/A";
+                    const secuencia = res.success ? res.data.secuencia_lr : 'N/A';
                     return { ...rollo, secuencia_lr: secuencia };
                 })
             );
-
             setRollosAsignados(rollosConSecuencia);
         } catch (err) {
-            console.error("Error obteniendo rollos con secuencia:", err);
+            console.error('Error obteniendo rollos con secuencia:', err);
             setRollosAsignados([]);
         }
+    };
+
+    const syncCacheEstado = (idOrden, nuevoEstado, patchItem = {}) => {
+        setEstadosPorOrden((prev) => {
+            const nextEstados = { ...prev, [idOrden]: normalizeEstado(nuevoEstado) };
+            setDatos((prevDatos) => {
+                const nextDatos = prevDatos.map((it) =>
+                    it.id === idOrden
+                        ? { ...it, ...patchItem, estado_orden: normalizeEstado(nuevoEstado) }
+                        : it
+                );
+                saveCache({ items: nextDatos, estados: nextEstados });
+                return nextDatos;
+            });
+            return nextEstados;
+        });
+    };
+
+    const handleBuscar = () => {
+        const filtro = busqueda.trim();
+        if (filtro === '') {
+            setBusquedaActiva(false);
+            setResultados(applyClientFilters(datos, estadosPorOrden, filtroEstado, ''));
+            setPage(1);
+            return;
+        }
+        const candidatos = datos.filter((item) => String(item.orden || '') === filtro);
+        const filtrados = applyClientFilters(candidatos, estadosPorOrden, filtroEstado, filtro);
+        setResultados(filtrados);
+        setBusquedaActiva(true);
+        setPage(1);
     };
 
     const handleOpenPopup = async (item) => {
@@ -158,89 +322,94 @@ export default function ConfirmarProduccion() {
                 estado = response.data;
             }
         } catch (err) {
-            console.error("Error obteniendo estado orden:", err);
+            console.error('Error obteniendo estado orden:', err);
         }
 
-        setMetrosRealesPorOrden(prev => ({
+        setMetrosRealesPorOrden((prev) => ({
             ...prev,
-            [item.id]: estado.metros_por_rollo ? JSON.parse(estado.metros_por_rollo) : {}
+            [item.id]: estado.metros_por_rollo ? JSON.parse(estado.metros_por_rollo) : {},
         }));
-        setChecksUsadosPorOrden(prev => ({
+        setChecksUsadosPorOrden((prev) => ({
             ...prev,
             [item.id]: estado.metros_por_rollo
                 ? Object.keys(JSON.parse(estado.metros_por_rollo)).reduce((acc, r) => ({ ...acc, [r]: true }), {})
-                : {}
+                : {},
         }));
-        setEstadoOrden(estado.estado_orden || "sin iniciar");
+        const est = normalizeEstado(estado.estado_orden || item.estado_orden || estadosPorOrden[item.id]);
+        setEstadoOrden(est);
         setHoraInicioReal(estado.hora_inicio_real ? dayjs(estado.hora_inicio_real) : null);
         setHoraFinReal(estado.hora_fin_real ? dayjs(estado.hora_fin_real) : null);
-        setTurnoSeleccionado("");
-        setLegajoOperario("");
-        setResponsablesPorOrden(prev => ({
+        setResponsablesPorOrden((prev) => ({
             ...prev,
-            [item.id]: estado.responsable ? JSON.parse(estado.responsable) : []
+            [item.id]: estado.responsable ? JSON.parse(estado.responsable) : [],
         }));
-
 
         await GetDatosProd(item.orden);
         setOpenPopup(true);
-        setMostrarDialogTurno(false);
     };
 
     const handleClosePopup = () => {
         setOpenPopup(false);
         setOrdenSeleccionada(null);
-        setEstadoOrden("sin iniciar");
+        setEstadoOrden('sin iniciar');
         setHoraInicioReal(null);
         setHoraFinReal(null);
         setUsuarioAutorizado(false);
-        setPasswordIngresada("");
+        setPasswordIngresada('');
+        setPendingLegajoAction(null);
     };
 
-    const iniciarOrden = async () => {
+    const tieneResponsableTurnoActual = (idOrden) => {
+        const lista = responsablesPorOrden[idOrden] || [];
+        const fecha = dayjs().format('YYYY-MM-DD');
+        return lista.some((r) => r.turno === turnoActual && r.fecha === fecha);
+    };
+
+    const pedirLegajoSiFalta = (action) => {
+        if (ordenSeleccionada && tieneResponsableTurnoActual(ordenSeleccionada.id)) return false;
+        setPendingLegajoAction(action);
+        setMostrarDialogTurno(true);
+        return true;
+    };
+
+    const iniciarOrden = async (responsablesOverride = null) => {
         if (!ordenSeleccionada) return;
+        const listaExistente =
+            responsablesOverride || responsablesPorOrden[ordenSeleccionada.id] || [];
 
-        const listaExistente = responsablesPorOrden[ordenSeleccionada.id] || [];
+        if (!responsablesOverride) {
+            const fecha = dayjs().format('YYYY-MM-DD');
+            const ok = listaExistente.some((r) => r.turno === turnoActual && r.fecha === fecha);
+            if (!ok) {
+                setPendingLegajoAction('iniciar');
+                setMostrarDialogTurno(true);
+                return;
+            }
+        }
+
         const ahora = dayjs();
-        const nuevaFecha = ahora.format("YYYY-MM-DD");
-
-        if (listaExistente.length === 0) {
-            alert("Debe registrar el operario antes de iniciar una orden.");
-            setMostrarDialogTurno(true);
-            return;
+        setLoadingIniciar(true);
+        try {
+            setHoraInicioReal(ahora);
+            setEstadoOrden('en proceso');
+            await guardarEstadoOrden({
+                IdOrden: ordenSeleccionada.id,
+                NumeroOrden: ordenSeleccionada.orden,
+                EstadoOrden: 'en proceso',
+                HoraInicioReal: ahora.format('YYYY-MM-DD HH:mm:ss'),
+                HoraFinReal: null,
+                MetrosTotales: 0,
+                MetrosPorRollo: {},
+                Responsables: listaExistente,
+            });
+            syncCacheEstado(ordenSeleccionada.id, 'en proceso');
+            showSnack('Orden iniciada correctamente', 'success');
+        } catch (err) {
+            console.error(err);
+            showSnack('Error al iniciar la orden', 'error');
+        } finally {
+            setLoadingIniciar(false);
         }
-
-        const ultimoResponsable = listaExistente[listaExistente.length - 1];
-        const mismoDiaYTurno =
-            ultimoResponsable.turno === turnoActual &&
-            ultimoResponsable.fecha === nuevaFecha;
-
-        if (!mismoDiaYTurno) {
-            alert("Debe registrar nuevamente el responsable para el turno o fecha actual.");
-            setMostrarDialogTurno(true);
-            return;
-        }
-
-        setHoraInicioReal(ahora);
-        setEstadoOrden("en proceso");
-
-        const nuevaLista = [...listaExistente];
-
-        setResponsablesPorOrden((prev) => ({
-            ...prev,
-            [ordenSeleccionada.id]: nuevaLista,
-        }));
-
-        await guardarEstadoOrden({
-            IdOrden: ordenSeleccionada.id,
-            NumeroOrden: ordenSeleccionada.orden,
-            EstadoOrden: "en proceso",
-            HoraInicioReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
-            HoraFinReal: null,
-            MetrosTotales: 0,
-            MetrosPorRollo: {},
-            Responsables: nuevaLista,
-        });
     };
 
     const finalizarOrden = async () => {
@@ -248,176 +417,172 @@ export default function ConfirmarProduccion() {
         const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
         const checks = checksUsadosPorOrden[ordenSeleccionada.id] || {};
 
-        for (let rollo of rollosAsignados) {
+        for (const rollo of rollosAsignados) {
             const valor = todosMetros[rollo.rollo];
             const confirmado = checks[rollo.rollo];
-
             if (!confirmado || !valor || isNaN(valor) || Number(valor) <= 0) {
-                return alert(`Debes ingresar y confirmar metros reales para el rollo ${rollo.rollo} antes de finalizar la orden.`);
+                return showSnack(`Debés confirmar metros reales para el rollo ${rollo.rollo}`, 'warning');
             }
         }
 
         const totalMetros = Object.values(todosMetros).reduce((acc, val) => acc + Number(val || 0), 0);
         if (totalMetros <= 0) {
-            return alert("No se registraron metros reales. Verificá antes de finalizar la orden.");
+            return showSnack('No se registraron metros reales', 'warning');
         }
-        const metrosCargados = Number(ordenSeleccionada.metros);
-        const minPermitido = metrosCargados * 0.92; // 8% menos
-        const maxPermitido = metrosCargados * 1.08; // 8% más
 
+        const metrosCargados = Number(ordenSeleccionada.metros);
+        const minPermitido = metrosCargados * 0.92;
+        const maxPermitido = metrosCargados * 1.08;
         if (totalMetros < minPermitido || totalMetros > maxPermitido) {
-            return alert(
-                `Los metros reales (${totalMetros}) deben estar dentro del rango permitido: 
-             entre ${minPermitido.toFixed(2)} y ${maxPermitido.toFixed(2)}.`
+            return showSnack(
+                `Metros (${totalMetros}) fuera del rango ±8%: ${minPermitido.toFixed(0)} – ${maxPermitido.toFixed(0)}`,
+                'warning'
             );
         }
 
         const ahora = dayjs();
-        setHoraFinReal(ahora);
-        setEstadoOrden("finalizado");
-
         let duracionHoras = 0;
         if (horaInicioReal && dayjs.isDayjs(horaInicioReal)) {
-            const diffMs = ahora.diff(horaInicioReal);
-            duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
-            console.log("Duración horas:", duracionHoras, typeof duracionHoras);
+            duracionHoras = Number((ahora.diff(horaInicioReal) / (1000 * 60 * 60)).toFixed(2));
         }
 
-        if (metrosTotales)
-            try {
-                await actualizarDatosReales({
-                    IdOrden: ordenSeleccionada.id,
-                    MetrosReal: totalMetros,
-                    HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
-                    HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
-                    FechaRegistroReal: ahora.format("YYYY-MM-DD"),
-                    MetrosPorRollo: todosMetros,
-                    HorasTotalReal: duracionHoras
-                });
-
-                await guardarEstadoOrden({
-                    IdOrden: ordenSeleccionada.id,
-                    NumeroOrden: ordenSeleccionada.orden,
-                    EstadoOrden: "finalizado",
-                    HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
-                    HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
-                    MetrosTotales: totalMetros,
-                    MetrosPorRollo: todosMetros,
-                    Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
-                });
-
-                alert("Orden finalizada y datos guardados correctamente.");
-            } catch (err) {
-                console.error("Error finalizando la orden:", err);
-                alert("Ocurrió un error al finalizar la orden. Reintente.");
-            }
-    };
-
-    const finalizarOrdenForzado = async () => {
-        if (!ordenSeleccionada) return;
-
-        const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
-        const checks = checksUsadosPorOrden[ordenSeleccionada.id] || {};
-
-        for (let rollo of rollosAsignados) {
-            const valor = todosMetros[rollo.rollo];
-            const confirmado = checks[rollo.rollo];
-            if (!confirmado || !valor || isNaN(valor) || Number(valor) <= 0) {
-                return alert(`Debes ingresar y confirmar metros reales para el rollo ${rollo.rollo}.`);
-            }
-        }
-
-        const totalMetros = Object.values(todosMetros).reduce((acc, val) => acc + Number(val || 0), 0);
-        if (totalMetros <= 0) {
-            return alert("No se registraron metros reales.");
-        }
-
-        const ahora = dayjs();
-        setHoraFinReal(ahora);
-        setEstadoOrden("finalizado");
-
-        let duracionHoras = 0;
-        if (horaInicioReal && dayjs.isDayjs(horaInicioReal)) {
-            const diffMs = ahora.diff(horaInicioReal);
-            duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
-        }
+        setLoadingFinalizar(true);
         try {
+            setHoraFinReal(ahora);
+            setEstadoOrden('finalizado');
             await actualizarDatosReales({
                 IdOrden: ordenSeleccionada.id,
                 MetrosReal: totalMetros,
-                HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
-                HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
-                FechaRegistroReal: ahora.format("YYYY-MM-DD"),
+                HoraInicioReal: horaInicioReal.format('YYYY-MM-DD HH:mm:ss'),
+                HoraFinReal: ahora.format('YYYY-MM-DD HH:mm:ss'),
+                FechaRegistroReal: ahora.format('YYYY-MM-DD'),
                 MetrosPorRollo: todosMetros,
-                HorasTotalReal: duracionHoras
+                HorasTotalReal: duracionHoras,
             });
             await guardarEstadoOrden({
                 IdOrden: ordenSeleccionada.id,
                 NumeroOrden: ordenSeleccionada.orden,
-                EstadoOrden: "finalizado",
-                HoraInicioReal: horaInicioReal.format("YYYY-MM-DD HH:mm:ss"),
-                HoraFinReal: ahora.format("YYYY-MM-DD HH:mm:ss"),
+                EstadoOrden: 'finalizado',
+                HoraInicioReal: horaInicioReal.format('YYYY-MM-DD HH:mm:ss'),
+                HoraFinReal: ahora.format('YYYY-MM-DD HH:mm:ss'),
                 MetrosTotales: totalMetros,
                 MetrosPorRollo: todosMetros,
-                Operario: operario || "No definido",
-                Turno: turnoActual || "No definido",
                 Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
-                Forzado: true,
             });
-
-            alert("Orden finalizada FORZADA correctamente.");
+            syncCacheEstado(ordenSeleccionada.id, 'finalizado', { metrosTotales: totalMetros, metros_confirmados: totalMetros });
+            showSnack('Orden finalizada correctamente', 'success');
         } catch (err) {
-            console.error("Error finalizando la orden forzada:", err);
-            alert("Ocurrió un error al finalizar la orden.");
+            console.error(err);
+            showSnack('Error al finalizar la orden', 'error');
+        } finally {
+            setLoadingFinalizar(false);
         }
     };
-    const handleAutorizar = () => {
-        if (mostrarPassword === "editar") {
-            if (passwordIngresada === PASSWORD_SUPERUSER) {
-                setUsuarioAutorizado(true);
-                alert("Autorización correcta. Ahora podés editar los metros.");
-                setMostrarPassword(false);
-                setPasswordIngresada("");
-            } else {
-                alert("Contraseña incorrecta.");
+
+    const finalizarOrdenForzado = async () => {
+        if (!ordenSeleccionada) return;
+        const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
+        const checks = checksUsadosPorOrden[ordenSeleccionada.id] || {};
+
+        for (const rollo of rollosAsignados) {
+            const valor = todosMetros[rollo.rollo];
+            const confirmado = checks[rollo.rollo];
+            if (!confirmado || !valor || isNaN(valor) || Number(valor) <= 0) {
+                return showSnack(`Debés confirmar metros del rollo ${rollo.rollo}`, 'warning');
             }
         }
-        if (mostrarPassword === "forzar") {
-            if (passwordIngresada === PASSWORD_FORZAR) {
-                alert("Autorización correcta. Se forzará la finalización.");
+
+        const totalMetros = Object.values(todosMetros).reduce((acc, val) => acc + Number(val || 0), 0);
+        if (totalMetros <= 0) return showSnack('No se registraron metros reales', 'warning');
+
+        const ahora = dayjs();
+        let duracionHoras = 0;
+        if (horaInicioReal && dayjs.isDayjs(horaInicioReal)) {
+            duracionHoras = Number((ahora.diff(horaInicioReal) / (1000 * 60 * 60)).toFixed(2));
+        }
+
+        setLoadingFinalizar(true);
+        try {
+            setHoraFinReal(ahora);
+            setEstadoOrden('finalizado');
+            await actualizarDatosReales({
+                IdOrden: ordenSeleccionada.id,
+                MetrosReal: totalMetros,
+                HoraInicioReal: horaInicioReal.format('YYYY-MM-DD HH:mm:ss'),
+                HoraFinReal: ahora.format('YYYY-MM-DD HH:mm:ss'),
+                FechaRegistroReal: ahora.format('YYYY-MM-DD'),
+                MetrosPorRollo: todosMetros,
+                HorasTotalReal: duracionHoras,
+            });
+            await guardarEstadoOrden({
+                IdOrden: ordenSeleccionada.id,
+                NumeroOrden: ordenSeleccionada.orden,
+                EstadoOrden: 'finalizado',
+                HoraInicioReal: horaInicioReal.format('YYYY-MM-DD HH:mm:ss'),
+                HoraFinReal: ahora.format('YYYY-MM-DD HH:mm:ss'),
+                MetrosTotales: totalMetros,
+                MetrosPorRollo: todosMetros,
+                Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
+            });
+            syncCacheEstado(ordenSeleccionada.id, 'finalizado', { metrosTotales: totalMetros, metros_confirmados: totalMetros });
+            showSnack('Orden finalizada (forzada)', 'success');
+        } catch (err) {
+            console.error(err);
+            showSnack('Error al forzar finalización', 'error');
+        } finally {
+            setLoadingFinalizar(false);
+        }
+    };
+
+    const handleAutorizar = () => {
+        if (mostrarPassword === 'editar') {
+            if (passwordIngresada === PASSWORD_SUPERUSER) {
+                setUsuarioAutorizado(true);
+                showSnack('Autorización correcta. Podés editar metros.', 'success');
                 setMostrarPassword(false);
-                setPasswordIngresada("");
+                setPasswordIngresada('');
+            } else {
+                showSnack('Contraseña incorrecta', 'error');
+            }
+        }
+        if (mostrarPassword === 'forzar') {
+            if (passwordIngresada === PASSWORD_FORZAR) {
+                setMostrarPassword(false);
+                setPasswordIngresada('');
                 finalizarOrdenForzado();
             } else {
-                alert("Contraseña incorrecta.");
+                showSnack('Contraseña incorrecta', 'error');
             }
         }
     };
 
     const guardarMetrosRollo = async (rollo) => {
         if (!ordenSeleccionada) return;
-        const valor = Number(metrosRealesPorOrden[ordenSeleccionada.id][rollo] || 0);
-        if (valor <= 0) return alert(`Por favor ingresa un valor válido para el rollo ${rollo}`);
+        if (pedirLegajoSiFalta(`metros:${rollo}`)) return;
 
-        setChecksUsadosPorOrden(prev => ({
+        const valor = Number(metrosRealesPorOrden[ordenSeleccionada.id]?.[rollo] || 0);
+        if (valor <= 0) return showSnack(`Valor inválido para el rollo ${rollo}`, 'warning');
+
+        setLoadingMetrosRollo(rollo);
+        setChecksUsadosPorOrden((prev) => ({
             ...prev,
-            [ordenSeleccionada.id]: { ...(prev[ordenSeleccionada.id] || {}), [rollo]: true }
+            [ordenSeleccionada.id]: { ...(prev[ordenSeleccionada.id] || {}), [rollo]: true },
         }));
 
         const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
         const totalMetros = Object.values(todosMetros).reduce((a, b) => a + Number(b || 0), 0);
         let duracionHoras = 0;
         if (horaInicioReal && dayjs.isDayjs(horaInicioReal) && horaFinReal && dayjs.isDayjs(horaFinReal)) {
-            const diffMs = horaFinReal.diff(horaInicioReal);
-            duracionHoras = Number((diffMs / (1000 * 60 * 60)).toFixed(2));
+            duracionHoras = Number((horaFinReal.diff(horaInicioReal) / (1000 * 60 * 60)).toFixed(2));
         }
+
         try {
             await actualizarDatosReales({
                 IdOrden: ordenSeleccionada.id,
                 MetrosReal: totalMetros,
-                HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                FechaRegistroReal: dayjs().format("YYYY-MM-DD"),
+                HoraInicioReal: horaInicioReal ? horaInicioReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                HoraFinReal: horaFinReal ? horaFinReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                FechaRegistroReal: dayjs().format('YYYY-MM-DD'),
                 MetrosPorRollo: todosMetros,
                 HorasTotalReal: duracionHoras,
                 Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
@@ -426,32 +591,157 @@ export default function ConfirmarProduccion() {
                 IdOrden: ordenSeleccionada.id,
                 NumeroOrden: ordenSeleccionada.orden,
                 EstadoOrden: estadoOrden,
-                HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
+                HoraInicioReal: horaInicioReal ? horaInicioReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                HoraFinReal: horaFinReal ? horaFinReal.format('YYYY-MM-DD HH:mm:ss') : null,
                 MetrosTotales: totalMetros,
                 MetrosPorRollo: todosMetros,
                 Responsables: responsablesPorOrden[ordenSeleccionada.id] || [],
             });
-
-            alert(`Metros del rollo ${rollo} guardados correctamente.`);
+            syncCacheEstado(ordenSeleccionada.id, estadoOrden, { metrosTotales: totalMetros, metros_confirmados: totalMetros });
+            showSnack(`Metros del rollo ${rollo} guardados`, 'success');
         } catch (err) {
-            console.error("Error guardando metros por rollo:", err);
-            alert("Ocurrió un error al guardar los datos.");
+            console.error(err);
+            showSnack('Error al guardar metros', 'error');
+        } finally {
+            setLoadingMetrosRollo(null);
         }
     };
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+
+    const confirmarOperario = async () => {
+        if (!operario) {
+            showSnack('Ingresá el legajo del operario', 'warning');
+            return;
+        }
+        setLoadingLegajo(true);
+        try {
+            const resultadoValidacion = await validarLegajo(operario);
+            const operarioValido = Array.isArray(resultadoValidacion)
+                ? resultadoValidacion[0]
+                : resultadoValidacion?.data
+                    ? resultadoValidacion.data
+                    : resultadoValidacion;
+
+            if (!operarioValido || !operarioValido.legajo) {
+                showSnack('Legajo no válido', 'error');
+                return;
+            }
+
+            const listaExistente = responsablesPorOrden[ordenSeleccionada?.id] || [];
+            const nuevaFecha = dayjs().format('YYYY-MM-DD');
+            const yaExiste = listaExistente.some(
+                (r) => r.operario === operarioValido.legajo && r.turno === turnoActual && r.fecha === nuevaFecha
+            );
+            const nuevaLista = yaExiste
+                ? listaExistente
+                : [
+                    ...listaExistente,
+                    {
+                        operario: operarioValido.legajo,
+                        nombre: operarioValido.nombre,
+                        turno: turnoActual,
+                        fecha: nuevaFecha,
+                    },
+                ];
+
+            if (ordenSeleccionada) {
+                setResponsablesPorOrden((prev) => ({
+                    ...prev,
+                    [ordenSeleccionada.id]: nuevaLista,
+                }));
+            }
+
+            setMostrarDialogTurno(false);
+            localStorage.setItem('operario_legajo', operarioValido.legajo);
+            localStorage.setItem('turno_legajo', turnoActual);
+            setOperario(operarioValido.legajo);
+
+            if (ordenSeleccionada) {
+                await guardarEstadoOrden({
+                    IdOrden: ordenSeleccionada.id,
+                    NumeroOrden: ordenSeleccionada.orden,
+                    EstadoOrden: estadoOrden,
+                    HoraInicioReal: horaInicioReal ? horaInicioReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                    HoraFinReal: horaFinReal ? horaFinReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                    MetrosTotales: Object.values(metrosRealesPorOrden[ordenSeleccionada.id] || {}).reduce(
+                        (a, b) => a + Number(b || 0),
+                        0
+                    ),
+                    MetrosPorRollo: metrosRealesPorOrden[ordenSeleccionada.id] || {},
+                    Responsables: nuevaLista,
+                });
+            }
+
+            const action = pendingLegajoAction;
+            setPendingLegajoAction(null);
+            if (action === 'iniciar') {
+                await iniciarOrden(nuevaLista);
+            } else if (action && String(action).startsWith('metros:')) {
+                const rollo = String(action).slice(7);
+                // responsables already set above; small delay not needed if we skip pedirLegajo with override path
+                setResponsablesPorOrden((prev) => ({
+                    ...prev,
+                    [ordenSeleccionada.id]: nuevaLista,
+                }));
+                // Direct save path after legajo — re-check happens with updated state on next click if needed
+                await (async () => {
+                    const valor = Number(metrosRealesPorOrden[ordenSeleccionada.id]?.[rollo] || 0);
+                    if (valor <= 0) {
+                        showSnack(`Valor inválido para el rollo ${rollo}`, 'warning');
+                        return;
+                    }
+                    setLoadingMetrosRollo(rollo);
+                    try {
+                        const todosMetros = metrosRealesPorOrden[ordenSeleccionada.id] || {};
+                        const totalMetros = Object.values(todosMetros).reduce((a, b) => a + Number(b || 0), 0);
+                        setChecksUsadosPorOrden((prev) => ({
+                            ...prev,
+                            [ordenSeleccionada.id]: { ...(prev[ordenSeleccionada.id] || {}), [rollo]: true },
+                        }));
+                        await actualizarDatosReales({
+                            IdOrden: ordenSeleccionada.id,
+                            MetrosReal: totalMetros,
+                            HoraInicioReal: horaInicioReal ? horaInicioReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                            HoraFinReal: horaFinReal ? horaFinReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                            FechaRegistroReal: dayjs().format('YYYY-MM-DD'),
+                            MetrosPorRollo: todosMetros,
+                            HorasTotalReal: 0,
+                            Responsables: nuevaLista,
+                        });
+                        await guardarEstadoOrden({
+                            IdOrden: ordenSeleccionada.id,
+                            NumeroOrden: ordenSeleccionada.orden,
+                            EstadoOrden: estadoOrden,
+                            HoraInicioReal: horaInicioReal ? horaInicioReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                            HoraFinReal: horaFinReal ? horaFinReal.format('YYYY-MM-DD HH:mm:ss') : null,
+                            MetrosTotales: totalMetros,
+                            MetrosPorRollo: todosMetros,
+                            Responsables: nuevaLista,
+                        });
+                        syncCacheEstado(ordenSeleccionada.id, estadoOrden, {
+                            metrosTotales: totalMetros,
+                            metros_confirmados: totalMetros,
+                        });
+                        showSnack(`Metros del rollo ${rollo} guardados`, 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showSnack('Error al guardar metros', 'error');
+                    } finally {
+                        setLoadingMetrosRollo(null);
+                    }
+                })();
+            }
+        } catch (error) {
+            console.error(error);
+            showSnack('Error al validar el legajo', 'error');
+        } finally {
+            setLoadingLegajo(false);
+        }
     };
 
-    // calcula los datos de la paginacion
-    const ordenMaquinas = [108, 123, 124, 146, 12, 160, 10];
     const sortedResults = [...resultados].sort((a, b) => {
-        const indexA = ordenMaquinas.indexOf(Number(a.maquina));
-        const indexB = ordenMaquinas.indexOf(Number(b.maquina));
-
-        if (indexA !== indexB) {
-            return indexA - indexB;
-        }
+        const indexA = ORDEN_MAQUINAS.indexOf(Number(a.maquina));
+        const indexB = ORDEN_MAQUINAS.indexOf(Number(b.maquina));
+        if (indexA !== indexB) return indexA - indexB;
         const fechaA = new Date(a.hora_inicio_real || a.hora_inicio || a.hora_fin_real || a.hora_fin);
         const fechaB = new Date(b.hora_inicio_real || b.hora_inicio || b.hora_fin_real || b.hora_fin);
         return fechaB - fechaA;
@@ -466,402 +756,489 @@ export default function ConfirmarProduccion() {
         ? Object.values(metrosRealesPorOrden[ordenSeleccionada.id] || {}).reduce((a, b) => a + Number(b || 0), 0)
         : 0;
 
-    useEffect(() => {
-        const legajoGuardado = localStorage.getItem("operario_legajo");
-        const turnoGuardado = localStorage.getItem("turno_legajo");
-        const turnoAhora = obtenerTurnoActual();
-
-        if (!legajoGuardado || turnoGuardado !== turnoAhora) {
-            localStorage.removeItem("operario_legajo");
-            localStorage.removeItem("turno_legajo");
-            setOperario("");
-            setMostrarDialogTurno(true);
-        } else {
-            setOperario(legajoGuardado);
-            setTurnoActual(turnoGuardado);
-        }
-    }, []);
-
-    useEffect(() => {
-        const intervalo = setInterval(() => {
-            const nuevoTurno = obtenerTurnoActual();
-
-            if (nuevoTurno !== turnoActual) {
-                localStorage.removeItem("operario_legajo");
-                localStorage.removeItem("turno_legajo");
-                setOperario("");
-                setTurnoActual(nuevoTurno);
-                setMostrarDialogTurno(true);
-            }
-        }, 60000);
-
-        return () => clearInterval(intervalo);
-    }, [turnoActual]);
-
-    const confirmarOperario = async () => {
-        if (!operario) {
-            alert("Debe ingresar el legajo del operario.");
-            return;
-        }
-
-        try {
-            const resultadoValidacion = await validarLegajo(operario);
-            console.log("📦 Respuesta validarLegajo:", resultadoValidacion);
-
-            const operarioValido = Array.isArray(resultadoValidacion)
-                ? resultadoValidacion[0]
-                : resultadoValidacion?.data
-                    ? resultadoValidacion.data
-                    : resultadoValidacion;
-
-            if (!operarioValido || !operarioValido.legajo) {
-                alert("El legajo ingresado no es válido.");
-                return;
-            }
-
-            const listaExistente = responsablesPorOrden[ordenSeleccionada?.id] || [];
-            const nuevaFecha = dayjs().format("YYYY-MM-DD");
-
-            const yaExiste = listaExistente.some(
-                (r) =>
-                    r.operario === operarioValido.legajo &&
-                    r.turno === turnoActual &&
-                    r.fecha === nuevaFecha
-            );
-
-            const nuevaLista = yaExiste
-                ? listaExistente
-                : [
-                    ...listaExistente,
-                    {
-                        operario: operarioValido.legajo,
-                        nombre: operarioValido.nombre,
-                        turno: turnoActual,
-                        fecha: nuevaFecha,
-                    },
-                ];
-
-            setResponsablesPorOrden((prev) => ({
-                ...prev,
-                [ordenSeleccionada?.id]: nuevaLista,
-            }));
-
-            setMostrarDialogTurno(false);
-
-            localStorage.setItem("operario_legajo", operarioValido.legajo);
-            localStorage.setItem("turno_legajo", turnoActual);
-
-            if (ordenSeleccionada) {
-                await guardarEstadoOrden({
-                    IdOrden: ordenSeleccionada.id,
-                    NumeroOrden: ordenSeleccionada.orden,
-                    EstadoOrden: estadoOrden,
-                    HoraInicioReal: horaInicioReal ? horaInicioReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                    HoraFinReal: horaFinReal ? horaFinReal.format("YYYY-MM-DD HH:mm:ss") : null,
-                    MetrosTotales: metrosTotales,
-                    MetrosPorRollo: metrosRealesPorOrden[ordenSeleccionada.id] || {},
-                    Responsables: nuevaLista,
-                });
-            }
-
-        } catch (error) {
-            console.error("Error al validar o guardar:", error);
-            alert("Ocurrió un error al validar el legajo.");
-        }
-    };
+    const metrosCargadosPopup = ordenSeleccionada ? Number(ordenSeleccionada.metros) || 0 : 0;
+    const minMetros = metrosCargadosPopup * 0.92;
+    const maxMetros = metrosCargadosPopup * 1.08;
 
     return (
         <>
-            <Grid container padding={1}>
-                {/* Barra de busqueda */}
-                <Grid item xs={12} container spacing={2} alignItems="center" justifyContent="space-between">
-                    <Grid item container xs="auto" spacing={2} alignItems="center">
-                        <Grid item>
-                            <TextField placeholder="Buscar orden" variant="outlined" size="small" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleBuscar()} />
-                        </Grid>
-                        <Grid item>
-                            <Button variant="contained" startIcon={<SearchIcon />} onClick={handleBuscar}>
-                                Buscar
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant="outlined" color="primary" onClick={() => { setBusqueda(""); setResultados(datos); setBusquedaActiva(false); }} >
-                                Limpiar
-                            </Button>
-                        </Grid>
-                    </Grid>
-
-                    <Grid item container xs="auto" spacing={2} alignItems="center" justifyContent="flex-end">
-                        <Grid item>
-                            <Button variant={filtroEstado === "sin iniciar" ? "contained" : "outlined"} color="warning" onClick={() => setFiltroEstado("sin iniciar")}>Sin iniciar</Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant={filtroEstado === "en proceso" ? "contained" : "outlined"} onClick={() => setFiltroEstado("en proceso")}>En proceso</Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant={filtroEstado === "finalizado" ? "contained" : "outlined"} color="success" onClick={() => setFiltroEstado("finalizado")}>Finalizado</Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant="contained" onClick={() => setFiltroEstado(null)}>Ver todos</Button>
-                        </Grid>
-                    </Grid>
-                </Grid>
-
-                {/* Cards */}
-                <Grid item xs={12}>
-                    <Card sx={{ width: '100%', borderRadius: '10px', boxShadow: '1px 1px 2px 3px rgba(0,0,0,0.4)', padding: 1, marginTop: '20px' }}>
-                        <Grid container spacing={2}>
-                            {paginatedResults.length > 0 ? (
-                                paginatedResults.map((item, index) => (
-                                    <Grid item xs={12} sm={6} md={3} key={item.id || index}>
-                                        <Box onClick={() => handleOpenPopup(item)} sx={{
-                                            backgroundColor: '#f5f5f5',
-                                            borderRadius: '8px',
-                                            padding: 2,
-                                            boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
-                                            transition: 'transform 0.2s ease',
-                                            cursor: 'pointer',
-                                            '&:hover': { transform: 'scale(1.03)', boxShadow: '0px 4px 8px rgba(0,0,0,0.3)' },
-                                        }}>
-
-                                            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333' }}>Orden #{item.orden}</Typography>
-                                            <hr />
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>Maquina: {item.maquina}</Typography>
-                                            <Typography variant="body1" color="text.secondary">Articulo: {item.articulo}</Typography>
-                                            {/* <Typography variant="body2" color="text.secondary"><b>Maquina: {item.maquina}</b></Typography> */}
-                                            <Typography variant="body1" color="text.secondary">Proceso: {item.proceso}</Typography>
-                                            <Typography variant="body1" color="text.secondary">Metros Reales: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b></Typography>
-                                            <Typography variant="caption" color="text.secondary">Inicio: {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', { hour12: false })}</Typography><br />
-                                            <Typography variant="caption" color="text.secondary">Fin: {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', { hour12: false })}</Typography>
-                                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                <Chip label={(estadosPorOrden[item.id] || 'sin iniciar').toUpperCase()}
-                                                    color={(estadosPorOrden[item.id] || 'sin iniciar') === 'sin iniciar' ? 'warning' : (estadosPorOrden[item.id] || '').toLowerCase() === 'en proceso' ? 'primary' : 'success'}
-                                                    sx={{ fontWeight: 'bold', fontSize: 10 }}
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </Grid>
-                                ))
-                            ) : (
-                                <Grid item xs={12} textAlign="center"><Typography>No hay datos disponibles</Typography></Grid>
-                            )}
-                        </Grid>
-                    </Card>
-
-                    {/* Paginacion */}
-                    <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2, }}>
-                        <Pagination count={Math.ceil(resultados.length / rowsPerPage)}
-                            page={page} onChange={handleChangePage} color="primary"
+            <Box sx={{ px: { xs: 1, md: 2 }, py: 1.5, fontFamily: typography.fontFamily }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 1.5,
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                    }}
+                >
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                            placeholder="Buscar orden"
+                            variant="outlined"
+                            size="small"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
+                            sx={{ minWidth: 160, backgroundColor: '#fff', borderRadius: '10px' }}
                         />
+                        <Button variant="contained" startIcon={<SearchIcon />} onClick={handleBuscar} sx={primaryBtnSx}>
+                            Buscar
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                setBusqueda('');
+                                setBusquedaActiva(false);
+                                setResultados(applyClientFilters(datos, estadosPorOrden, filtroEstado, ''));
+                            }}
+                            sx={{ fontFamily: 'Poppins', textTransform: 'none', borderRadius: '10px' }}
+                        >
+                            Limpiar
+                        </Button>
+                        {operario ? (
+                            <Chip
+                                label={`Operario ${operario} · ${turnoActual}`}
+                                size="small"
+                                sx={{ fontFamily: 'Poppins', fontWeight: 600 }}
+                            />
+                        ) : (
+                            <Chip
+                                label={`Turno ${turnoActual} · sin legajo`}
+                                size="small"
+                                variant="outlined"
+                                onClick={() => setMostrarDialogTurno(true)}
+                                sx={{ fontFamily: 'Poppins', cursor: 'pointer' }}
+                            />
+                        )}
                     </Box>
-                </Grid>
-            </Grid>
 
-            {/* Popup */}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 0.75,
+                            p: 0.75,
+                            backgroundColor: '#fff',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(26,72,98,0.06)',
+                            boxShadow: '0 2px 8px rgba(26,72,98,0.08)',
+                        }}
+                    >
+                        {[
+                            { key: 'sin iniciar', label: 'Sin iniciar' },
+                            { key: 'en proceso', label: 'En proceso' },
+                            { key: 'finalizado', label: 'Finalizado' },
+                            { key: null, label: 'Ver todos' },
+                        ].map((f) => (
+                            <Button
+                                key={String(f.key)}
+                                size="small"
+                                onClick={() => {
+                                    setFiltroEstado(f.key);
+                                    setBusquedaActiva(false);
+                                }}
+                                sx={filterPillSx(filtroEstado === f.key)}
+                            >
+                                {f.label}
+                            </Button>
+                        ))}
+                    </Box>
+                </Box>
+
+                <Box
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                        columnGap: 16,
+                        rowGap: 20,
+                    }}
+                >
+                    {paginatedResults.length > 0 ? (
+                        paginatedResults.map((item) => {
+                            const est = normalizeEstado(estadosPorOrden[item.id] || item.estado_orden);
+                            return (
+                                <Box
+                                    key={item.id}
+                                    onClick={() => handleOpenPopup(item)}
+                                    sx={{
+                                        ...statusCard,
+                                        backgroundColor: '#fff',
+                                        p: 2,
+                                        cursor: 'pointer',
+                                        fontFamily: typography.fontFamily,
+                                    }}
+                                >
+                                    <Typography sx={{ ...typography.cardTitle, fontSize: '1.1rem' }}>
+                                        Orden #{item.orden}
+                                    </Typography>
+                                    <Box sx={{ borderBottom: '1px solid rgba(26,72,98,0.1)', my: 1 }} />
+                                    <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: colors.brand }}>
+                                        Máquina: {item.maquina}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: colors.textMuted, fontFamily: 'Poppins' }}>
+                                        Artículo: {item.articulo}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: colors.textMuted, fontFamily: 'Poppins' }}>
+                                        Proceso: {item.proceso}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: colors.textMuted, fontFamily: 'Poppins' }}>
+                                        Metros: <b>{parseInt(item.metrosTotales ?? item.metros, 10)}</b>
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: colors.textMuted, display: 'block' }}>
+                                        Inicio:{' '}
+                                        {new Date(item.hora_inicio_real || item.hora_inicio).toLocaleString('es-AR', {
+                                            hour12: false,
+                                        })}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: colors.textMuted, display: 'block' }}>
+                                        Fin:{' '}
+                                        {new Date(item.hora_fin_real || item.hora_fin).toLocaleString('es-AR', {
+                                            hour12: false,
+                                        })}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                                        <Chip
+                                            label={est.toUpperCase()}
+                                            color={chipColor(est)}
+                                            size="small"
+                                            sx={{ fontWeight: 700, fontSize: 10, fontFamily: 'Poppins' }}
+                                        />
+                                    </Box>
+                                </Box>
+                            );
+                        })
+                    ) : (
+                        <Typography sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4, color: colors.textMuted }}>
+                            No hay datos disponibles
+                        </Typography>
+                    )}
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Pagination
+                        count={Math.max(1, Math.ceil(resultados.length / rowsPerPage))}
+                        page={page}
+                        onChange={(_e, newPage) => setPage(newPage)}
+                        color="primary"
+                    />
+                </Box>
+            </Box>
+
             <Dialog open={openPopup} onClose={handleClosePopup} maxWidth="sm" fullWidth>
-                <DialogTitle>
-                    <IconButton aria-label="close" onClick={handleClosePopup} sx={{ position: 'absolute', right: 8, top: 8 }}>
+                <DialogTitle
+                    sx={{
+                        background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+                        color: '#fff',
+                        fontFamily: 'Poppins',
+                        fontWeight: 700,
+                        pr: 6,
+                    }}
+                >
+                    Máquina {ordenSeleccionada?.maquina} · Orden #{ordenSeleccionada?.orden}
+                    <IconButton
+                        aria-label="close"
+                        onClick={handleClosePopup}
+                        sx={{ position: 'absolute', right: 8, top: 8, color: '#fff' }}
+                    >
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
-                <DialogContent>
-                    <Typography variant="h6" color="text.secondary" sx={{ textAlign: "center", justifyContent: "center" }}><b>MAQUINA {ordenSeleccionada?.maquina} </b></Typography>
-                    <hr />
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={12} md={6}><Typography variant="h4"><b>Orden #{ordenSeleccionada?.orden}</b></Typography></Grid>
-                        <Grid item xs={12} sm={12} md={6}><Typography variant="h6" textAlign="center" mt={0.5}>Estado: <b>{estadoOrden.toUpperCase()}</b></Typography></Grid>
-                    </Grid>
-                    <hr />
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={12} md={3}>
-                            <Typography sx={{ fontSize: 18 }}><b>Responsables:</b></Typography>
-                        </Grid>
-                        {/* Mostrar todos los responsables registrados */}
-                        <Grid item xs={12} sm={12} md={9}>
-                            {responsablesPorOrden[ordenSeleccionada?.id]?.length > 0 ? (
-                                responsablesPorOrden[ordenSeleccionada.id].map((r, idx) => (
-                                    <Typography key={idx} variant="body1">
-                                        🔹Operario: <b>{r.nombre || "Sin nombre"}</b> - Turno: <b>{r.turno}</b>
-                                    </Typography>
-                                ))
-                            ) : (
-                                <Typography variant="body1">Sin responsables registrados</Typography>
-                            )}
-                        </Grid>
-                    </Grid>
-                    <hr />
-                    <Box sx={{ marginBottom: 2 }}>
-                        <Grid container spacing={2} marginBottom={1}>
-                            <Grid item xs={12} sm={12} md={6}><Typography variant="h6">Metros Cargados: <b>{ordenSeleccionada ? parseInt(ordenSeleccionada.metros, 10) : 0}</b></Typography></Grid>
-                            <Grid item xs={12} sm={12} md={6}><Typography variant="h6">Metros Reales: <b>{metrosTotales}</b></Typography></Grid>
-                        </Grid>
-
-                        <Grid container spacing={2} marginBottom={3}>
-                            {horaInicioReal && (
-                                <Grid item xs={12} md={6}>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                                        <DateTimePicker label="Inicio Real" value={horaInicioReal} format="DD/MM/YYYY HH:mm" onChange={setHoraInicioReal} renderInput={(params) => <TextField {...params} fullWidth />} />
-                                    </LocalizationProvider>
-                                </Grid>
-                            )}
-                            {horaFinReal && (
-                                <Grid item xs={12} md={6}>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                                        <DateTimePicker label="Finalizacion Real" value={horaFinReal} format="DD/MM/YYYY HH:mm" onChange={setHoraFinReal} renderInput={(params) => <TextField {...params} fullWidth />} disabled={estadoOrden === "finalizado"} />
-                                    </LocalizationProvider>
-                                </Grid>
-                            )}
-                        </Grid>
-                        <hr />
-
-                        {/* Rollos */}
-                        {(estadoOrden === "en proceso" || estadoOrden === "finalizado") && (
-                            rollosAsignados.length > 0 ? (
-                                <Box marginTop={2}>
-                                    <Typography variant="h5"><b>Rollos asignados</b></Typography>
-                                    <Grid container spacing={2}>
-                                        {rollosAsignados.slice()
-                                            .sort((a, b) => {
-                                                const seqA = Number(a.secuencia_lr) || 0;
-                                                const seqB = Number(b.secuencia_lr) || 0;
-                                                return seqA - seqB;
-                                            })
-                                            .map((r, idx) => {
-
-                                                const numeroRollo = idx + 1;
-                                                return (
-                                                    <Grid item xs={12} sm={6} key={r.rollo || idx}>
-                                                        <Typography variant="body1">
-                                                            <b>R{numeroRollo}</b> - Rollo: <b>{r.rollo}</b> - Sec: <b>{r.secuencia_lr || 'N/A'}</b>
-                                                        </Typography>
-
-                                                        <Box display="flex" alignItems="center" gap="1">
-                                                            <TextField
-                                                                type="text"
-                                                                label="Metros Reales"
-                                                                variant="outlined"
-                                                                size="small"
-                                                                fullWidth
-                                                                inputProps={{ maxLength: 4, max: 9999 }}
-                                                                value={metrosRealesPorOrden[ordenSeleccionada.id]?.[r.rollo] || ""}
-                                                                onChange={(e) => {
-                                                                    const valor = e.target.value;
-                                                                    if (valor.length <= 4) {
-                                                                        setMetrosRealesPorOrden(prev => ({
-                                                                            ...prev,
-                                                                            [ordenSeleccionada.id]: {
-                                                                                ...prev[ordenSeleccionada.id],
-                                                                                [r.rollo]: valor
-                                                                            }
-                                                                        }));
-                                                                    }
-                                                                }}
-                                                                disabled={(estadoOrden === "finalizado" && !usuarioAutorizado)
-                                                                    || (checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado)}
-                                                            />
-
-                                                            <IconButton
-                                                                color="primary"
-                                                                size="small"
-                                                                sx={{
-                                                                    mt: 1,
-                                                                    marginLeft: 1,
-                                                                    borderRadius: "8px",
-                                                                    backgroundColor: "#e3f2fd",
-                                                                    "&:hover": { backgroundColor: "#bbdefb" }
-                                                                }}
-                                                                onClick={() => guardarMetrosRollo(r.rollo)}
-                                                                disabled={checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] && !usuarioAutorizado}
-                                                            >
-                                                                <CheckIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    </Grid>
-                                                );
-                                            })}
-
-                                    </Grid>
-                                </Box>
-                            ) : <Typography variant="body2" color="text.secondary" marginTop={2}>No hay rollos asignados</Typography>
+                <DialogContent sx={{ pt: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Chip label={estadoOrden.toUpperCase()} color={chipColor(estadoOrden)} sx={{ fontWeight: 700 }} />
+                        {operario && (
+                            <Chip size="small" label={`${operario} · ${turnoActual}`} variant="outlined" />
                         )}
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, marginTop: 2 }}>
-                            <Typography variant="h6">Metros Totales: <b>{metrosTotales}</b></Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, marginTop: 2 }}>
-                            {!usuarioAutorizado && (
-                                <Button variant="outlined" color="primary" onClick={() => setMostrarPassword("editar")} >
-                                    Editar Metros
-                                </Button>
-                            )}
-                            <Button variant="outlined" startIcon={<CloseIcon />} color="error" onClick={handleClosePopup}>Cerrar</Button>
-                            {estadoOrden === "sin iniciar" && <Button variant="contained" onClick={iniciarOrden}>Iniciar Orden</Button>}
-                            {/* {estadoOrden === "en proceso" && <Button variant="contained" onClick={finalizarOrden} color="error">Finalizar Orden</Button>} */}
-                            {estadoOrden === "en proceso" && (
-                                <>
-                                    {metrosTotales >= ordenSeleccionada.metros * 0.92 && metrosTotales <= ordenSeleccionada.metros * 1.08 && (
-                                        <Button variant="contained" color="error" onClick={finalizarOrden}>
-                                            Finalizar Orden
-                                        </Button>
-                                    )}
-                                    {(metrosTotales < ordenSeleccionada.metros * 0.92 || metrosTotales > ordenSeleccionada.metros * 1.08) && (
-                                        <Button variant="outlined" color="warning" onClick={() => setMostrarPassword("forzar")}>
-                                            Forzar Finalización
-                                        </Button>
-                                    )}
-                                </>
-                            )}
-                            {estadoOrden === "finalizado" && <Button variant="contained" disabled>Orden Finalizada</Button>}
-                        </Box>
                     </Box>
 
-                    {/* Popup contraseña editar */}
-                    <Dialog open={!!mostrarPassword} onClose={() => setMostrarPassword(false)} maxWidth="xs" fullWidth >
-                        <DialogTitle>
-                            {mostrarPassword === "forzar" ? "Autorización para Forzar Finalización" : "Autorización requerida"}
-                        </DialogTitle>
-                        <DialogContent>
-                            <TextField label="Contraseña" type="password" value={passwordIngresada}
-                                onChange={(e) => setPasswordIngresada(e.target.value)} size="small" fullWidth
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") handleAutorizar();
-                                }}
-                            />
-                            <Button variant="contained" sx={{ marginTop: 2 }} fullWidth onClick={handleAutorizar} >
-                                Autorizar
-                            </Button>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* Popup ingresar legajo y turno */}
-                    <Dialog open={mostrarDialogTurno}>
-                        <DialogTitle>Registrar Turno y Operario</DialogTitle>
-                        <DialogContent>
-                            <Typography sx={{ mb: 2 }}>
-                                Turno actual: <b>{turnoActual}</b>
+                    <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, mb: 0.5 }}>Responsables</Typography>
+                    {(responsablesPorOrden[ordenSeleccionada?.id] || []).length > 0 ? (
+                        responsablesPorOrden[ordenSeleccionada.id].map((r, idx) => (
+                            <Typography key={idx} variant="body2">
+                                {r.nombre || 'Sin nombre'} — Turno {r.turno}
                             </Typography>
-                            <TextField
-                                label="Legajo Operario"
-                                fullWidth
-                                value={operario}
-                                onChange={(e) => setOperario(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && confirmarOperario()}
-                                required
-                            />
-                        </DialogContent>
-                        <DialogActions>
-                            <Button
-                                color="error" variant="outlined" onClick={() => { setMostrarDialogTurno(false); handleClosePopup(); }} >
-                                Cancelar
-                            </Button>
-                            <Button variant="outlined" onClick={confirmarOperario}>
-                                Confirmar
-                            </Button>
+                        ))
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">Sin responsables registrados</Typography>
+                    )}
 
-                        </DialogActions>
-                    </Dialog>
+                    <Box sx={{ my: 2 }}>
+                        <Typography variant="body1">
+                            Metros cargados: <b>{parseInt(metrosCargadosPopup, 10)}</b>
+                        </Typography>
+                        <Typography variant="body1">
+                            Metros reales: <b>{metrosTotales}</b>
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: colors.textMuted }}>
+                            Rango permitido ±8%: {minMetros.toFixed(0)} – {maxMetros.toFixed(0)} m
+                        </Typography>
+                    </Box>
+
+                    <GridDateTimes
+                        horaInicioReal={horaInicioReal}
+                        setHoraInicioReal={setHoraInicioReal}
+                        horaFinReal={horaFinReal}
+                        setHoraFinReal={setHoraFinReal}
+                        estadoOrden={estadoOrden}
+                    />
+
+                    {(estadoOrden === 'en proceso' || estadoOrden === 'finalizado') && (
+                        rollosAsignados.length > 0 ? (
+                            <Box mt={2}>
+                                <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, mb: 1 }}>
+                                    Rollos asignados
+                                </Typography>
+                                <Box
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                        columnGap: 12,
+                                        rowGap: 12,
+                                    }}
+                                >
+                                    {rollosAsignados
+                                        .slice()
+                                        .sort((a, b) => (Number(a.secuencia_lr) || 0) - (Number(b.secuencia_lr) || 0))
+                                        .map((r, idx) => (
+                                            <Box key={r.rollo || idx}>
+                                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                                    <b>R{idx + 1}</b> · {r.rollo} · Sec {r.secuencia_lr || 'N/A'}
+                                                </Typography>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <TextField
+                                                        type="text"
+                                                        label="Metros"
+                                                        variant="outlined"
+                                                        size="small"
+                                                        fullWidth
+                                                        inputProps={{ maxLength: 4 }}
+                                                        value={metrosRealesPorOrden[ordenSeleccionada.id]?.[r.rollo] || ''}
+                                                        onChange={(e) => {
+                                                            const valor = e.target.value;
+                                                            if (valor.length <= 4) {
+                                                                setMetrosRealesPorOrden((prev) => ({
+                                                                    ...prev,
+                                                                    [ordenSeleccionada.id]: {
+                                                                        ...prev[ordenSeleccionada.id],
+                                                                        [r.rollo]: valor,
+                                                                    },
+                                                                }));
+                                                            }
+                                                        }}
+                                                        disabled={
+                                                            (estadoOrden === 'finalizado' && !usuarioAutorizado) ||
+                                                            (checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] &&
+                                                                !usuarioAutorizado)
+                                                        }
+                                                    />
+                                                    <IconButton
+                                                        color="primary"
+                                                        size="small"
+                                                        onClick={() => guardarMetrosRollo(r.rollo)}
+                                                        disabled={
+                                                            loadingMetrosRollo === r.rollo ||
+                                                            (checksUsadosPorOrden[ordenSeleccionada.id]?.[r.rollo] &&
+                                                                !usuarioAutorizado)
+                                                        }
+                                                    >
+                                                        {loadingMetrosRollo === r.rollo ? (
+                                                            <CircularProgress size={18} />
+                                                        ) : (
+                                                            <CheckIcon fontSize="small" />
+                                                        )}
+                                                    </IconButton>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                </Box>
+                            </Box>
+                        ) : (
+                            <Typography variant="body2" color="text.secondary" mt={2}>
+                                No hay rollos asignados
+                            </Typography>
+                        )
+                    )}
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 3, flexWrap: 'wrap' }}>
+                        {!usuarioAutorizado && (
+                            <Button
+                                variant="outlined"
+                                onClick={() => setMostrarPassword('editar')}
+                                sx={{ fontFamily: 'Poppins', textTransform: 'none' }}
+                            >
+                                Editar metros
+                            </Button>
+                        )}
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<CloseIcon />}
+                            onClick={handleClosePopup}
+                            sx={{ fontFamily: 'Poppins', textTransform: 'none' }}
+                        >
+                            Cerrar
+                        </Button>
+                        {estadoOrden === 'sin iniciar' && (
+                            <Button
+                                variant="contained"
+                                onClick={iniciarOrden}
+                                disabled={loadingIniciar}
+                                sx={primaryBtnSx}
+                            >
+                                {loadingIniciar ? <CircularProgress size={22} color="inherit" /> : 'Iniciar orden'}
+                            </Button>
+                        )}
+                        {estadoOrden === 'en proceso' && (
+                            <>
+                                {metrosTotales >= minMetros && metrosTotales <= maxMetros && (
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={finalizarOrden}
+                                        disabled={loadingFinalizar}
+                                        sx={{ fontFamily: 'Poppins', textTransform: 'none', borderRadius: '10px' }}
+                                    >
+                                        {loadingFinalizar ? <CircularProgress size={22} color="inherit" /> : 'Finalizar'}
+                                    </Button>
+                                )}
+                                {(metrosTotales < minMetros || metrosTotales > maxMetros) && (
+                                    <Button
+                                        variant="outlined"
+                                        color="warning"
+                                        onClick={() => setMostrarPassword('forzar')}
+                                        sx={{ fontFamily: 'Poppins', textTransform: 'none' }}
+                                    >
+                                        Forzar finalización
+                                    </Button>
+                                )}
+                            </>
+                        )}
+                        {estadoOrden === 'finalizado' && (
+                            <Button variant="contained" disabled sx={{ fontFamily: 'Poppins' }}>
+                                Orden finalizada
+                            </Button>
+                        )}
+                    </Box>
                 </DialogContent>
             </Dialog>
+
+            <Dialog open={!!mostrarPassword} onClose={() => setMostrarPassword(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontFamily: 'Poppins' }}>
+                    {mostrarPassword === 'forzar' ? 'Autorización para forzar' : 'Autorización requerida'}
+                </DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Contraseña"
+                        type="password"
+                        value={passwordIngresada}
+                        onChange={(e) => setPasswordIngresada(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 1 }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAutorizar()}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setMostrarPassword(false)}>Cancelar</Button>
+                    <Button variant="contained" onClick={handleAutorizar} sx={primaryBtnSx}>
+                        Autorizar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={mostrarDialogTurno}
+                onClose={() => {
+                    setMostrarDialogTurno(false);
+                    setPendingLegajoAction(null);
+                }}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontFamily: 'Poppins' }}>Registrar operario</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ mb: 2 }}>
+                        Turno actual: <b>{turnoActual}</b>
+                    </Typography>
+                    <TextField
+                        label="Legajo operario"
+                        fullWidth
+                        value={operario}
+                        onChange={(e) => setOperario(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && confirmarOperario()}
+                        required
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => {
+                            setMostrarDialogTurno(false);
+                            setPendingLegajoAction(null);
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button variant="contained" onClick={confirmarOperario} disabled={loadingLegajo} sx={primaryBtnSx}>
+                        {loadingLegajo ? <CircularProgress size={22} color="inherit" /> : 'Confirmar'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    severity={snackbar.severity}
+                    onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
+    );
+}
+
+function GridDateTimes({ horaInicioReal, setHoraInicioReal, horaFinReal, setHoraFinReal, estadoOrden }) {
+    if (!horaInicioReal && !horaFinReal) return null;
+    return (
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+            <Box
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                    columnGap: 12,
+                    rowGap: 12,
+                    marginBottom: 12,
+                }}
+            >
+                {horaInicioReal && (
+                    <DateTimePicker
+                        label="Inicio real"
+                        value={horaInicioReal}
+                        format="DD/MM/YYYY HH:mm"
+                        onChange={setHoraInicioReal}
+                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+                    />
+                )}
+                {horaFinReal && (
+                    <DateTimePicker
+                        label="Finalización real"
+                        value={horaFinReal}
+                        format="DD/MM/YYYY HH:mm"
+                        onChange={setHoraFinReal}
+                        disabled={estadoOrden === 'finalizado'}
+                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+                    />
+                )}
+            </Box>
+        </LocalizationProvider>
     );
 }

@@ -73,6 +73,7 @@ function RenglonFormPasadas({
                         InputProps={{
                             readOnly: true,
                         }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                     />
                 </Grid>
                 <Grid item xs={6}>
@@ -85,17 +86,18 @@ function RenglonFormPasadas({
                         InputProps={{
                             readOnly: true,
                         }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                     />
                 </Grid>
                 <Grid container direction="row" justifyContent="flex-start" alignItems="flex-start" px={1}>
                     <Grid item xs={6}>
                         <LightTooltip title={(minRef !== undefined && maxRef !== undefined)? `Mín: ${minRef} ${unidadReferencia} / Máx: ${maxRef} ${unidadReferencia}` : ""}>
-                            <Typography sx={{ fontSize: 16 }}>Ref: {referencia !== null ? referencia : ''}</Typography>
+                            <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>Ref: {referencia !== null ? referencia : ''}</Typography>
                         </LightTooltip>
                     </Grid>
                     <Grid item xs={6}>
-                        <Typography sx={{ fontSize: 16 }}>
-                            Cál: <span style={{ fontWeight: "bold" }}> {calculo !== null && calculo !== '' ? `${calculo} ${unidadCalculo}` : ""}</span>
+                        <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>
+                            Cál: <span style={{ fontWeight: "bold", color: '#1A4862' }}> {calculo !== null && calculo !== '' ? `${calculo} ${unidadCalculo}` : ""}</span>
                         </Typography>
                     </Grid>
                 </Grid>

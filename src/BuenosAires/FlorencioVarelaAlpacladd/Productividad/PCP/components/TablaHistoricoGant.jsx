@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import DataGridTable from '../../../../../components/DataGrid/DataGridTable';
 import {
   Button, Dialog, DialogTitle, DialogContent, List,
-  ListItem, ListItemText, DialogActions, Typography, Paper
+  ListItem, ListItemText, DialogActions, Typography, Paper, Box
 } from "@mui/material";
 import { GetHISTORICOGANTT } from '../API/APIFunctions';
 import { getStockRollosXOrden } from "../../../API/APIFunctions";
@@ -38,11 +38,21 @@ const TablaGantt = ({ handleChange }) => {
   }, []);
 
   return (
-    <Grid container sx={{ display: 'flex', justifyContent: 'center', width: "100vw" }} columnSpacing={1} rowSpacing={1} columns={12}>
+    <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2, width: '100%' }}>
+      <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '1rem', mb: 0.5 }}>
+        Histórico Gantt
+      </Typography>
+      <Typography sx={{ fontFamily: 'Poppins', color: '#4a6177', fontSize: '0.85rem', mb: 2 }}>
+        Consultá órdenes registradas, rollos y responsables
+      </Typography>
+    <Grid container sx={{ display: 'flex', justifyContent: 'center', width: "100%" }} columnSpacing={1} rowSpacing={1} columns={12}>
       <Grid item xs={12}>
+        <Box sx={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid rgba(26,72,98,0.06)', boxShadow: '0 2px 8px rgba(26,72,98,0.08)', p: 1, overflow: 'hidden' }}>
         <TablaHistoricoGantt Serie={DatosGantt} RollosPorOrden={RollosPorOrden} handleChange={handleChange} />
+        </Box>
       </Grid>
     </Grid>
+    </Box>
   );
 }
 
@@ -168,27 +178,27 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
     <>
       <Grid container sx={{ width: "97vw", height: "90%" }} columnSpacing={1} rowSpacing={1} columns={12}>
         <Grid item xs={12}>
-          <DataGridTable rows={filas} columns={columns} filename={"- HISTORICO GANTT "} RowCellsBg={'rgba(25, 118, 210,0.1)'} HeadCellsBg={'rgba(25, 118, 210,0.3)'} />
+          <DataGridTable rows={filas} columns={columns} filename={"- HISTORICO GANTT "} RowCellsBg={'rgba(26, 72, 98,0.04)'} HeadCellsBg={'rgba(26, 72, 98,0.12)'} />
         </Grid>
       </Grid>
 
       {/* Pop up de rollos */}
-      <Dialog open={openRollos} onClose={() => setOpenRollos(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ borderBottom: "1px solid #ddd", fontWeight: "bold", fontSize: 20, color: "#1976d2", mb: 1 }}>
-          Rollos de la Orden <b>#{ordenActual}</b>
+      <Dialog open={openRollos} onClose={() => setOpenRollos(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700, fontSize: 18 }}>
+          Rollos de la Orden #{ordenActual}
         </DialogTitle>
 
-        <DialogContent sx={{ maxHeight: '400px', overflowY: 'auto', paddingY: 1 }}>
+        <DialogContent sx={{ maxHeight: '400px', overflowY: 'auto', paddingY: 1.5 }}>
           <List>
             {rollosActuales.length > 0 ? rollosActuales.map((r, idx) => (
               <ListItem key={idx} sx={{
-                backgroundColor: "#f5f5f5", borderRadius: 1, marginBottom: 1, boxShadow: "0px 1px 3px rgba(0,0,0,0.1)"
+                backgroundColor: "rgba(26,72,98,0.04)", borderRadius: '10px', marginBottom: 1, border: '1px solid rgba(26,72,98,0.06)'
               }}>
                 <ListItemText
                   primary={<>
                     Rollo: <b>{r.rollo}</b> {r.secuencia_lr ? <> (Sec: <b>{r.secuencia_lr}</b>)</> : ''}
                   </>}
-                  primaryTypographyProps={{ fontWeight: "medium", fontSize: 16 }}
+                  primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: 15 }}
                 />
               </ListItem>
             )) : (
@@ -199,36 +209,36 @@ function TablaHistoricoGantt({ Serie, RollosPorOrden, handleChange }) {
           </List>
         </DialogContent>
 
-        <DialogActions sx={{ padding: 2, borderTop: "1px solid #ddd" }}>
-          <Button variant="contained" color="primary" onClick={() => setOpenRollos(false)} sx={{ fontWeight: "bold", textTransform: "none" }} >
+        <DialogActions sx={{ padding: 2 }}>
+          <Button variant="contained" onClick={() => setOpenRollos(false)} sx={{ fontFamily: 'Poppins', fontWeight: 600, textTransform: 'none', borderRadius: '10px', background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', boxShadow: 'none', '&:hover': { background: '#1A4862' } }} >
             Cerrar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Pop up responsables */}
-      <Dialog open={openResponsables} onClose={() => setOpenResponsables(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ borderBottom: "1px solid #ddd", fontWeight: "bold", fontSize: 20, color: "#1976d2" }}>
-          Responsables de la Orden <b>#{ordenActual}</b>
+      <Dialog open={openResponsables} onClose={() => setOpenResponsables(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700, fontSize: 18 }}>
+          Responsables de la Orden #{ordenActual}
         </DialogTitle>
 
-        <DialogContent sx={{ maxHeight: '400px', overflowY: 'auto', paddingY: 1 }}>
+        <DialogContent sx={{ maxHeight: '400px', overflowY: 'auto', paddingY: 1.5 }}>
           {responsables?.length > 0 ? (
             responsables.map((r, i) => (
-              <Paper key={i} sx={{ p: 1.5, mb: 1, backgroundColor: "#f9f9f9" }}>
-                <Typography><b>Operario:</b> {r.operario}</Typography>
-                <Typography><b>Nombre:</b> {r.nombre}</Typography>
-                <Typography><b>Turno:</b> {r.turno}</Typography>
-                <Typography><b>Fecha:</b> {dayjs(r.fecha).format("DD/MM/YYYY")}</Typography>
+              <Paper key={i} sx={{ p: 1.5, mb: 1, backgroundColor: "rgba(26,72,98,0.04)", borderRadius: '10px', border: '1px solid rgba(26,72,98,0.06)', boxShadow: 'none' }}>
+                <Typography sx={{ fontFamily: 'Poppins' }}><b>Operario:</b> {r.operario}</Typography>
+                <Typography sx={{ fontFamily: 'Poppins' }}><b>Nombre:</b> {r.nombre}</Typography>
+                <Typography sx={{ fontFamily: 'Poppins' }}><b>Turno:</b> {r.turno}</Typography>
+                <Typography sx={{ fontFamily: 'Poppins' }}><b>Fecha:</b> {dayjs(r.fecha).format("DD/MM/YYYY")}</Typography>
               </Paper>
             ))
           ) : (
-            <Typography>No hay responsables registrados.</Typography>
+            <Typography sx={{ fontFamily: 'Poppins' }}>No hay responsables registrados.</Typography>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ padding: 2, borderTop: "1px solid #ddd" }}>
-          <Button variant="contained" color="primary" onClick={() => setOpenResponsables(false)}>
+        <DialogActions sx={{ padding: 2 }}>
+          <Button variant="contained" onClick={() => setOpenResponsables(false)} sx={{ fontFamily: 'Poppins', fontWeight: 600, textTransform: 'none', borderRadius: '10px', background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', boxShadow: 'none', '&:hover': { background: '#1A4862' } }}>
             Cerrar
           </Button>
         </DialogActions>

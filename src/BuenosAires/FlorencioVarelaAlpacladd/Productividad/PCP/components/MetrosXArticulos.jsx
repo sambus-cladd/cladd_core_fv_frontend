@@ -7,7 +7,7 @@ import Chart from "react-apexcharts";
 import  { GetMetrosxArticulo } from '../API/APIFunctions';
 
 import DataGridTable from '../../../../../components/DataGrid/DataGridTable';
-import { Button } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 
 const MetrosXArticulos = () => {
     const [Data, setData] = useState([]);
@@ -30,14 +30,26 @@ const MetrosXArticulos = () => {
 
 
     return ( 
-        <Grid container sx={{display: 'flex', alignItems: 'stretch', justifyContent:'center', width:"100vw"}} columnSpacing={1} rowSpacing={1} columns={12}> 
+        <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2, width: '100%' }}>
+            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '1rem', mb: 0.5 }}>
+                Metros x Artículo
+            </Typography>
+            <Typography sx={{ fontFamily: 'Poppins', color: '#4a6177', fontSize: '0.85rem', mb: 2 }}>
+                Visualización de metros programados por artículo
+            </Typography>
+        <Grid container sx={{display: 'flex', alignItems: 'stretch', justifyContent:'center', width:"100%"}} columnSpacing={1} rowSpacing={2} columns={12}> 
             <Grid item xs={12} sm={12} md={12} lg={12}>
+                <Box sx={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid rgba(26,72,98,0.06)', boxShadow: '0 2px 8px rgba(26,72,98,0.08)', p: 1.5 }}>
                 <GraficoMetrosxArticulo Serie={Data} />
+                </Box>
             </Grid>       
             <Grid item xs={12} sm={12} md={12} lg={12} >
+                <Box sx={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid rgba(26,72,98,0.06)', boxShadow: '0 2px 8px rgba(26,72,98,0.08)', p: 1, overflow: 'hidden' }}>
                 <TablaMetrosXArticulos Serie={Data} />  
+                </Box>
             </Grid>
-        </Grid> 
+        </Grid>
+        </Box> 
     ); 
 }
 
@@ -89,7 +101,7 @@ function TablaMetrosXArticulos({ Serie }) {
       <Grid container sx={{display: 'flex', alignItems: 'stretch', justifyContent:'center', width:"100vw",height:"90%"}} columnSpacing={1} rowSpacing={1} columns={12}>        
           
           <Grid item xs={12} sm={12} md={12} lg={12} >
-              <DataGridTable   rows={filas} columns={columns} rowHeight={50} filename={"- METROS X ARTICULO "} RowCellsBg={'rgba(25, 118, 210,0.1)'} HeadCellsBg= {'rgba(25, 118, 210,0.3)'}  />
+              <DataGridTable   rows={filas} columns={columns} rowHeight={50} filename={"- METROS X ARTICULO "} RowCellsBg={'rgba(26, 72, 98,0.04)'} HeadCellsBg= {'rgba(26, 72, 98,0.12)'}  />
           </Grid>
 
       </Grid> 

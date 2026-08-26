@@ -4,6 +4,7 @@ import Menu from '../../../components/Plantilla/Menu'
 import { Navigate } from 'react-router-dom'
 import FormStockPlanta from './FormStockPlanta'
 import FormCalidadPlanta from './FormCalidadPlanta'
+import routes from '../routesFValpa'
 const StockPlanta = () => {
 
   const menu = [
@@ -13,7 +14,7 @@ const StockPlanta = () => {
   ]
   return (
     <>
-      <HeaderYFooter titulo="STOCK EN PLANTA">
+      <HeaderYFooter titulo="ALPACLADD" routes={routes} color="alpacladd">
         <Menu tabsConfig={menu} />
       </HeaderYFooter>
     </>

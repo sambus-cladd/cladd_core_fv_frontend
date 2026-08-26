@@ -24,6 +24,7 @@ import MyDocument from './DocPedidoRollo';
 import { getRollosEnProduccionXArt, getStockRollosXArt, putEnviarRollosAProduccion } from '../../../API/APIFunctions';
 import { getNumeroOrdenes, GetDatosGantFV } from '../API/APIFunctions';
 import { getRollosRechazoXArt } from '../../../API/APIFunctions';
+import { pcpCardSx, primaryBtnSx, secondaryBtnSx, fieldSx, dialogTitleSx, headCellsBg, rowCellsBg } from './pcpUiStyles';
 
 function FormularioGantPcp() {
     dayjs.extend(duration);
@@ -571,12 +572,19 @@ function FormularioGantPcp() {
 
     return (
         <>
+            <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '1rem', mb: 0.5 }}>
+                Registro Producción
+            </Typography>
+            <Typography sx={{ fontFamily: 'Poppins', color: '#4a6177', fontSize: '0.85rem', mb: 1.5 }}>
+                Cargá la orden y asigná rollos
+            </Typography>
             {/* contenedor principal */}
             <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" >
 
                 {/* GRID FORM */}
                 <Grid item xs={7} sm={7} md={7} padding={1}>
-                    <Card sx={{ minWidth: '100%', borderRadius: "10px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)", paddingTop: 0, marginTop: '20px' }}>
+                    <Card sx={{ minWidth: '100%', ...pcpCardSx, paddingTop: 0, marginTop: '4px' }}>
 
                         {/* PRIMERA FILA */}
                         <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1} marginTop={1}>
@@ -592,7 +600,7 @@ function FormularioGantPcp() {
                                         onChange={(newHoraInicio) => {
                                             setInicioHora(newHoraInicio);
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
@@ -611,7 +619,7 @@ function FormularioGantPcp() {
                                         onChange={(newHoraFinal) => {
                                             setFinHora(newHoraFinal);
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
@@ -625,9 +633,11 @@ function FormularioGantPcp() {
                             <Grid item xs={12} sm={2} md={2} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Orden"
                                     variant="outlined"
+                                    sx={fieldSx}
                                     value={Orden}
                                     onChange={(event) => {
                                         const orden = event.target.value;
@@ -645,9 +655,11 @@ function FormularioGantPcp() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Maquina"
                                     variant="outlined"
+                                    sx={fieldSx}
                                     select
                                     value={Maquina}
                                     onChange={(event) => {
@@ -682,9 +694,11 @@ function FormularioGantPcp() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Proc Maquina"
                                     variant="outlined"
+                                    sx={fieldSx}
                                     select
                                     value={MaquinaProceso}
                                     onChange={(event) => {
@@ -720,9 +734,11 @@ function FormularioGantPcp() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Proceso"
                                     variant="outlined"
+                                    sx={fieldSx}
                                     value={Proceso}
                                     select
                                     onChange={(event) => {
@@ -748,9 +764,11 @@ function FormularioGantPcp() {
                                 <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                     <TextField
                                         fullWidth
+                                        size="small"
                                         id="outlined-basic"
                                         label="Color"
                                         variant="outlined"
+                                        sx={fieldSx}
                                         value={Color}
                                         select
                                         onChange={(event) => setColor(event.target.value)}
@@ -774,9 +792,11 @@ function FormularioGantPcp() {
                                     <Grid item xs={12} sm={4} md={4} padding={0.5} >
                                         <TextField
                                             fullWidth
+                                            size="small"
                                             id="outlined-basic"
                                             label="Articulo"
                                             variant="outlined"
+                                            sx={fieldSx}
                                             value={Articulo}
                                             onChange={(event) => {
                                                 setArticulo(event.target.value);
@@ -789,8 +809,10 @@ function FormularioGantPcp() {
                                     <Grid item xs={12} sm={4} md={4} padding={0.5} >
                                         <TextField
                                             fullWidth
+                                            size="small"
                                             label="Metros"
                                             variant='outlined'
+                                            sx={fieldSx}
                                             type='number'
                                             value={Metros}
                                             onChange={(event) => {
@@ -801,23 +823,21 @@ function FormularioGantPcp() {
                                                     const velocidad = obtenerVelocidadMaquina(MaquinaProceso);
                                                     const horasTotal = metros / (velocidad * 60);
                                                     setHoraT(horasTotal.toFixed(0));
-                                                    // let finHoraCalculada = addHours(InicioHora, parseFloat(horasTotal.toFixed(0)));
-                                                    // console.log("hora fin: ", finHoraCalculada);
-
-                                                    // setFinHora(finHoraCalculada);
                                                 }
                                             }}
                                         />
                                     </Grid>
 
                                     {/* Horas Total */}
-                                    <Grid xs={12} sm={4} md={4} padding={0.5}>
+                                    <Grid item xs={12} sm={4} md={4} padding={0.5}>
                                         <TextField
                                             fullWidth
+                                            size="small"
                                             focused
                                             readOnly
                                             variant='filled'
                                             label='Horas Total'
+                                            sx={fieldSx}
                                             value={HorasT}
                                         />
                                     </Grid>
@@ -830,11 +850,11 @@ function FormularioGantPcp() {
                                         label="Horas Total"
                                         value={HorasT}
                                         type='number'
+                                        size="small"
+                                        sx={fieldSx}
                                         onChange={(event) => {
                                             const horatotal = event.target.value
                                             setHoraT(horatotal);
-                                            // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
-                                            // setFinHora(finHoraCalculada); 
                                         }}
                                         fullWidth
                                     />
@@ -845,30 +865,17 @@ function FormularioGantPcp() {
                         {/* FILA BOTON */}
                         <Grid container direction="row" justifyContent="flex-end" alignItems="flex-end" padding={2} gap={1}>
                             <Grid item>
-                                <Button variant="contained" style={{ color: 'white' }}
+                                <Button variant="contained" sx={{ ...primaryBtnSx, color: 'white', px: 2.5 }}
                                     onClick={() => {
-                                        let Aux = {
-
-                                            Orden: Orden,
-                                            Maquina: Maquina,
-                                            MaquinaProc: MaquinaProceso,
-                                            Proceso: Proceso,
-                                            Color: Color,
-                                            Articulo: Articulo,
-                                            Metros: Metros,
-                                            HorasT: HorasT,
-                                            InicioHora: InicioHora,
-                                            FinHora: FinHora
-                                        }
                                         handleAsignar();
                                     }}>
-                                    <Typography variant="button" fontFamily="Poppins" fontSize={18}>
+                                    <Typography variant="button" fontFamily="Poppins" fontSize={16} fontWeight={600}>
                                         Registrar Orden
                                     </Typography>
                                 </Button>
                             </Grid>
                             <Grid item>
-                                <Button variant="outlined" onClick={verificarOrden} sx={{ mt: 0 }}>
+                                <Button variant="outlined" onClick={verificarOrden} sx={secondaryBtnSx}>
                                     Verificar Orden
                                 </Button>
                             </Grid>
@@ -877,14 +884,15 @@ function FormularioGantPcp() {
                 </Grid>
 
                 <Grid item xs={5} sm={5} md={5} padding={1}>
+                    <Box sx={{ ...pcpCardSx, p: 1.5 }}>
                     <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" >
                         <Grid item xs={6} sm={6} md={6} padding={1}>
-                            <Typography variant="h6" fontFamily="Poppins" fontSize={18}>
+                            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '0.95rem' }}>
                                 Rollos Disponibles
                             </Typography>
                         </Grid>
                         <Grid item xs={6} sm={6} md={6} padding={1}>
-                            <Typography variant="h6" fontFamily="Poppins" fontSize={18}>
+                            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '0.95rem' }}>
                                 Rollos Seleccionados
                             </Typography>
                         </Grid>
@@ -903,44 +911,33 @@ function FormularioGantPcp() {
 
                             </div>
                             <Grid item xs={12} sm={12} md={12} padding={1} alignItems="flex-end">
-                                <Typography variant="h6" fontFamily="Poppins" fontSize={18}>
+                                <Typography sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#1A4862', fontSize: '0.9rem' }}>
                                     Metros Necesarios: {`${Metros} m`}
                                 </Typography>
-                                <Typography variant="h6" fontFamily="Poppins" fontSize={18} >
+                                <Typography sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#1A4862', fontSize: '0.9rem', mb: 1 }}>
                                     Metros Seleccionados: {`${metrosRollo} m`}
                                 </Typography>
-                                <Button onClick={handleprint}>
-                                    imprimir
+                                <Button variant="outlined" onClick={handleprint} sx={secondaryBtnSx}>
+                                    Imprimir
                                 </Button>
 
                                 {/* Popp up Verificar datos de orden */}
                                 <Dialog open={openVerificacion} onClose={() => setOpenVerificacion(false)}
-                                    PaperProps={{ style: { padding: '20px', borderRadius: '12px', minWidth: '300px' } }}
+                                    PaperProps={{ sx: { borderRadius: '12px', minWidth: 320, p: 1 } }}
                                 >
-                                    <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #ddd', ml: 0, pb: 0, mb: 1, }}>
-                                        Verificacion de Ordenes
+                                    <DialogTitle sx={{ ...dialogTitleSx, textAlign: 'center', borderRadius: '10px 10px 0 0' }}>
+                                        Verificación de Órdenes
                                     </DialogTitle>
-                                    <DialogContent sx={{ p: 0 }}>
-                                        <Typography variant="body1" textAlign={'center'}>
+                                    <DialogContent sx={{ p: 2 }}>
+                                        <Typography variant="body1" textAlign={'center'} sx={{ fontFamily: 'Poppins' }}>
                                             {verificacionMensaje}
                                         </Typography>
                                     </DialogContent>
 
-                                    <Button variant="contained" style={{ color: 'white' }}
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 2, pb: 2 }}>
+                                    <Button variant="contained" sx={{ ...primaryBtnSx, color: 'white' }}
                                         disabled={!metrosCorrectos}
                                         onClick={() => {
-                                            let Aux = {
-                                                Orden: Orden,
-                                                Maquina: Maquina,
-                                                MaquinaProc: MaquinaProceso,
-                                                Proceso: Proceso,
-                                                Color: Color,
-                                                Articulo: Articulo,
-                                                Metros: Metros,
-                                                HorasT: HorasT,
-                                                InicioHora: InicioHora,
-                                                FinHora: FinHora
-                                            }
                                             handleAsignar();
                                             setOpenVerificacion(false);
                                         }}>
@@ -949,18 +946,23 @@ function FormularioGantPcp() {
                                         </Typography>
                                     </Button>
 
-                                    <Button variant="outlined" sx={{ mt: 1 }} onClick={() => setOpenVerificacion(false)}>
+                                    <Button variant="outlined" sx={secondaryBtnSx} onClick={() => setOpenVerificacion(false)}>
                                         Cerrar
                                     </Button>
+                                    </Box>
                                 </Dialog>
 
                             </Grid>
                         </Grid>
                     </Grid>
+                    </Box>
                 </Grid>
 
             </Grid>
-            <DataGridTable rows={rows} columns={columns} />
+            <Box sx={{ ...pcpCardSx, mt: 2, p: 1, overflow: 'hidden' }}>
+            <DataGridTable rows={rows} columns={columns} RowCellsBg={rowCellsBg} HeadCellsBg={headCellsBg} />
+            </Box>
+            </Box>
             {/* INICIO -- Mensajes popup */}
             <Dialog open={openDialog} PaperProps={{ style: { backgroundColor: 'transparent', padding: '0', borderRadius: '12px' } }}>
                 <DialogTitle sx={{ alignSelf: 'center', paddingBottom: 3, backgroundColor: '#00AC60', color: 'white', fontFamily: 'Poppins', fontWeight: '600', borderRadius: '12px' }}>

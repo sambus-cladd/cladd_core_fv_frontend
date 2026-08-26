@@ -1,9 +1,13 @@
 import axios from 'axios'
 
-const URL_SERVIDOR = "http://192.168.0.18";
-const PUERTO_FV_LABORATORIO = ":4300/";
-const PUERTO_FV_PRODUCTIVIDAD = ":4300/";
-const STOCK_TERMINA_FV = ":4300/";
+// Para desarrollo local: en .env del frontend poner VITE_API_FV_BASE=http://localhost:4300
+// const _base = import.meta.env.VITE_API_FV_BASE || "http://192.168.0.18:4300";
+const _base = import.meta.env.VITE_API_FV_BASE || "http://192.168.0.18:4300";
+const _url = new URL(_base);
+const URL_SERVIDOR = `${_url.protocol}//${_url.hostname}`;
+const PUERTO_FV_LABORATORIO = `:${_url.port || "4300"}/`;
+const PUERTO_FV_PRODUCTIVIDAD = PUERTO_FV_LABORATORIO;
+const STOCK_TERMINA_FV = PUERTO_FV_LABORATORIO; 
 
 async function getStockTerminadoFV() {
     try {
@@ -231,12 +235,12 @@ async function getOperarios() {
 }
 
 async function getStockQuimicos() {
-    let respuesta = await axios.get("http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "StockQuimicos");
+    let respuesta = await axios.get(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "StockQuimicos");
     return (respuesta.data)
 }
 
 async function putCargaStockQuimico(body) {
-    let respuesta = await axios.put("http://192.168.0.18:4300" + PUERTO_FV_PRODUCTIVIDAD + "Carga/StockQuimicos", body);
+    let respuesta = await axios.put(URL_SERVIDOR + PUERTO_FV_PRODUCTIVIDAD + "Carga/StockQuimicos", body);
     return (respuesta)
 }
 

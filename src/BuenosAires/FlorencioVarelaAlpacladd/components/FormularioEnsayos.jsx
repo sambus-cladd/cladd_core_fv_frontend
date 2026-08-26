@@ -16,6 +16,34 @@ import { useAuth } from '../../../AuthContext';
 import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useParams } from 'react-router-dom';
+import { colors, typography } from '../../../styles/alpacladdFvDesignTokens';
+
+const cardSx = {
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)',
+    border: '1px solid rgba(26, 72, 98, 0.06)',
+    backgroundColor: '#fff',
+};
+
+const metaTextSx = {
+    fontFamily: typography.fontFamily,
+    fontSize: '0.85rem',
+    color: colors.textMuted,
+    '& span': {
+        fontWeight: 700,
+        color: colors.brand,
+    },
+};
+
+const primaryBtnSx = {
+    background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+    fontFamily: 'Poppins',
+    fontWeight: 600,
+    textTransform: 'none',
+    borderRadius: '10px',
+    boxShadow: 'none',
+    '&:hover': { background: '#1A4862' },
+};
 
 function FormularioEnsayos({ rutina, handleTabChange }) {
     const [anchoSinLavar1, setAnchoSinLavar1] = useState(null);
@@ -212,11 +240,14 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
+        width: 420,
+        bgcolor: '#fff',
+        borderRadius: '12px',
+        border: '1px solid rgba(26, 72, 98, 0.08)',
+        boxShadow: '0 8px 24px rgba(26, 72, 98, 0.18)',
+        p: 0,
+        overflow: 'hidden',
+        fontFamily: typography.fontFamily,
     };
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -707,29 +738,31 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
 
     if (loading) {
         return (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                zIndex: 9999,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(164, 164, 164, 0.78)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'column',
-                backdropFilter: 'blur(4px)',
-                WebkitBackdropFilter: 'blur(4px)',
-            }}>
-                <div style={{ marginBottom: 20, fontSize: 20, color: '#333' }}>
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    zIndex: 9999,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(252, 250, 239, 0.88)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                    backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)',
+                }}
+            >
+                <Typography sx={{ mb: 2, fontSize: 18, color: colors.brand, fontFamily: typography.fontFamily, fontWeight: 600 }}>
                     Recopilando datos...
-                </div>
-                <CircularProgress color="primary" size={60} />
-                <div style={{ marginTop: 20, fontSize: 16, color: '#555' }}>
+                </Typography>
+                <CircularProgress sx={{ color: colors.brand }} size={56} />
+                <Typography sx={{ mt: 2, fontSize: 14, color: colors.textMuted, fontFamily: typography.fontFamily }}>
                     Aguarde un momento por favor.
-                </div>
-            </div>
+                </Typography>
+            </Box>
         );
     }
 
@@ -738,51 +771,51 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
         <>
             <Grid container direction="row" justifyContent="center" alignItems="center" p={1.5} rowSpacing={1.5} pt={1.5}>
                 <Grid item xs={12}>
-                    <Card sx={{ borderRadius: "5px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)" }}>
-                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" rowSpacing={1} pb={0.3} px={0.5}>
+                    <Card sx={{ ...cardSx, px: 1 }}>
+                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" rowSpacing={1} py={1} px={0.5}>
                             <Grid item xs={2}>
                                 <Grid container direction="row">
                                     <Grid item xs={9}>
-                                        <Typography paddingTop={1}>Rutina:
-                                            <span style={{ fontWeight: 'bold' }}>
-                                                {`${rutina}`}
+                                        <Typography sx={metaTextSx}>Rutina:
+                                            <span>
+                                                {` ${rutina}`}
                                             </span>
                                         </Typography>
                                     </Grid>
                                 </Grid>
                             </Grid>
                             <Grid item xs={1}>
-                                <Typography>Letra: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Letra: <span>
                                     {` ${letra}`}
                                 </span> </Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>Metros: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Metros: <span>
                                     {` ${metros}`}
                                 </span> </Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>Etapa: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Etapa: <span>
                                     {nuevaEtapa === "" ? (` ${etapa}`) : nuevaEtapa}
                                 </span> </Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>Artículo: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Artículo: <span>
                                     {` ${articulo}`}
                                 </span> </Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>Lote: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Lote: <span>
                                     {` ${lote}`}
                                 </span></Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>SubLote: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>SubLote: <span>
                                     {` ${subLote}`}
                                 </span></Typography>
                             </Grid>
                             <Grid item xs={1.5}>
-                                <Typography>Motivo: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>Motivo: <span>
                                     {` ${motivo}`}
                                 </span> </Typography>
                             </Grid>
@@ -790,44 +823,49 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
                     </Card>
                 </Grid>
                 <Grid item xs={12}>
-                    <Card sx={{ borderRadius: "5px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)" }}>
-                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" rowSpacing={1} pb={0.3} px={0.5}>
+                    <Card sx={{ ...cardSx, px: 1 }}>
+                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" rowSpacing={1} py={1} px={0.5}>
                             <Grid item xs={2}>
-                                <Typography>
-                                    Especificación: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>
+                                    Especificación: <span>
                                         {especificacionArticulo.PRODUCTO_ARTCOD || ""}
                                     </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={2}>
-                                <Typography>
-                                    Nombre: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>
+                                    Nombre: <span>
                                         {especificacionArticulo.PRODUCTO_NOMBRE_COMERCIAL || ""}
                                     </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={4}>
-                                <Typography>
-                                    Composición: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>
+                                    Composición: <span>
                                         {especificacionArticulo.PRODUCTO_COMPOSICION || ""}
                                     </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={2}>
-                                <Typography>
-                                    Ligamento: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={metaTextSx}>
+                                    Ligamento: <span>
                                         {especificacionArticulo.PRODUCTO_LIGAMENTO || ""}
                                     </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={2}>
-                                <Typography>Dibujo: <span style={{ fontWeight: 'bold' }}>
+                                <Typography sx={{ ...metaTextSx, display: 'flex', alignItems: 'center', gap: 1 }}>Dibujo: <span style={{ fontWeight: 700 }}>
                                     <Select
                                         label="Seleccione una opción"
                                         value={dibujo}
                                         onChange={(e) => setDibujo(e.target.value)}
                                         variant="outlined"
                                         size="small"
+                                        sx={{
+                                            fontFamily: 'Poppins',
+                                            borderRadius: '8px',
+                                            minWidth: 110,
+                                        }}
                                     >
                                         <MenuItem value="Z">Z</MenuItem>
                                         <MenuItem value="S">S</MenuItem>
@@ -839,7 +877,7 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
                     </Card>
                 </Grid>
                 <Grid item xs={12}>
-                    <Card sx={{ borderRadius: "5px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)" }}>
+                    <Card sx={{ ...cardSx, p: 1 }}>
                         <Box
                             component="form"
                             noValidate
@@ -1170,7 +1208,15 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
                     </Card >
                 </Grid >
                 <Box sx={{ width: '100%' }} paddingTop={2}>
-                    <Stepper nonLinear activeStep={activeStep}>
+                    <Stepper
+                        nonLinear
+                        activeStep={activeStep}
+                        sx={{
+                            '& .MuiStepLabel-label': { fontFamily: 'Poppins', fontSize: '0.75rem' },
+                            '& .MuiStepIcon-root.Mui-active': { color: colors.brand },
+                            '& .MuiStepIcon-root.Mui-completed': { color: colors.tabIndicator },
+                        }}
+                    >
                         {steps.map((label, index) => (
                             <Step key={label} completed={completed[index]}>
                                 <StepButton color="inherit" onClick={() => handleStep(index)}>
@@ -1186,48 +1232,63 @@ function FormularioEnsayos({ rutina, handleTabChange }) {
                     onClose={handleClose}
                 >
                     <Box sx={{ ...EstiloModal }}>
-                        <Typography variant="h6" component="h2">
-                            Resultado del ensayo de la rutina {rutina}
-                        </Typography>
-                        <hr />
-                        <FormControl fullWidth>
-                            <InputLabel id="select-resultado-label">Seleccione el resultado final</InputLabel>
-                            <Select
-                                labelId="select-resultado-label"
-                                value={resultadoEnsayo}
-                                onChange={(e) => setResultadoEnsayo(e.target.value)}
-                                label="Seleccione el resultado final"
+                        <Box
+                            sx={{
+                                background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+                                color: '#fff',
+                                px: 2.5,
+                                py: 1.5,
+                            }}
+                        >
+                            <Typography variant="h6" component="h2" sx={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '1rem' }}>
+                                Resultado del ensayo · Rutina {rutina}
+                            </Typography>
+                        </Box>
+                        <Box sx={{ p: 2.5 }}>
+                            <FormControl fullWidth>
+                                <InputLabel id="select-resultado-label">Seleccione el resultado final</InputLabel>
+                                <Select
+                                    labelId="select-resultado-label"
+                                    value={resultadoEnsayo}
+                                    onChange={(e) => setResultadoEnsayo(e.target.value)}
+                                    label="Seleccione el resultado final"
+                                    fullWidth
+                                    sx={{ borderRadius: '10px', fontFamily: 'Poppins' }}
+                                >
+                                    {resultadosPosibles
+                                        .filter((resultado) => {
+                                            const noAdmin = ['Operador', 'Supervisor'].includes(auth?.rol);
+                                            if (noAdmin && etapa === 'Finalizado') {
+                                                return resultado === 'VER' || resultado === 'CONFORME';
+                                            }
+                                            return true;
+                                        })
+                                        .map((resultado) => (
+                                            <MenuItem key={resultado} value={resultado}>
+                                                {resultado}
+                                            </MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+                            <TextField
+                                label="Observaciones"
+                                value={observaciones}
+                                onChange={(e) => setObservaciones(e.target.value)}
+                                multiline
+                                rows={4}
                                 fullWidth
-                            >
-                                {resultadosPosibles
-                                    .filter((resultado) => {
-                                        const noAdmin = ['Operador', 'Supervisor'].includes(auth?.rol);
-                                        if (noAdmin && etapa === 'Finalizado') {
-                                            return resultado === 'VER' || resultado === 'CONFORME';
-                                        }
-                                        return true;
-                                    })
-                                    .map((resultado) => (
-                                        <MenuItem key={resultado} value={resultado}>
-                                            {resultado}
-                                        </MenuItem>
-                                    ))}
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="Observaciones"
-                            value={observaciones}
-                            onChange={(e) => setObservaciones(e.target.value)}
-                            multiline
-                            rows={4}
-                            fullWidth
-                            sx={{ mt: 2 }}
-                        />
+                                sx={{
+                                    mt: 2,
+                                    '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Poppins' },
+                                }}
+                            />
 
-                        <hr />
-                        <Button onClick={handleGuardarResultado} variant="contained" color="primary">
-                            Guardar
-                        </Button>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                <Button onClick={handleGuardarResultado} variant="contained" sx={primaryBtnSx}>
+                                    Guardar
+                                </Button>
+                            </Box>
+                        </Box>
                     </Box>
                 </Modal>
             </Grid >

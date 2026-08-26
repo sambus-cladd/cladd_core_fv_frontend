@@ -6,11 +6,12 @@ const CardAlpa = ({ children, ...props }) => {
     <Card
       sx={{
         minWidth: '100%',
-        borderRadius: '10px',
-        boxShadow: '1px 1px 2px 3px rgba(0, 0, 0, 0.4)',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)',
+        border: '1px solid rgba(26, 72, 98, 0.06)',
         paddingTop: 0,
         marginTop: '20px',
-        ...props.sx, // Permite la sobreescritura del estilo
+        ...props.sx,
       }}
       {...props}
     >

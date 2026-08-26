@@ -1,139 +1,141 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-
-// Iconos
-
 import HomeIcon from '@mui/icons-material/Home';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import AddIcon from '@mui/icons-material/Add';
 import DvrIcon from '@mui/icons-material/Dvr';
 
 import AlpaLogo from '../../assets/Images/alpaLogo.png';
-// import { Navbar } from '../../components/Navbar/Navbar';
-
+import Navbar from '../Navbar/Navbar';
+import HeaderYFooter from '../Plantilla/HeaderYFooter';
+import Menu from '../Plantilla/Menu';
 import CargarArticulos from './CargarArticulos';
 import TablaArtDetalles from './TablaArtDetalles';
 import DetallesArticulos from './DetallesArticulos';
-import Navbar from '../Navbar/Navbar';
+import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { pageContainer, tabsBand, tabsCapsule, tabsRootSx } from '../../styles/alpacladdFvDesignTokens';
 
-
-
-
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <Box sx={{ p: 0 }}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
-        </div>
-    );
+function CustomTabPanel({ children, value, index }) {
+    if (value !== index) return null;
+    return <Box sx={{ width: '100%', p: 2 }}>{children}</Box>;
 }
 
-CustomTabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-};
-
-
 export const Articulos = ({ rol = 'lr' }) => {
-    const [value, setValue] = useState(2);
+    const [value, setValue] = useState(1);
+    const isFv = rol === 'fv';
 
-    const handleChange = (event, newValue) => {
+    const handleChange = (_event, newValue) => {
         setValue(newValue);
     };
 
-    // Iicio - Estructura para usar toda la pantalla sin que se corte al haber pocos elementos
-    const containerStyle = {
-        minHeight: '100vh', // Establece el contenedor principal para ocupar al menos el 100% del alto de la pantalla
-        display: 'flex',
-        flexDirection: 'column',
-    };
+    const homeTarget = isFv
+        ? '/BuenosAires/FlorencioVarela/Terminacion'
+        : '/LaRioja/Alpacladd/Productividad/Calidad/';
 
-    const contentStyle = {
-        flexGrow: 1, // Permite que el contenido se expanda y llene el espacio disponible
-    };
-    // Fin - Estructura para usar toda la pantalla sin que se corte al haber pocos elementos
+    const tabsConfig = useMemo(() => {
+        const tabs = [
+            {
+                key: 'home',
+                label: 'Home',
+                icon: <HomeIcon />,
+                component: <Navigate to={homeTarget} replace />,
+            },
+            {
+                key: 'detalles',
+                label: 'Detalles Articulos',
+                icon: <ManageSearchIcon />,
+                component: <DetallesArticulos />,
+            },
+            {
+                key: 'registros',
+                label: 'Registros',
+                icon: <DvrIcon />,
+                component: <TablaArtDetalles />,
+            },
+        ];
+        if (!isFv) {
+            tabs.push({
+                key: 'agregar',
+                label: 'Agregar Articulo',
+                icon: <AddIcon />,
+                component: <CargarArticulos />,
+            });
+        }
+        return tabs;
+    }, [homeTarget, isFv]);
+
+    if (isFv) {
+        return (
+            <HeaderYFooter titulo="FICHA TECNICA" color="alpacladd" showMainMenu={false} routes={[]}>
+                <Menu tabsConfig={tabsConfig} value={value} onChange={handleChange} />
+            </HeaderYFooter>
+        );
+    }
 
     return (
-        <>
-            <div style={containerStyle}>
-                <div style={contentStyle}>
-                    <div className="CladdHome">
-                        <Navbar Titulo="FICHA TECNICA" color="alpacladd" plantaLogo={AlpaLogo} />
-                    </div>
-
-                    <Box sx={{ width: '100%', bgcolor: " #d3d3d3", paddingRight: '20px' }}>
-                        <Tabs value={value} onChange={handleChange} centered>
-                            <Tab label="Home" icon={<HomeIcon />} />
-                            <Tab label="" disabled />
-                            <Tab label="Detalles Articulos" icon={<ManageSearchIcon />} />
-                            <Tab label="Registros" icon={<DvrIcon />} />
-                            { rol !== "fv" &&
-                                < Tab label="Agregar Articulo" icon={<AddIcon />} />
-                            }
-                        </Tabs>
-                    </Box>
-                    <Box sx={{ width: '100%' }}>
-                        <CustomTabPanel value={value} index={0}>
-                            {
-                                rol !== "fv" 
-                                ? <Navigate to='/LaRioja/Alpacladd/Productividad/Calidad/'></Navigate>
-                                : <Navigate to='/BuenosAires/FlorencioVarela/Terminacion'></Navigate>
-                            }
-                        </CustomTabPanel>
-                        <CustomTabPanel value={value} index={1}>
-                            <></>
-                        </CustomTabPanel>
-                        <CustomTabPanel value={value} index={2}>
-                            <DetallesArticulos></DetallesArticulos>
-                        </CustomTabPanel>
-                        <CustomTabPanel value={value} index={3}>
-                            <TablaArtDetalles></TablaArtDetalles>
-                        </CustomTabPanel>
-                        <CustomTabPanel value={value} index={4}>
-                            <CargarArticulos></CargarArticulos>
-                        </CustomTabPanel>
-                    </Box>
-                </div>
+        <Box sx={{ ...pageContainer, overflowX: 'hidden' }}>
+            <div className="CladdHome" style={{ fontFamily: 'Poppins', fontWeight: 'bold' }}>
+                <Navbar Titulo="FICHA TECNICA" color="alpacladd" plantaLogo={AlpaLogo} />
             </div>
 
-            {/* Footer */}
+            <Box sx={tabsBand}>
+                <Box sx={tabsCapsule}>
+                    <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        sx={{
+                            ...tabsRootSx,
+                            minHeight: 56,
+                            '& .MuiTab-root': {
+                                ...tabsRootSx['& .MuiTab-root'],
+                                textTransform: 'uppercase',
+                                fontSize: '0.62rem',
+                            },
+                        }}
+                    >
+                        <Tab label="Home" icon={<HomeIcon />} />
+                        <Tab label="Detalles Articulos" icon={<ManageSearchIcon />} />
+                        <Tab label="Registros" icon={<DvrIcon />} />
+                        <Tab label="Agregar Articulo" icon={<AddIcon />} />
+                    </Tabs>
+                </Box>
+            </Box>
+
+            <CustomTabPanel value={value} index={0}>
+                <Navigate to={homeTarget} replace />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+                <DetallesArticulos />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={2}>
+                <TablaArtDetalles />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+                <CargarArticulos />
+            </CustomTabPanel>
+
             <Box
-                display={"flex"}
-                flexDirection={"column"}
+                display="flex"
+                flexDirection="column"
                 sx={{
-                position: "fixed",
-                bottom: 16,
-                right: 16,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                padding: "4px 8px",
-                borderRadius: "4px",
+                    position: 'fixed',
+                    bottom: 16,
+                    right: 16,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
                 }}
             >
                 <Typography variant="caption" color="white">
-                © Automatización - La Rioja
+                    © Automatización - La Rioja
                 </Typography>
                 <Typography variant="caption" color="white">
-                Dirección Industrial
+                    Dirección Industrial
                 </Typography>
             </Box>
-                </>
+        </Box>
     );
 };
 

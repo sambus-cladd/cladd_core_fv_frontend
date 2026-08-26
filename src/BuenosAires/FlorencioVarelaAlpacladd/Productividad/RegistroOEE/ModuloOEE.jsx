@@ -85,7 +85,7 @@ const ModuloOEE = () => {
 
             <Box sx={{ width: '100%' }}>
                 <CustomTabPanel value={value} index={0}>
-                    <Navigate to='/BuenosAires/FlorencioVarela/Productividad'></Navigate>
+                    <Navigate to='/BuenosAires/FlorencioVarela/AlpacladdHome'></Navigate>
                 </CustomTabPanel>
 
                 <CustomTabPanel value={value} index={1}>

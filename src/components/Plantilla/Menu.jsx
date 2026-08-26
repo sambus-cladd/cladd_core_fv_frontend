@@ -1,61 +1,134 @@
 import { useState } from "react";
-import { Box, Tab, Tabs, Typography } from '@mui/material';
-import PropTypes from 'prop-types';
+import { Box, Tab, Tabs } from "@mui/material";
+import PropTypes from "prop-types";
+import { tabsBand, tabsCapsule, tabsRootSx } from "../../styles/alpacladdFvDesignTokens";
 
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-    CustomTabPanel.propTypes = {
-        children: PropTypes.node,
-        index: PropTypes.number.isRequired,
-        value: PropTypes.number.isRequired,
-    };
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <Box sx={{ p: 0 }}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
-        </div>
-    );
+function CustomTabPanel({ children, value, index }) {
+  if (value !== index) return null;
+  return <Box sx={{ width: "100%" }}>{children}</Box>;
+}
 
-
+CustomTabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
-const Menu = ({ defaultTab = 1, tabsConfig }) => {
-    const [value, setValue] = useState(defaultTab);
-    
-    function handleChange(event, newValue) {
-        setValue(newValue);
+const Menu = ({
+  defaultTab = 1,
+  tabsConfig = [],
+  value: controlledValue,
+  onChange: controlledOnChange,
+}) => {
+  const [internalValue, setInternalValue] = useState(defaultTab);
+  const isControlled = controlledValue !== undefined;
+  const value = isControlled ? controlledValue : internalValue;
+
+  const setValue = (nextValue) => {
+    if (!isControlled) setInternalValue(nextValue);
+  };
+
+  const handleChange = (event, newValue) => {
+    const tab = tabsConfig[newValue];
+
+    if (tab?.external && tab?.href) {
+      const win = window.open(tab.href, tab.target || "_blank", "noopener,noreferrer");
+      if (win) win.focus();
+      return;
     }
 
-    if (!Array.isArray(tabsConfig) || tabsConfig.length === 0) {
-        return <Typography>No hay pestañas disponibles</Typography>;
+    if (typeof controlledOnChange === "function") {
+      controlledOnChange(event, newValue, tab);
+      return;
     }
-    return (
-        <>
-            <Box sx={{ width: '100%', bgcolor: '#d3d3d3', display: 'flex', overflow: 'auto', justifyContent: 'center', alignItems: 'center' }}>
-                <Tabs value={value} onChange={handleChange} centered={true} variant="scrollable" scrollButtons="on" allowScrollButtonsMobile>
-                    {tabsConfig.map((tab, index) => (
-                        <Tab key={index} label={tab.label} icon={tab.icon} />
-                    ))}
-                </Tabs>
-            </Box>
-            <Box sx={{ width: '100%' }}>
-                {tabsConfig.map((tab, index) => (
-                    <CustomTabPanel key={index} value={value} index={index}>
-                        {tab.component}
-                    </CustomTabPanel>
-                ))}
-            </Box>
-        </>
-    )
+
+    setValue(newValue);
+  };
+
+  if (!Array.isArray(tabsConfig) || tabsConfig.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <Box sx={tabsBand}>
+        <Box sx={tabsCapsule}>
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              ...tabsRootSx,
+              minHeight: 56,
+              "& .MuiTab-root": {
+                ...tabsRootSx["& .MuiTab-root"],
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 56,
+                minWidth: 72,
+                py: 0.4,
+                px: 1,
+                fontSize: { xs: "0.68rem", sm: "0.74rem", md: "0.78rem" },
+                textTransform: "uppercase",
+                lineHeight: 1.2,
+                gap: 0.35,
+              },
+              "& .MuiTab-iconWrapper": {
+                marginBottom: 0,
+                fontSize: 24,
+              },
+            }}
+          >
+            {tabsConfig.map((tab, index) => (
+              <Tab
+                key={tab.key || index}
+                label={tab.label}
+                icon={tab.icon}
+                iconPosition="top"
+              />
+            ))}
+          </Tabs>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 1700,
+          mx: "auto",
+          boxSizing: "border-box",
+          px: { xs: 1.2, md: 2, lg: 2.4 },
+          py: { xs: 1.2, md: 1.6 },
+        }}
+      >
+        {tabsConfig.map((tab, index) => (
+          <CustomTabPanel key={tab.key || index} value={value} index={index}>
+            {tab.component}
+          </CustomTabPanel>
+        ))}
+      </Box>
+    </>
+  );
+};
+
+Menu.propTypes = {
+  defaultTab: PropTypes.number,
+  tabsConfig: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      icon: PropTypes.node,
+      component: PropTypes.node,
+      external: PropTypes.bool,
+      href: PropTypes.string,
+      target: PropTypes.string,
+      key: PropTypes.string,
+    })
+  ),
+  value: PropTypes.number,
+  onChange: PropTypes.func,
 };
 
 export default Menu;

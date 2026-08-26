@@ -4,8 +4,9 @@ import { useAuth } from '../../../AuthContext';
 import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
 import { putCambiarEstadoCalidad, putArchivarRutina, getStockCalidad, getOperarios } from '../API/APIFunctions';
 import DataGridCalidad from '../../../components/Plantilla/DataGridCalidad';
+import HeaderYFooter from '../../../components/Plantilla/HeaderYFooter';
 
-const StockCalidad = () => {
+const StockCalidad = ({ withChrome = false }) => {
     const [tipo, setTipo] = useState('success');
     const [isOpen, setIsOpen] = useState(false);
     const [resultadoTrenFallas, setResultadoTrenFallas] = useState('');
@@ -615,7 +616,7 @@ const StockCalidad = () => {
 
     ];
 
-    return (
+    const content = (
         <>
             <DataGridCalidad rows={rows} columns={columns} />
             <Modal
@@ -672,6 +673,16 @@ const StockCalidad = () => {
             />
         </>
     );
+
+    if (withChrome) {
+        return (
+            <HeaderYFooter titulo="STOCK CALIDAD" routes={[]} color="alpacladd" showMainMenu={false}>
+                {content}
+            </HeaderYFooter>
+        );
+    }
+
+    return content;
 };
 
 export default StockCalidad;

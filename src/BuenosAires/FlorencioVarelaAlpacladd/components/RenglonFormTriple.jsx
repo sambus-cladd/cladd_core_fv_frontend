@@ -97,6 +97,7 @@ function RenglonFormTriple({
                         InputProps={{
                             readOnly: readOnly,
                         }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                     />
                 </Grid>
                 <Grid item xs={4}>
@@ -110,6 +111,7 @@ function RenglonFormTriple({
                         InputProps={{
                             readOnly: readOnly,
                         }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                     />
                 </Grid>
                 <Grid item xs={4}>
@@ -123,19 +125,20 @@ function RenglonFormTriple({
                         InputProps={{
                             readOnly: readOnly,
                         }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'Poppins' } }}
                     />
                 </Grid>
                 <Grid container direction="row" justifyContent="flex-start" alignItems="flex-start" px={1}>
                     <Grid item xs={6}>
                         {minRef !== undefined && maxRef !== undefined && (
                             <LightTooltip title={`Mín: ${minRef} ${unidadMedida} / Máx: ${maxRef} ${unidadMedida}`}>
-                                <Typography sx={{ fontSize: 16 }}>Ref: {referencia !== undefined ? `${referencia} ${unidadMedida}` : ''}</Typography>
+                                <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>Ref: {referencia !== undefined ? `${referencia} ${unidadMedida}` : ''}</Typography>
                             </LightTooltip>
                         )}
                     </Grid>
                     <Grid item xs={6}>
-                        <Typography sx={{ fontSize: 16 }}>
-                            Cál: <span style={{ fontWeight: "bold" }}>{calculo !== null && !isNaN(calculo) ? `${calculo} [${unidadCalculo}]` : ''}</span>
+                        <Typography sx={{ fontSize: 14, fontFamily: 'Poppins', color: '#5B6B7A' }}>
+                            Cál: <span style={{ fontWeight: "bold", color: '#1A4862' }}>{calculo !== null && !isNaN(calculo) ? `${calculo} [${unidadCalculo}]` : ''}</span>
                         </Typography>
                     </Grid>
                 </Grid>

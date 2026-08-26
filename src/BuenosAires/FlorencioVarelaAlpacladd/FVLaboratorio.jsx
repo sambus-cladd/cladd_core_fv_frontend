@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState } from 'react';
-import { Box, Tabs, Tab} from '@mui/material/';
+import { Box, Tabs, Tab } from '@mui/material/';
 import Grid from '@mui/material/Unstable_Grid2';
 import LaRioja from './assets/Images/LARIOJAblanco.png';
 import { Navigate } from 'react-router-dom'
@@ -14,13 +14,14 @@ import { useAuth } from '../../AuthContext';
 import ScienceIcon from '@mui/icons-material/Science';
 import { AddCard } from '@mui/icons-material';
 import InformarRegistroLab from './components/InformarRegistroLab.jsx';
+import HeaderYFooter from '../../components/Plantilla/HeaderYFooter';
+import { tabsBand, tabsCapsule, tabsRootSx } from '../../styles/alpacladdFvDesignTokens';
 
 export default function FVLaboratorio() {
 
     const [Tabvalue, setTabvalue] = useState('RutinasActivas');
     const [rutina, setRutina] = useState('');
     const { auth } = useAuth();
-    const [scrollPos, setScrollPos] = useState(0);
 
 
 
@@ -60,35 +61,36 @@ export default function FVLaboratorio() {
 
 
     return (
-        <>
+        <HeaderYFooter titulo="LABORATORIO" routes={[]} color="alpacladd" showMainMenu={false}>
+            <Box sx={tabsBand}>
+                <Box sx={tabsCapsule}>
+                    <Tabs
+                        value={Tabvalue}
+                        onChange={handleTabsChange}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        allowScrollButtonsMobile
+                        sx={tabsRootSx}
+                    >
+                        <Tab icon={<img src={LaRioja} alt="LA RIOJA" style={{ width: '35px', height: '40px' }} />} value="BUENOS AIRES" label="Buenos Aires" />
+                        <Tab
+                          icon={<FormatListNumberedIcon />}
+                          value="RutinasActivas"
+                          label="Rutinas activas"
+                          sx={{ borderLeft: "1px solid rgba(15, 23, 42, 0.12)" }}
+                        />
+                        <Tab icon={<ScienceIcon />} value="FormularioRegistro" label="Formulario" />
+                        <Tab icon={<AddCard />} value="RegistroLaboratorio" label="Ingreso laboratorio" />
+                        <Tab value="info" disabled label={auth?.usuario} icon={<PersonIcon />} />
+                    </Tabs>
+                </Box>
+            </Box>
 
-            <Grid container width={'100%'} sx={{ boxSizing: 'content-box' }}>
-
-                <Grid item xs={12} md={12} lg={12} sx={{ background: 'rgba(	200, 200, 200,0.5)', display: 'flex', justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                        <Tabs value={Tabvalue} onChange={handleTabsChange}  >
-                            <hr />
-                            <Tab icon={<img src={LaRioja} alt="LA RIOJA" style={{ width: '35px', height: '40px' }} />} value="BUENOS AIRES" label="BUENOS AIRES" />
-                            <hr />
-                            <Tab disabled/>
-                            <hr />
-                            <Tab icon={<FormatListNumberedIcon />} value="RutinasActivas" label="RUTINAS ACTIVAS" />
-                            <hr />
-                            <Tab icon={<ScienceIcon />} value="FormularioRegistro" label="Formulario" />
-                            <hr />
-                            <Tab icon={<AddCard />} value="RegistroLaboratorio" label="Ingreso laboratorio" />
-                            <hr />
-                            <Tab value="info" disabled label={auth?.usuario} icon={<PersonIcon />} />
-                        </Tabs>
-                    </Box>
-                </Grid>
-
-                <Grid item xs={12} md={12} lg={12} mt={1} p={1} >
+            <Grid container width={'100%'} sx={{ boxSizing: 'border-box' }}>
+                <Grid xs={12} md={12} lg={12} mt={1} p={1} >
                     {renderSwitch(Tabvalue)}
                 </Grid>
             </Grid>
-
-        </>
-
+        </HeaderYFooter>
     )
 }
