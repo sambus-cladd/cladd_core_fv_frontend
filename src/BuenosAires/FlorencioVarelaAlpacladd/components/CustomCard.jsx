@@ -1,73 +1,53 @@
-import { Card, CardContent, Typography, Box } from "@mui/material"
+import { Card, CardContent, Typography, Box } from "@mui/material";
+import { dashboardCard, headerDividerSx, typography } from "../../../styles/alpacladdFvDesignTokens";
 
-const CustomCard = ({ title, cantidadCrudo, sx, children}) => (
+const CustomCard = ({ title, cantidadCrudo, sx, children }) => (
   <Card
+    elevation={0}
     sx={{
       textAlign: "center",
-      borderRadius: "16px",
-      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
       marginTop: "20px",
-      background: "linear-gradient(145deg, #2c4356, #1e2c3a)",
+      ...dashboardCard,
       overflow: "hidden",
       position: "relative",
       ...sx,
     }}
   >
-    <CardContent sx={{ padding: "24px" }}>
+    <CardContent sx={{ padding: "24px", position: "relative", zIndex: 1 }}>
       <Typography
         variant="h6"
         component="h2"
         sx={{
-          color: "#E2F1E7",
-          marginBottom: "16px",
-          fontWeight: 600,
+          ...typography.cardTitle,
           fontSize: {
             xs: "1rem",
             sm: "1.25rem",
             md: "1.5rem",
           },
+          mb: 1,
         }}
       >
         {title}
       </Typography>
-            {cantidadCrudo !== undefined && (
+      <Box sx={headerDividerSx} />
+      {cantidadCrudo !== undefined && (
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "100px",
-            position: "relative",
-            zIndex: 1,
+            minHeight: "100px",
+            pt: 1,
           }}
         >
-          <Typography
-            variant="h4"
-            component="p"
-            sx={{ color: "#629584", fontWeight: 700 }}
-          >
+          <Typography variant="h4" component="p" sx={{ ...typography.kpiValue, fontSize: { xs: "1.5rem", sm: "2rem" } }}>
             {cantidadCrudo} km
           </Typography>
         </Box>
       )}
-
-      {/* Children: cualquier contenido extra SIN km */}
       {children}
-
     </CardContent>
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "radial-gradient(circle at top right, rgba(98, 149, 132, 0.15), transparent 70%)",
-        zIndex: 0,
-      }}
-    />
   </Card>
-)
+);
 
-export default CustomCard
-
+export default CustomCard;

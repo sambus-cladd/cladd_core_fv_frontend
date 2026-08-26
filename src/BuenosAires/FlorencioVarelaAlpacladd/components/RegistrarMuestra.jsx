@@ -1,5 +1,5 @@
 import { useEffect, useState, React, useRef } from 'react';
-import { FormControl, InputLabel, Select, Card, Grid, MenuItem, Button, Typography, TextField } from '@mui/material/';
+import { FormControl, InputLabel, Select, Card, Grid, MenuItem, Button, Typography, TextField, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material/';
 import Autocomplete from "@mui/material/Autocomplete";
 import ReactDOM from 'react-dom';
 import AbcIcon from '@mui/icons-material/Abc';
@@ -58,29 +58,29 @@ function RegistrarMuestra() {
     confirmar: null,
     cancelar: null
   });
+  const [popupTarima, setPopupTarima] = useState({ open: false, tarima: '' });
 
 
 
   const columns = [
-    { field: 'rutina', headerName: 'Rutina', width: 150 },
-    { field: 'motivo', headerName: 'Motivo', width: 150 },
-    { field: 'lote', headerName: 'Lote', width: 150 },
-    { field: 'tarima', headerName: 'Tarima', width: 150 },
-    { field: 'articulo_final', headerName: 'Artículo', width: 150 },
-    { field: 'metros', headerName: 'Metros', width: 150, valueFormatter: (params) => `${params.value} m` },
-    { field: 'corte', headerName: 'Muestra', width: 150, valueFormatter: (params) => `${params.value} m` },
-    { field: 'operario', headerName: 'Registró', width: 150 },
-    { field: 'fecha', headerName: 'Fecha', width: 150, valueFormatter: (params) => new Date(params.value).toLocaleString() },
+    { field: 'rutina', headerName: 'Rutina', width: 110 },
+    { field: 'motivo', headerName: 'Motivo', width: 120 },
+    { field: 'lote', headerName: 'Lote', width: 115 },
+    { field: 'tarima', headerName: 'Tarima', width: 85 },
+    { field: 'articulo_final', headerName: 'Artículo', width: 125 },
+    { field: 'metros', headerName: 'Metros', width: 95, valueFormatter: (params) => `${params.value} m` },
+    { field: 'corte', headerName: 'Muestra', width: 95, valueFormatter: (params) => `${params.value} m` },
+    { field: 'operario', headerName: 'Registró', flex: 1, minWidth: 180 },
+    { field: 'fecha', headerName: 'Fecha', width: 168, valueFormatter: (params) => new Date(params.value).toLocaleString() },
     {
       field: 'actions',
       headerName: 'Re Imprimir',
-      width: 150,
+      width: 115,
       renderCell: (params) => (
         <Button
           variant="contained"
           color="primary"
           size="small"
-
           onClick={() => handleReImprimir(params.row)}
         >
           <BookmarkAddIcon />
@@ -96,9 +96,12 @@ function RegistrarMuestra() {
   async function getRutinas() {
     try {
       let respuesta = await getTodasRutinas();
-      setRows(respuesta.data);
+      const data = Array.isArray(respuesta.data) ? respuesta.data : [];
+      // DataGrid requiere un id por fila; usar id, rutina o índice
+      setRows(data.map((row, idx) => ({ ...row, id: row.id ?? row.rutina ?? idx })));
     } catch (error) {
-      setMensaje("Error al cargar las rutinas cargadas previamente");
+      console.error('getRutinas:', error);
+      setMensaje("Error al cargar las rutinas. ¿El backend está en marcha y la URL es correcta?");
       setTipo('error');
       setIsOpen(true);
     }
@@ -388,7 +391,8 @@ function RegistrarMuestra() {
       return false;
     }
     if (tarimasOcupadas.includes(parseInt(tarima))) {
-      alert(`La tarima ${tarima} ya está ocupada, ¿Desea compartirla?`);
+      setPopupTarima({ open: true, tarima });
+      return false;
     }
     if (metrosTotal === '') {
       setMensaje('Ingrese los metros totales del lote');
@@ -419,50 +423,48 @@ function RegistrarMuestra() {
     }
     return true;
   }
+  const continuarRegistro = async () => {
+    setLoading(true);
+    try {
+      const resp = await validarDatosMuestras(rollo);
+      const data = resp.data;
+
+      if (!data.valido) {
+        setPopupValidacion({
+          open: true,
+          mensaje: `${data.motivo} ¿Desea continuar registrando la muestra de todas formas?`,
+          confirmar: async () => {
+            setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
+            await registrarMuestras();
+          },
+          cancelar: () => {
+            setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
+            setLoading(false);
+          }
+        });
+        setLoading(false);
+        return;
+      }
+
+      await registrarMuestras();
+    } catch (error) {
+      setMensaje("Error validando el rollo");
+      setTipo("error");
+      setIsOpen(true);
+      setLoading(false);
+    }
+  };
+
   const handleClick = async () => {
-  setLoading(true);
+    setLoading(true);
 
-  if (!validar()) {
-    setLoading(false);
-    return;
-  }
-
-  // Validacion del rollo en la BD
-  try {
-    const resp = await validarDatosMuestras(rollo);
-    const data = resp.data;
-
-    if (!data.valido) {
-      // Mostrar popup confirmable
-      setPopupValidacion({
-        open: true,
-        mensaje: `${data.motivo} ¿Desea continuar registrando la muestra de todas formas?`,
-        confirmar: async () => {
-          setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
-
-          // Proceder al registro REAL
-          await registrarMuestras();
-        },
-        cancelar: () => {
-          console.log("✖ Cancelado por el usuario");
-          setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
-          setLoading(false);
-        }
-      });
-
-      return; 
+    if (!validar()) {
+      setLoading(false);
+      return;
     }
 
-    // Si es valido registrar directamente
-    await registrarMuestras();
-
-  } catch (error) {
-    setMensaje("Error validando el rollo");
-    setTipo("error");
-    setIsOpen(true);
-    setLoading(false);
-  }
-};
+    await continuarRegistro();
+  };
 async function registrarMuestras() {
   try {
     let nuevaRutinaBase = await generarNuevaRutina();
@@ -510,11 +512,13 @@ async function registrarMuestras() {
     }
 
     refrescarTabla ? setRefrescarTabla(false) : setRefrescarTabla(true);
+    await getRutinas();
     setLoading(false);
 
   } catch (error) {
-    console.error(error);
-    setMensaje("Error al registrar la rutina");
+    console.error('registrarMuestras:', error);
+    const msg = error.response?.data?.message || error.response?.data || error.message;
+    setMensaje(msg ? `Error al registrar: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}` : "Error al registrar la rutina. Revisá consola (F12) y que el backend esté en marcha.");
     setTipo("error");
     setIsOpen(true);
     setLoading(false);
@@ -551,17 +555,17 @@ function handleChangeRollo(event) {
 
   return (
     <>
-      <HeaderYFooter titulo={"MUESTRA LABORATORIO"}>
+      <HeaderYFooter titulo="REGISTRAR MUESTRA" routes={[]} color="alpacladd" showMainMenu={false}>
         <Grid container columns={12} sx={{ width: "95%" }}  >
           {/* INICIO REGISTRO DE MUESTRA I*/}
           <Grid item xs={6} sm={6} md={6} mb={6} pl={3} >
 
             {/* INICIO CARGA DE MUESTRA */}
-            <Card sx={{ minWidth: '90%', borderRadius: "10px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)", paddingTop: 0, margin: "30px 30px" }}>
+            <Card sx={{ minWidth: '90%', borderRadius: '12px', boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)', border: '1px solid rgba(26, 72, 98, 0.06)', paddingTop: 0, margin: '30px 30px' }}>
 
               {/* PRIMERA FILA - TITULO*/}
               <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1}>
-                <Typography fontFamily={'Poppins'} fontWeight={'bold'} fontSize={20} color={'#0D3F5E'}>REGISTRO INGRESOS LABORATORIO - CALIDAD</Typography>
+                <Typography fontFamily={'Poppins'} fontWeight={'bold'} fontSize={20} color={'#1A4862'}>REGISTRO INGRESOS LABORATORIO - CALIDAD</Typography>
               </Grid>
 
               {/* AGREGADO - MOTIVO */}
@@ -771,7 +775,7 @@ function handleChangeRollo(event) {
           <Grid item xs={6} sm={6} md={6} mb={6} pl={3}>
 
             {/* INICIO CARGA DE MUESTRA */}
-            <Card sx={{ minWidth: '90%', borderRadius: "10px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)", paddingTop: 0, margin: "30px 30px" }}>
+            <Card sx={{ minWidth: '90%', borderRadius: '12px', boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)', border: '1px solid rgba(26, 72, 98, 0.06)', padding: 2, margin: '30px 30px' }}>
 
               {/* PRIMERA FILA  - RESULTADO - ANOTACIONES*/}
               <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1}>
@@ -828,51 +832,79 @@ function handleChangeRollo(event) {
                   />
                 </Grid>
               </Grid>
-              {/* AGREGAR MUESTRAS */}
-              <Grid container spacing={2} >
-
-                <Grid item xs={6} sm={6} md={6} padding={0}>
-
-                  <Typography fontFamily="Poppins" marginLeft={1} color={"#1976D2"}>Agregar Muestra</Typography>
-
-                  <Button
-                    aria-label="increase"
-                    onClick={handleIncremento}>
-                    <AddIcon></AddIcon>
-                  </Button>
-
-                  <Button
-                    aria-label="decrease"
-                    onClick={handleDecremento}>
-                    <RemoveIcon></RemoveIcon>
-                  </Button>
-
+              {/* AGREGAR MUESTRAS - área con scroll cuando hay muchas */}
+              <Box sx={{ mb: 2 }}>
+                <Grid container alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                  <Grid item>
+                    <Typography fontFamily="Poppins" color="#1976D2" fontWeight={600}>
+                      Agregar Muestra
+                    </Typography>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      aria-label="increase"
+                      onClick={handleIncremento}
+                      size="small"
+                      variant="outlined"
+                      sx={{ minWidth: 36 }}
+                    >
+                      <AddIcon />
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      aria-label="decrease"
+                      onClick={handleDecremento}
+                      size="small"
+                      variant="outlined"
+                      sx={{ minWidth: 36 }}
+                    >
+                      <RemoveIcon />
+                    </Button>
+                  </Grid>
                 </Grid>
 
-                {[...Array(numCampos)].map((_, index) => (
-                  <Grid key={index} item xs={6} sm={6} md={6} padding={1}>
-                    <TextField
-                      fullWidth
-                      sx={{ color: "#1976D2" }}
-                      type='number'
-                      id={`outlined-basic-${index}`}
-                      placeholder={`Muestra N°${index + 1}`}
-                      fontFamily="Poppins"
-                      value={muestra[index] || ''}
-                      variant="outlined"
-                      onChange={(event) => handleFormChangeText(event, index)}
-                      InputProps={{
-                        endAdornment: (
-                          <PinIcon position="end">
-                          </PinIcon>
-                        ),
-                      }}
-                    />
+                <Box
+                  sx={{
+                    maxHeight: 220,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    p: 0.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    backgroundColor: 'action.hover',
+                  }}
+                >
+                  <Grid container spacing={1.5}>
+                    {[...Array(numCampos)].map((_, index) => (
+                      <Grid key={index} item xs={6} md={4}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          sx={{ color: "#1976D2" }}
+                          type="number"
+                          id={`outlined-basic-${index}`}
+                          placeholder={`Muestra N°${index + 1}`}
+                          fontFamily="Poppins"
+                          value={muestra[index] || ''}
+                          variant="outlined"
+                          onChange={(event) => handleFormChangeText(event, index)}
+                          InputProps={{
+                            endAdornment: (
+                              <PinIcon sx={{ fontSize: 18 }} position="end" />
+                            ),
+                          }}
+                        />
+                      </Grid>
+                    ))}
                   </Grid>
-                ))}
-              </Grid>
+                </Box>
+              </Box>
+
               {/* ESTADO DE TELA  PLEGADO-ENROLLADO */}
-              <Grid item xs={6} sm={6} md={6} padding={0.2} margin={1.2}>
+              <Grid container direction="row" sx={{ mt: 2 }}>
+              <Grid item xs={12} sm={6} md={6}>
                 <FormControl fullWidth variant="outlined">
                   <InputLabel id="estado-tela">Estado</InputLabel>
                   <Select
@@ -887,10 +919,11 @@ function handleChangeRollo(event) {
                   </Select>
                 </FormControl>
               </Grid>
+              </Grid>
 
               {/* MENSAJE Y BOTON */}
-              <Grid container direction="row" justifyContent="flex-end" alignItems="flex-start" padding={1}>
-                <Grid item xs={4} sm={4} md={4} padding={0.5}>
+              <Grid container direction="row" justifyContent="flex-end" alignItems="flex-start" sx={{ mt: 3, padding: 1 }}>
+                <Grid item xs={12} sm={6} md={5}>
                   <LoadingButton
                     fullWidth
                     variant="contained"
@@ -922,6 +955,64 @@ function handleChangeRollo(event) {
           onConfirm={popupValidacion.confirmar}
           onCancel={popupValidacion.cancelar}
         />
+
+        {/* Popup tarima ocupada - estilo profesional */}
+        <Dialog
+          open={popupTarima.open}
+          onClose={() => setPopupTarima({ open: false, tarima: '' })}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              minWidth: 380,
+              maxWidth: 440,
+            }
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontFamily: 'Poppins',
+              fontWeight: 600,
+              fontSize: '1.15rem',
+              color: '#0D3F5E',
+              pb: 0,
+            }}
+          >
+            Tarima ocupada
+          </DialogTitle>
+          <DialogContent sx={{ pt: 1.5 }}>
+            <DialogContentText
+              sx={{
+                fontFamily: 'Poppins',
+                fontSize: '0.95rem',
+                color: 'text.secondary',
+                lineHeight: 1.5,
+              }}
+            >
+              La tarima <strong>{popupTarima.tarima}</strong> ya está ocupada. ¿Desea compartirla?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2, pt: 0, gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setPopupTarima({ open: false, tarima: '' })}
+              sx={{ fontFamily: 'Poppins', textTransform: 'none' }}
+            >
+              No, cambiar tarima
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setPopupTarima({ open: false, tarima: '' });
+                continuarRegistro();
+              }}
+              sx={{ fontFamily: 'Poppins', textTransform: 'none' }}
+            >
+              Sí, compartir
+            </Button>
+          </DialogActions>
+        </Dialog>
       </HeaderYFooter>
     </>
   );

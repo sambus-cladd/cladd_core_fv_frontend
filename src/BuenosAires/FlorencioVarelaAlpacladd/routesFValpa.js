@@ -1,12 +1,15 @@
+import { productividadSubRoutes } from "./Productividad/routesFVProductividad";
+import { terminacionSubRoutes } from "./Terminacion/routesTerminacion";
+
 const routes = [
   {
-    name: "HOME ",
+    name: "HOME",
     key: "Home",
-    route: "/BuenosAires",
+    route: "/BuenosAires/FlorencioVarela/AlpacladdHome",
     target: "_self",
   },
   {
-    name: "LABORATORIO ",
+    name: "LABORATORIO",
     key: "Laboratorio",
     route: "/BuenosAires/FlorencioVarela/Laboratorio",
     target: "_self",
@@ -54,24 +57,15 @@ const routes = [
     ],
   },
   {
-    name: "TERMINACION ",
+    name: "TERMINACION",
     key: "TERMINACION",
-    route: "/BuenosAires/FlorencioVarela/Terminacion",
-    target: "_self",
-
+    children: terminacionSubRoutes,
   },
   {
-    name: "PRODUCTIVIDAD ",
+    name: "PRODUCTIVIDAD",
     key: "Productividad",
-    route: "/BuenosAires/FlorencioVarela/Productividad",
-    target: "_self",
+    children: productividadSubRoutes,
   },
-  // {
-  //   name: "STOCK EN PLANTA",
-  //   key: "StockPlanta",
-  //   route: "/BuenosAires/FlorencioVarela/StockPlanta",
-  //   target: "_self",
-  // },
   {
     name: "PANEL DE EQUIPOS",
     key: "PanelEquipos",
@@ -80,5 +74,4 @@ const routes = [
   },
 ];
 
-
-export default routes; 
+export default routes;

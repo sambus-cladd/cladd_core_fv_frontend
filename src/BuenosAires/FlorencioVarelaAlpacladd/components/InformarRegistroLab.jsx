@@ -1,10 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Grid, TextField, Button, Snackbar, Alert } from '@mui/material';
+import { Box, Grid, TextField, Button, Snackbar, Alert, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CardAlpa from '../../../components/Plantilla/CardAlpa';
-import HeaderYFooter from '../../../components/Plantilla/HeaderYFooter';
 import { putRegistroLaboratorio } from '../API/APIFunctions';
+import { colors, typography } from '../../../styles/alpacladdFvDesignTokens';
+
+const primaryBtnSx = {
+  background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+  fontFamily: 'Poppins',
+  fontWeight: 600,
+  textTransform: 'none',
+  borderRadius: '10px',
+  boxShadow: 'none',
+  '&:hover': { background: '#1A4862' },
+};
 
 const InformarRegistroLab = () => {
   const [codigo, setCodigo] = useState('');
@@ -15,7 +25,6 @@ const InformarRegistroLab = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('info');
 
-  // Mantener foco activo constantemente
   useEffect(() => {
     const focusInput = () => inputRef.current?.focus();
     focusInput();
@@ -45,7 +54,6 @@ const InformarRegistroLab = () => {
 
     setLoading(true);
     try {
-      // Generar fecha actual en formato MySQL
       const ahora = new Date();
       const fechaActual = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000)
         .toISOString()
@@ -84,41 +92,102 @@ const InformarRegistroLab = () => {
   };
 
   return (
-    <HeaderYFooter titulo="INFORMAR REGISTRO LABORATORIO">
-      <Box
-        sx={{ display: 'flex', width: { xs: '100%', sm: '100%', md: '60%' }, justifyContent: 'center',
-          alignItems: 'center', margin: '0 auto', height: '60vh', position: 'relative', }} >
-        <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }} sx={{ zIndex: 2000, position: 'absolute', top: 0 }} >
-          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
+    <Box
+      sx={{
+        display: 'flex',
+        width: { xs: '100%', md: '60%' },
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: '0 auto',
+        minHeight: '50vh',
+        position: 'relative',
+        px: 1,
+      }}
+    >
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: 2000, position: 'absolute', top: 0 }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
-        <CardAlpa>
-          <Grid container spacing={2} padding={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Escanea o ingresa el codigo de muestra" variant="outlined" value={codigo} 
-                onChange={(e) => setCodigo(e.target.value)}
-                onKeyDown={handleKeyPress} inputRef={inputRef} fullWidth autoFocus />
-            </Grid>
-
-            <Grid item xs={12} md={12}>
-              <Box display="flex" gap={2} flexDirection={{ xs: 'column', sm: 'row' }}>
-                <Button variant="outlined" color='error' startIcon={<DeleteIcon />} onClick={handleDelete} sx={{ flex: 1 }} >
-                  Borrar
-                </Button>
-
-                <LoadingButton loading={loading} variant="contained" size="small" onClick={handleSearch} sx={{ flex: 1 }} >
-                  Informar Registro
-                </LoadingButton>
-              </Box>
-            </Grid>
+      <CardAlpa sx={{ width: '100%', mt: 0 }}>
+        <Grid container spacing={2} padding={2.5}>
+          <Grid item xs={12}>
+            <Typography
+              sx={{
+                ...typography.cardTitle,
+                mb: 0.5,
+              }}
+            >
+              Ingreso laboratorio
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: typography.fontFamily, color: colors.textMuted, mb: 1.5 }}
+            >
+              Escaneá o ingresá el código de muestra para registrar el ingreso.
+            </Typography>
           </Grid>
-        </CardAlpa>
-      </Box>
-    </HeaderYFooter>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Código de muestra"
+              variant="outlined"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              onKeyDown={handleKeyPress}
+              inputRef={inputRef}
+              fullWidth
+              autoFocus
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontFamily: 'Poppins',
+                  borderRadius: '10px',
+                },
+                '& .MuiInputLabel-root': {
+                  fontFamily: 'Poppins',
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box display="flex" gap={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={handleDelete}
+                sx={{
+                  flex: 1,
+                  fontFamily: 'Poppins',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                }}
+              >
+                Borrar
+              </Button>
+
+              <LoadingButton
+                loading={loading}
+                variant="contained"
+                onClick={handleSearch}
+                sx={{ flex: 1, ...primaryBtnSx }}
+              >
+                Informar registro
+              </LoadingButton>
+            </Box>
+          </Grid>
+        </Grid>
+      </CardAlpa>
+    </Box>
   );
 };
 

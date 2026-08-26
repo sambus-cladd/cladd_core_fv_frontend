@@ -1,6 +1,9 @@
 import axios from 'axios'
 import APIRoutes from "./APIRoutes";
 
+const APIURL = APIRoutes[0].DatosGantFV.replace("AlpacladdFVProductividadDATOSGANT", "");
+const axiosConfig = { timeout: 15000 };
+
 const URLCargagantFV    = APIRoutes[0].CargaGantFV
 const URLCargaGantReprocesoFV    = APIRoutes[0].CargaGantReprocesoFV
 const URLDatosgantFV    = APIRoutes[0].DatosGantFV
@@ -31,27 +34,27 @@ async function PutModificacionGantFV(data) {
 /*******************************************************************/
 
 async function GetDatosGantFV(data) {
-    const peticion = await axios.get(URLDatosgantFV,data)
+    const peticion = await axios.get(URLDatosgantFV, { ...axiosConfig, ...data })
     return(peticion.data)
 }
 
 async function GetTABLAMAQUINAS(data) {
-    const peticion = await axios.get(URLTablamaquina,data)
+    const peticion = await axios.get(URLTablamaquina, { ...axiosConfig, ...data })
     return(peticion.data)
 }
 
 async function GetTABLAPROCESOS(data) {
-    const peticion = await axios.get(URLTablaprocesos,data)
+    const peticion = await axios.get(URLTablaprocesos, { ...axiosConfig, ...data })
     return(peticion.data)
 }
 
 async function GetTABLACODMAQUINAS(data) {
-    const peticion = await axios.get(URLTablacodmaquinas,data)
+    const peticion = await axios.get(URLTablacodmaquinas, { ...axiosConfig, ...data })
     return(peticion.data)
 }
 
 async function GetTABLACOLORES(data) {
-    const peticion = await axios.get(URLTablacolores,data)
+    const peticion = await axios.get(URLTablacolores, { ...axiosConfig, ...data })
     return(peticion.data)
 }
 
@@ -78,7 +81,7 @@ async function DeleteOrdenPcp(id){
 
 const actualizarDatosReales = async ({ IdOrden, MetrosReal, HoraInicioReal, HoraFinReal, FechaRegistroReal,HorasTotalReal }) => {
     try {
-        const response = await axios.put('http://192.168.0.18:4300/Gant/ActualizarDatosReales', {
+        const response = await axios.put(`${APIURL}Gant/ActualizarDatosReales`, {
             IdOrden,
             MetrosReal,
             HoraInicioReal,
@@ -96,7 +99,7 @@ const actualizarDatosReales = async ({ IdOrden, MetrosReal, HoraInicioReal, Hora
 const guardarEstadoOrden = async ({ IdOrden, NumeroOrden, EstadoOrden, HoraInicioReal, 
     HoraFinReal, MetrosTotales, MetrosPorRollo, Responsables }) => {
     try {
-        const response = await axios.put('http://192.168.0.18:4300/Gant/GuardarEstadoOrden', {
+        const response = await axios.put(`${APIURL}Gant/GuardarEstadoOrden`, {
             IdOrden,
             NumeroOrden,
             EstadoOrden,
@@ -114,7 +117,7 @@ const guardarEstadoOrden = async ({ IdOrden, NumeroOrden, EstadoOrden, HoraInici
 };
 const getEstadoOrden = async (idOrden) => {
   try {
-    const response = await axios.get(`http://192.168.0.18:4300/Gant/EstadoOrden/${idOrden}`);
+    const response = await axios.get(`${APIURL}Gant/EstadoOrden/${idOrden}`, axiosConfig);
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -129,7 +132,7 @@ const getEstadoOrden = async (idOrden) => {
 
 const getSecuenciaRollo = async (rollo) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/SecuenciaRollo/${rollo}`);
+        const response = await axios.get(`${APIURL}Gant/SecuenciaRollo/${rollo}`, axiosConfig);
         return response.data;
     } 
     catch (error) {
@@ -140,7 +143,7 @@ const getSecuenciaRollo = async (rollo) => {
 
 const getDatosOrdenes = async (idOrden) => {
   try {
-    const response = await axios.get(`http://192.168.0.18:4300/Gant/DatosOrdenes/${idOrden}`);
+    const response = await axios.get(`${APIURL}Gant/DatosOrdenes/${idOrden}`, axiosConfig);
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -155,7 +158,7 @@ const getDatosOrdenes = async (idOrden) => {
 
 const getNumeroOrdenes = async (numero_orden) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/NumOrdenes/${numero_orden}`);
+        const response = await axios.get(`${APIURL}Gant/NumOrdenes/${numero_orden}`, axiosConfig);
         return response.data;
     } 
     catch (error) {
@@ -166,7 +169,7 @@ const getNumeroOrdenes = async (numero_orden) => {
 
 const getOrdenPorRollo = async (rollo) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/RolloOrdenes/${rollo}`);
+        const response = await axios.get(`${APIURL}Gant/RolloOrdenes/${rollo}`, axiosConfig);
         return response.data;
     } 
     catch (error) {
@@ -174,9 +177,10 @@ const getOrdenPorRollo = async (rollo) => {
         throw error;
     }
 };
-const getOrdenesGantt = async () => {
+const getOrdenesGantt = async (estado = null) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/OrdenesGantt`);
+        const params = estado ? { estado } : undefined;
+        const response = await axios.get(`${APIURL}Gant/OrdenesGantt`, { ...axiosConfig, params });
         return response.data;
     } 
     catch (error) {
@@ -186,7 +190,7 @@ const getOrdenesGantt = async () => {
 };
 const validarLegajo = async (legajo) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/ValidarLegajo/${legajo}`);
+        const response = await axios.get(`${APIURL}Gant/ValidarLegajo/${legajo}`, axiosConfig);
         console.log("Respuesta validarLegajo:", response.data);
         return response.data;
         
@@ -198,7 +202,7 @@ const validarLegajo = async (legajo) => {
 };
 const asignarResponsable = async (NumeroOrden) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/AsignarResponsable/${NumeroOrden}`);
+        const response = await axios.get(`${APIURL}Gant/AsignarResponsable/${NumeroOrden}`, axiosConfig);
         console.log("Respuesta responsaable:", response.data);
         return response.data;
         
@@ -210,7 +214,7 @@ const asignarResponsable = async (NumeroOrden) => {
 };
 const getResponsables = async (idOrden) => {
     try {
-        const response = await axios.get(`http://192.168.0.18:4300/Gant/Responsables/${idOrden}`);
+        const response = await axios.get(`${APIURL}Gant/Responsables/${idOrden}`, axiosConfig);
         console.log("Respuesta responsaable:", response.data);
         return response.data;
         

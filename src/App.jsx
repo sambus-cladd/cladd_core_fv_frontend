@@ -5,7 +5,6 @@ import ReportesProductividad from "./BuenosAires/FlorencioVarelaAlpacladd/Produc
 import ReportesTerminacion from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/ReportesTerminacion";
 import PaginaEtiqueta from "./BuenosAires/FlorencioVarelaAlpacladd/Terminacion/PaginaEtiqueta";
 import AlpacladdHomeFV from "./BuenosAires/FlorencioVarelaAlpacladd/AlpacladdHomeFV";
-import ProductividadFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/ProductividadFV";
 import GanProgramacionFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/GantProgramacionFV";
 import GraficoGantFV from "./BuenosAires/FlorencioVarelaAlpacladd/Productividad/PCP/components/GraficoGantPcp";
 import FormularioEnsayos from './BuenosAires/FlorencioVarelaAlpacladd/components/FormularioEnsayos.jsx';
@@ -67,7 +66,7 @@ function App() {
       {/* PRODUCTIVIDAD */}
       <Route
         path="/BuenosAires/FlorencioVarela/Productividad"
-        element={<ProductividadFV />}
+        element={<Navigate to="/BuenosAires/FlorencioVarela/AlpacladdHome" replace />}
       />
       <Route
         path="/BuenosAires/FlorencioVarela/Productividad/PCP"
@@ -150,8 +149,17 @@ function App() {
         element={<RechazosRegistro/>}/>
 
 
-      {/* LABORATORIO */}
-      {/* rutas protegidas bs as */}
+      {/* RegistrarMuestra y StockCalidad: accesibles sin login (para desarrollo; volver a meter en RequireAuth en producción) */}
+      <Route
+        path="/BuenosAires/FlorencioVarela/Terminacion/RegistrarMuestra"
+        element={<FormularioRegistrarMuestra />}
+      />
+      <Route
+        path="/BuenosAires/FlorencioVarela/Terminacion/StockCalidad"
+        element={<StockCalidad withChrome />}
+      />
+
+      {/* LABORATORIO - rutas protegidas */}
       <Route
         element={
           <RequireAuth
@@ -163,18 +171,12 @@ function App() {
           path="/BuenosAires/FlorencioVarela/Laboratorio"
           element={<FVLaboratorio />}
         />
-        <Route
-          path="/BuenosAires/FlorencioVarela/Terminacion/RegistrarMuestra"
-          element={<FormularioRegistrarMuestra />}
-        />
-        <Route
-          path="/BuenosAires/FlorencioVarela/Terminacion/StockCalidad"
-          element={<StockCalidad />}
-        />
       </Route>
       <Route
         path="/BuenosAires/FlorencioVarela/Laboratorio/Login"
-        element={<LoginLabFV />}
+        element={
+          <LoginLabFV subtitle="Iniciar sesión para acceder al módulo de laboratorio" />
+        }
       />
 
       <Route path="/formulario-ensayos/:rutinaId" element={<FormularioEnsayos />} />

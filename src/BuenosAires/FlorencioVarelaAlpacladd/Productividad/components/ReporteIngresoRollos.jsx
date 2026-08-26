@@ -4,11 +4,27 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import Grid from '@mui/material/Grid';
-import { Typography, Box, Hidden } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import Button from '@mui/material/Button';
 import DataGridTabla from '../../../../components/DataGrid/DataGridTable';
 import GraficoBarraRollosxFecha from './GraficoBarraRollosxFecha';
 import { getReporteIngresoRollos } from '../../API/APIFunctions';
+import CardAlpa from '../../../../components/Plantilla/CardAlpa';
+import { colors, typography } from '../../../../styles/alpacladdFvDesignTokens';
+
+const primaryBtnSx = {
+  background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+  fontFamily: 'Poppins',
+  fontWeight: 600,
+  textTransform: 'none',
+  borderRadius: '10px',
+  boxShadow: 'none',
+  '&:hover': { background: '#1A4862' },
+};
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Poppins' },
+};
 
 const ReporteIngresoRollos = () => {
   const [fechaInicio, setFechaInicio] = useState(dayjs());
@@ -69,43 +85,59 @@ const ReporteIngresoRollos = () => {
 
 
   return (
+  <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+    <Typography sx={{ ...typography.cardTitle, mb: 0.5 }}>Ingreso de rollos</Typography>
+    <Typography sx={{ fontFamily: typography.fontFamily, color: colors.textMuted, fontSize: '0.85rem', mb: 2 }}>
+      Generá el reporte por rango de fechas
+    </Typography>
+
   <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-    <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
-      
-      {/* Fecha de inicio */}
-      <Grid item>
-        <Typography variant='h6' fontFamily='Poppins' fontWeight="bold" gutterBottom>
-          Fecha de inicio
-        </Typography>
-        <DatePicker
-          value={fechaInicio}
-          onChange={(newValue) => setFechaInicio(newValue)}
-          disableFuture
-        />
-      </Grid>
+    <CardAlpa sx={{ mt: 0, mb: 2 }}>
+      <Grid container spacing={2} justifyContent="flex-start" alignItems="flex-end" sx={{ p: 2.5 }}>
+        <Grid item xs={12} sm={4} md={3}>
+          <Typography sx={{ fontFamily: 'Poppins', fontWeight: 600, color: colors.brand, fontSize: '0.85rem', mb: 0.75 }}>
+            Fecha de inicio
+          </Typography>
+          <DatePicker
+            value={fechaInicio}
+            onChange={(newValue) => setFechaInicio(newValue)}
+            disableFuture
+            slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
+          />
+        </Grid>
 
-      {/* Fecha de fin */}
-      <Grid item>
-        <Typography variant='h6' fontFamily='Poppins' fontWeight="bold" gutterBottom>
-          Fecha de fin
-        </Typography>
-        <DatePicker
-          value={fechaFin}
-          onChange={(newValue) => setFechaFin(newValue)}
-          disableFuture
-        />
-      </Grid>
+        <Grid item xs={12} sm={4} md={3}>
+          <Typography sx={{ fontFamily: 'Poppins', fontWeight: 600, color: colors.brand, fontSize: '0.85rem', mb: 0.75 }}>
+            Fecha de fin
+          </Typography>
+          <DatePicker
+            value={fechaFin}
+            onChange={(newValue) => setFechaFin(newValue)}
+            disableFuture
+            slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
+          />
+        </Grid>
 
-      {/* Botón */}
-      <Grid item alignSelf="end" sx={{ mt: 2 }}>
-        <Button variant='contained' onClick={fetchRollos}>
-          Generar reporte
-        </Button>
+        <Grid item xs={12} sm={4} md={3}>
+          <Button fullWidth variant="contained" onClick={fetchRollos} sx={primaryBtnSx}>
+            Generar reporte
+          </Button>
+        </Grid>
       </Grid>
+    </CardAlpa>
 
-      {/* Grafico */}
+    <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Box p={1} textAlign="center">
+        <Box
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            border: '1px solid rgba(26, 72, 98, 0.06)',
+            boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)',
+            p: 1.5,
+            textAlign: 'center',
+          }}
+        >
           <GraficoBarraRollosxFecha
             data={rows}
             label="Cantidad de Ingresos por fecha"
@@ -114,17 +146,26 @@ const ReporteIngresoRollos = () => {
         </Box>
       </Grid>
 
-      {/* Tabla */}
       <Grid item xs={12}>
-        <DataGridTabla
-          rows={rows2}
-          columns={columns2}
-          filename={`Ingreso de rollos desde ${fechaInicio.format('DD/MM/YYYY')} hasta ${fechaFin.format('DD/MM/YYYY')}`}
-        />
+        <Box
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            border: '1px solid rgba(26, 72, 98, 0.06)',
+            boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)',
+            p: 1,
+          }}
+        >
+          <DataGridTabla
+            rows={rows2}
+            columns={columns2}
+            filename={`Ingreso de rollos desde ${fechaInicio.format('DD/MM/YYYY')} hasta ${fechaFin.format('DD/MM/YYYY')}`}
+          />
+        </Box>
       </Grid>
-
     </Grid>
   </LocalizationProvider>
+  </Box>
 );
 
 

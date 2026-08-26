@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
-import { Typography, Grid, Button, TextField, Autocomplete, FormControl, Select, MenuItem, Table } from '@mui/material'
+import { Typography, Grid, Button, TextField, Autocomplete, FormControl, Select, MenuItem, Table, Box } from '@mui/material'
 import dayjs from 'dayjs'
 import { getReporteEnsayosXArticulo, getArticulosFV, getEspecificacionArticulos } from '../../API/APIFunctions'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -13,6 +13,31 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import CardAlpa from '../../../../components/Plantilla/CardAlpa';
+import { colors, typography } from '../../../../styles/alpacladdFvDesignTokens';
+
+const primaryBtnSx = {
+    background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+    fontFamily: 'Poppins',
+    fontWeight: 600,
+    textTransform: 'none',
+    borderRadius: '10px',
+    boxShadow: 'none',
+    '&:hover': { background: '#1A4862' },
+};
+
+const fieldSx = {
+    '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Poppins' },
+    '& .MuiInputLabel-root': { fontFamily: 'Poppins' },
+};
+
+const labelSx = {
+    fontFamily: typography.fontFamily,
+    fontWeight: 600,
+    color: colors.brand,
+    fontSize: '0.85rem',
+    mb: 0.75,
+};
 const GraficosEnsayos = () => {
     const [fechaInicio, setFechaInicio] = useState(dayjs());
     const [fechaFin, setFechaFin] = useState(dayjs());
@@ -177,135 +202,151 @@ const GraficosEnsayos = () => {
     }
 
     return (
-        <>
+        <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+            <Typography sx={{ ...typography.cardTitle, mb: 0.5 }}>Ensayos por fecha</Typography>
+            <Typography sx={{ fontFamily: typography.fontFamily, color: colors.textMuted, fontSize: '0.85rem', mb: 2 }}>
+                Filtrá por artículo, motivo y rango para ver tendencias
+            </Typography>
+
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                <Grid container direction={"row"} justifyContent={"center"} alignItems={"flex-start"}>
-                    <Grid item xs={12} sm={4}>
-                        <Grid container
-                            direction="row"
-                            sx={{
-                                justifyContent: "flex-start",
-                                alignItems: "flex-start",
-                            }}>
-                            <Grid item xs={6}>
-                                <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                                    Artículo
-                                </Typography>
-                                <Autocomplete
-                                    id="articulo-terminado"
-                                    options={articulosFV}
-                                    value={articulo}
-                                    onChange={(event, newValue) => {
-                                        setArticulo(newValue);
-                                    }}
-                                    renderInput={(params) => (
-                                        <TextField {...params} variant="outlined" />
-                                    )}
-                                />
+                <Grid container spacing={2} alignItems="flex-start">
+                    <Grid item xs={12} md={4}>
+                        <CardAlpa sx={{ mt: 0, p: 2 }}>
+                            <Grid container spacing={1.5}>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography sx={labelSx}>Artículo</Typography>
+                                    <Autocomplete
+                                        id="articulo-terminado"
+                                        options={articulosFV}
+                                        value={articulo}
+                                        onChange={(_event, newValue) => setArticulo(newValue)}
+                                        renderInput={(params) => (
+                                            <TextField {...params} variant="outlined" size="small" sx={fieldSx} />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography sx={labelSx}>Motivo</Typography>
+                                    <FormControl fullWidth size="small">
+                                        <Select
+                                            id="motivo-select"
+                                            value={motivo}
+                                            onChange={(event) => setMotivo(event.target.value)}
+                                            sx={{ borderRadius: '10px', fontFamily: 'Poppins' }}
+                                        >
+                                            {motivos.map((option) => (
+                                                <MenuItem key={option} value={option}>
+                                                    {option}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography sx={labelSx}>Desde</Typography>
+                                    <DatePicker
+                                        value={fechaInicio}
+                                        onChange={(newValue) => setFechaInicio(newValue)}
+                                        disableFuture
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography sx={labelSx}>Hasta</Typography>
+                                    <DatePicker
+                                        value={fechaFin}
+                                        onChange={(newValue) => setFechaFin(newValue)}
+                                        disableFuture
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Button fullWidth variant="contained" onClick={handleGenerarReporte} sx={primaryBtnSx} disabled={isLoading}>
+                                        {isLoading ? 'Generando…' : 'Generar reporte'}
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid item xs={6}>
-                                <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                                    Motivo
-                                </Typography>
-                                <FormControl variant="standard" fullWidth>
-                                    <Select
-                                        id="motivo-select"
-                                        value={motivo}
-                                        onChange={(event) => setMotivo(event.target.value)}
-                                        variant='outlined'
-                                    >
-                                        {motivos.map((option) => (
-                                            <MenuItem key={option} value={option}>
-                                                {option}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+                        </CardAlpa>
+                    </Grid>
+
+                    <Grid item xs={12} md={8}>
+                        {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 220 }}>
+                                <CircularProgress sx={{ color: colors.brand }} />
+                            </Box>
+                        ) : (
+                            <Grid container spacing={2}>
+                                <Grid item xs={12}>
+                                    {serieAncho.length > 0 && <GraficoLineaEnsayo Serie={serieAncho} ensayo={"Ancho"} espec={especificacion} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {recuentoTrama.length > 0 && <GraficoLineaEnsayo Serie={recuentoTrama} ensayo={"RecuentoTrama"} espec={especificacion} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {encogimientoTrama.length > 0 && <GraficoLineaEnsayo Serie={encogimientoTrama} ensayo={"EncogimientoTrama"} espec={especificacion} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {encogimientoUrdimbre.length > 0 && <GraficoLineaEnsayo Serie={encogimientoUrdimbre} ensayo={"EncogimientoUrdimbre"} espec={especificacion} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {peso.length > 0 && <GraficoLineaEnsayo Serie={peso} ensayo={"Peso"} espec={especificacion} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {deformacion.length > 0 && <GraficoLineaEnsayo Serie={deformacion} ensayo={"Deformacion"} />}
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    {elasticidad.length > 0 && <GraficoLineaEnsayo Serie={elasticidad} ensayo={"Elasticidad"} />}
+                                </Grid>
                             </Grid>
-                            <Grid item xs={6}>
-                                <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                                    Desde
-                                </Typography>
-                                <DatePicker
-                                    value={fechaInicio}
-                                    onChange={(newValue) => setFechaInicio(newValue)}
-                                    disableFuture
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <Typography variant='h6' fontFamily={'Poppins'} fontSize={'bold'}>
-                                    Hasta
-                                </Typography>
-                                <DatePicker
-                                    value={fechaFin}
-                                    onChange={(newValue) => setFechaFin(newValue)}
-                                    disableFuture
-                                />
-                            </Grid>
-                            <Grid item xs={12} paddingTop={1}>
-                                <Button variant='contained' onClick={handleGenerarReporte}>
-                                    Generar reporte
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Grid>{
-                        isLoading &&
-                        <Grid item xs={8}>
-                            <CircularProgress />
-                        </Grid>
-                    }
-                    <Grid item xs={12} sm={8}>
-                        {serieAncho.length > 0 && <GraficoLineaEnsayo Serie={serieAncho} ensayo={"Ancho"} espec={especificacion} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {recuentoTrama.length > 0 && <GraficoLineaEnsayo Serie={recuentoTrama} ensayo={"RecuentoTrama"} espec={especificacion} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {encogimientoTrama.length > 0 && <GraficoLineaEnsayo Serie={encogimientoTrama} ensayo={"EncogimientoTrama"} espec={especificacion} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {encogimientoUrdimbre.length > 0 && <GraficoLineaEnsayo Serie={encogimientoUrdimbre} ensayo={"EncogimientoUrdimbre"} espec={especificacion} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {peso.length > 0 && <GraficoLineaEnsayo Serie={peso} ensayo={"Peso"} espec={especificacion} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {deformacion.length > 0 && <GraficoLineaEnsayo Serie={deformacion} ensayo={"Deformacion"} />}
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {elasticidad.length > 0 && <GraficoLineaEnsayo Serie={elasticidad} ensayo={"Elasticidad"} />}
+                        )}
                     </Grid>
                 </Grid>
-            </LocalizationProvider >
-            <TableContainer component={Paper}>
-                <Table size="small" aria-label="a dense table">
+            </LocalizationProvider>
+
+            <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                    mt: 2,
+                    borderRadius: '12px',
+                    border: '1px solid rgba(26, 72, 98, 0.06)',
+                    boxShadow: '0 2px 8px rgba(26, 72, 98, 0.08)',
+                    overflow: 'hidden',
+                }}
+            >
+                <Table size="small" aria-label="promedios ensayos">
                     <TableHead>
-                        <TableRow>
-                            <TableCell align="right">Ensayo </TableCell>
-                            <TableCell align="right">Mínimo</TableCell>
-                            <TableCell align="right">Estandar</TableCell>
-                            <TableCell align="right">Máximo</TableCell>
-                            <TableCell align="right">Promedio</TableCell>
+                        <TableRow sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)' }}>
+                            {['Ensayo', 'Mínimo', 'Estándar', 'Máximo', 'Promedio'].map((h) => (
+                                <TableCell
+                                    key={h}
+                                    align="right"
+                                    sx={{ color: '#fff', fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.8rem' }}
+                                >
+                                    {h}
+                                </TableCell>
+                            ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {rows.map((row) => (
                             <TableRow
-                                key={row.name}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                key={row.ensayo}
+                                sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:nth-of-type(even)': { backgroundColor: 'rgba(26,72,98,0.03)' } }}
                             >
-                                <TableCell align="right" component="th" scope="row">
+                                <TableCell align="right" component="th" scope="row" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: colors.brand }}>
                                     {row.ensayo}
                                 </TableCell>
-                                <TableCell align="right">{row.minimo}</TableCell>
-                                <TableCell align="right">{row.estandar}</TableCell>
-                                <TableCell align="right">{row.maximo}</TableCell>
-                                <TableCell align="right">{row.promedio}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'Poppins' }}>{row.minimo}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'Poppins' }}>{row.estandar}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'Poppins' }}>{row.maximo}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>{row.promedio}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </TableContainer>
+
             <MensajeDialog
                 mensaje={mensaje}
                 tipo={tipo}
@@ -313,7 +354,7 @@ const GraficosEnsayos = () => {
                 duracion={duracion}
                 onClose={() => setIsOpen(false)}
             />
-        </>
+        </Box>
     )
 }
 

@@ -321,27 +321,72 @@ const FormularioReprocesos = () => {
 
 
     return (
-        <Box p={2}>
-            {/* Buscador */}
-            <Box display="flex" justifyContent="center" gap={1} mb={1}>
+        <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#1A4862', fontSize: '1rem', mb: 0.5 }}>
+                Reprocesos
+            </Typography>
+            <Typography sx={{ fontFamily: 'Poppins', color: '#4a6177', fontSize: '0.85rem', mb: 2 }}>
+                Buscá una orden para generar el reproceso
+            </Typography>
+
+            <Box
+                display="flex"
+                justifyContent="center"
+                gap={1.5}
+                mb={2}
+                flexWrap="wrap"
+                sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(26,72,98,0.06)',
+                    boxShadow: '0 2px 8px rgba(26,72,98,0.08)',
+                    p: 2,
+                }}
+            >
                 <TextField
-                    label="Numero de orden"
+                    label="Número de orden"
                     size="small"
                     value={numeroOrden}
                     onChange={(e) => setNumeroOrden(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && buscarOrden()}
+                    sx={{ minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Poppins' } }}
                 />
-                <Button variant="contained" onClick={buscarOrden}>
+                <Button
+                    variant="contained"
+                    onClick={buscarOrden}
+                    sx={{
+                        background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+                        fontFamily: 'Poppins',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        boxShadow: 'none',
+                        '&:hover': { background: '#1A4862' },
+                    }}
+                >
                     Buscar
                 </Button>
-                <Button variant="outlined" onClick={limpiarFormulario}>
+                <Button
+                    variant="outlined"
+                    onClick={limpiarFormulario}
+                    sx={{
+                        fontFamily: 'Poppins',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        borderColor: 'rgba(26,72,98,0.35)',
+                        color: '#1A4862',
+                    }}
+                >
                     Limpiar
                 </Button>
             </Box>
 
             {/* Popup ordenes*/}
-            <Dialog open={openDialog}>
-                <DialogTitle>Ordenes encontradas</DialogTitle>
+            <Dialog open={openDialog} PaperProps={{ sx: { borderRadius: '12px' } }}>
+                <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700 }}>
+                    Órdenes encontradas
+                </DialogTitle>
                 <DialogContent dividers>
                     <List>
                         {ordenes.map((o, i) => (
@@ -364,18 +409,19 @@ const FormularioReprocesos = () => {
                     sx={{
                         mt: 1,
                         p: 2,
-                        backgroundColor: "#f4f4f4",
+                        backgroundColor: "#fff",
                         borderRadius: "12px",
-                        boxShadow: "0px 0px 8px rgba(0,0,0,0.15)"
+                        border: "1px solid rgba(26,72,98,0.06)",
+                        boxShadow: "0 2px 8px rgba(26,72,98,0.08)"
                     }}
                 >
 
                     <Grid container spacing={2}>
                         {/* Formulario de reprocesos */}
                         <Grid item xs={12} md={8}>
-                            <Card sx={{ p: 2 }}>
+                            <Card sx={{ p: 2, borderRadius: '12px', boxShadow: 'none', border: '1px solid rgba(26,72,98,0.06)' }}>
 
-                                <Typography variant="h6" mb={1} sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                <Typography variant="h6" mb={1} sx={{ fontWeight: 700, color: '#1A4862', fontFamily: 'Poppins' }}>
                                     ORDEN A REPROCESAR
                                 </Typography>
 
@@ -494,7 +540,16 @@ const FormularioReprocesos = () => {
                                             }
                                             registrarReproceso();
                                         }}
-                                        sx={{ fontWeight: 'bold', fontSize: '15px' }}
+                                        sx={{
+                                            background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+                                            fontFamily: 'Poppins',
+                                            fontWeight: 600,
+                                            textTransform: 'none',
+                                            borderRadius: '10px',
+                                            boxShadow: 'none',
+                                            fontSize: '15px',
+                                            '&:hover': { background: '#1A4862' },
+                                        }}
                                     >
                                         Registrar Reproceso
                                     </Button>
@@ -506,8 +561,8 @@ const FormularioReprocesos = () => {
 
                         {/* Card de rollos */}
                         <Grid item xs={12} md={4}>
-                            <Card sx={{ p: 1 }}>
-                                <Typography variant="h6" mb={1} sx={{ color: '#1976d2' }}>
+                            <Card sx={{ p: 1.5, borderRadius: '12px', boxShadow: 'none', border: '1px solid rgba(26,72,98,0.06)' }}>
+                                <Typography variant="h6" mb={1} sx={{ color: '#1A4862', fontFamily: 'Poppins', fontWeight: 700, fontSize: '1rem' }}>
                                     ROLLOS DE ORDEN - <b>{ordenSeleccionada.orden}</b>
                                 </Typography>
                                 <CardContent sx={{ maxHeight: 230, overflowY: "auto" }}>
@@ -557,8 +612,8 @@ const FormularioReprocesos = () => {
                 <DialogTitle sx={{ fontWeight: "bold", color: "#ffff", backgroundColor: "#ff0000ff", borderRadius: 3 }}>{mensaje}</DialogTitle>
             </Dialog>
 
-            <Dialog open={mostrarDialogOperario}>
-                <DialogTitle>Registrar Responsable</DialogTitle>
+            <Dialog open={mostrarDialogOperario} PaperProps={{ sx: { borderRadius: '12px' } }}>
+                <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700 }}>Registrar Responsable</DialogTitle>
                 <DialogContent>
                     <Typography sx={{ mb: 1 }}>
                         Ingrese el legajo del <b>Supervisor</b> a cargo.

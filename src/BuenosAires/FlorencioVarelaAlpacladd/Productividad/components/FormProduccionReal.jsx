@@ -18,6 +18,29 @@ import SearchIcon from '@mui/icons-material/Search';
 import {  GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS } from '../PCP/API/APIFunctions'
 import { putRegistroProdReal } from '../../API/APIFunctions';
 import { GetProdxOrden } from '../PCP/API/APIFunctions';
+import {
+    pcpCardSx,
+    primaryBtnSx,
+    secondaryBtnSx,
+    fieldSx,
+    sectionTitleSx,
+    sectionMutedSx,
+} from '../PCP/components/pcpUiStyles';
+
+const dataGridSx = {
+    fontFamily: 'Poppins',
+    fontSize: '0.8rem',
+    fontWeight: 650,
+    margin: '0rem',
+    backgroundColor: 'rgba(26, 72, 98, 0.04)',
+    '& .super-app-theme--header': {
+        backgroundColor: 'rgba(26, 72, 98, 0.12)',
+        color: '#1A4862',
+        fontFamily: 'Poppins',
+        fontSize: '0.9rem',
+        fontWeight: 700,
+    },
+};
 
 function FormProduccionReal() {
     dayjs.extend(duration);
@@ -275,20 +298,7 @@ function FormProduccionReal() {
                                     },
                                 },
                             }}
-                            sx={{
-                                fontFamily: "Poppins", 
-                                fontSize: "0.8rem",
-                                fontWeight: 650,
-                                margin: "0rem",
-                                backgroundColor: "#f4f4f4",
-                                '& .super-app-theme--header': {
-                                    backgroundColor: '#BABABA', // Cambia el color de fondo a azul
-                                    color: 'white', // Cambia el color de texto a blanco
-                                    fontFamily: 'Poppins',
-                                    fontSize: "0.9rem",
-                                    fontWeight: 700,
-                                },
-                            }}
+                            sx={dataGridSx}
                             disableColumnFilter
                             disableColumnSelector
                             disableDensitySelector
@@ -309,12 +319,17 @@ function FormProduccionReal() {
 
     return (
         <>
+            <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+            <Typography sx={sectionTitleSx}>Registro Producción</Typography>
+            <Typography sx={sectionMutedSx}>
+                Buscá la orden y registrá la producción real
+            </Typography>
             {/* contenedor principal */}
             <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" >
 
                 {/* GRID FORM */}
-                <Grid item xs={9} sm={9} md={9} padding={1}>
-                    <Card sx={{ minWidth: '100%', borderRadius: "10px", boxShadow: "1px 1px 2px 3px rgba(0, 0, 0, 0.4)", paddingTop: 0, marginTop: '20px' }}>
+                <Grid item xs={12} sm={11} md={10} lg={9} padding={1}>
+                    <Card sx={{ minWidth: '100%', ...pcpCardSx, paddingTop: 0, marginTop: '4px' }}>
 
                         {/* PRIMERA FILA */}
                         <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1} marginTop={1}>
@@ -330,7 +345,7 @@ function FormProduccionReal() {
                                         onChange={(newHoraInicio) => {
                                             setInicioHora(newHoraInicio);
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                 </LocalizationProvider>
                             </Grid> 
@@ -349,7 +364,7 @@ function FormProduccionReal() {
                                         onChange={(newHoraFinal) => {
                                             setFinHora(newHoraFinal);
                                         }}
-                                        renderInput={(params) => <TextField {...params} />}
+                                        slotProps={{ textField: { fullWidth: true, size: 'small', sx: fieldSx } }}
                                     />
                                 </LocalizationProvider>
                             </Grid>
@@ -360,11 +375,11 @@ function FormProduccionReal() {
                         <Grid container direction="row" justifyContent="space-evenly" alignItems="flex-start" padding={1} marginTop={'10px'}>
 
                             {/* BOTON BUSCAR */}
-                            <Grid item xs={12} sm={1} md={1} padding={0.5} marginTop={1.3}>
+                            <Grid item xs={12} sm={1} md={1} padding={0.5} marginTop={0.5}>
                                 <Button
                                     id='Button-Buscar' 
                                     variant="contained" 
-                                    style={{ color: 'white' }}
+                                    sx={{ ...primaryBtnSx, color: 'white', minWidth: 48, minHeight: 40 }}
                                     onClick={handleButtonBuscar}
                                 >
                                     <SearchIcon/>
@@ -375,11 +390,12 @@ function FormProduccionReal() {
                             <Grid item xs={12} sm={2} md={2} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Orden"
-                                    variant="filled"
+                                    variant="outlined"
+                                    sx={fieldSx}
                                     value={Orden}
-                                    focused
                                     onChange={(event) => {
                                         const orden = event.target.value;
                                         setOrden(orden);
@@ -395,11 +411,12 @@ function FormProduccionReal() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Maquina"
-                                    variant="filled"
-                                    readOnly
-                                    focused
+                                    variant="outlined"
+                                    sx={fieldSx}
+                                    InputProps={{ readOnly: true }}
                                     value={Maquina}
                                 >
                                 </TextField>
@@ -409,11 +426,12 @@ function FormProduccionReal() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Proc Maquina"
-                                    variant="filled"
-                                    readOnly
-                                    focused
+                                    variant="outlined"
+                                    sx={fieldSx}
+                                    InputProps={{ readOnly: true }}
                                     value={MaquinaProceso}
                                 >
                                 </TextField>
@@ -423,12 +441,13 @@ function FormProduccionReal() {
                             <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                 <TextField
                                     fullWidth
+                                    size="small"
                                     id="outlined-basic"
                                     label="Proceso"
-                                    variant="filled"
+                                    variant="outlined"
+                                    sx={fieldSx}
                                     value={Proceso}
-                                    readOnly
-                                    focused
+                                    InputProps={{ readOnly: true }}
                                 >
                                 </TextField>
                             </Grid>
@@ -437,12 +456,13 @@ function FormProduccionReal() {
                                 <Grid item xs={12} sm={3} md={3} padding={0.5} >
                                     <TextField
                                         fullWidth
+                                        size="small"
                                         id="outlined-basic"
                                         label="Color"
-                                        variant="filled"
+                                        variant="outlined"
+                                        sx={fieldSx}
                                         value={Color}
-                                        focused
-                                        readOnly
+                                        InputProps={{ readOnly: true }}
                                     >
                                     </TextField>
                                 </Grid>
@@ -457,8 +477,10 @@ function FormProduccionReal() {
                                     <Grid item xs={12} sm={4} md={4} padding={0.5} >
                                         <TextField
                                             fullWidth
+                                            size="small"
                                             label="Metros"
                                             variant='outlined'
+                                            sx={fieldSx}
                                             type='number'
                                             value={Metros}
                                             onChange={(event) => {
@@ -469,17 +491,16 @@ function FormProduccionReal() {
                                     </Grid>
 
                                     {/* Horas Total */}
-                                    <Grid xs={12} sm={4} md={4} padding={0.5}>
+                                    <Grid item xs={12} sm={4} md={4} padding={0.5}>
                                         <TextField
                                             label="Horas Total"
                                             value={HorasT}
                                             type='number'
+                                            size="small"
+                                            sx={fieldSx}
                                             onChange={(event) => {
                                                 const horatotal = event.target.value
                                                 setHoraT(horatotal);
-                                                // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
-                                                // setFinHora(finHoraCalculada); 
-
                                             }}
                                             fullWidth
                                         />
@@ -493,12 +514,11 @@ function FormProduccionReal() {
                                         label="Horas Total"
                                         value={HorasT}
                                         type='number'
+                                        size="small"
+                                        sx={fieldSx}
                                         onChange={(event) => {
                                             const horatotal = event.target.value
                                             setHoraT(horatotal);
-                                            // let finHoraCalculada = addHours(InicioHora, parseFloat(horatotal));
-                                            // setFinHora(finHoraCalculada); 
-
                                         }}
                                         fullWidth
                                     />
@@ -507,16 +527,17 @@ function FormProduccionReal() {
                         </Grid>
 
                         {/* FILA BOTON */}
-                        <Grid container direction="row" justifyContent="flex-end" alignItems="flex-end" padding={2}>
-                            <Grid item xs={6} sm={6} md={6} justifyContent="flex-end" alignItems="flex-end">
-                                <Button variant="contained" style={{ color: 'white' }}
+                        <Grid container direction="row" justifyContent="flex-end" alignItems="center" padding={2} gap={1.5}>
+                            <Grid item>
+                                <Button variant="outlined" sx={secondaryBtnSx}
                                     onClick={() => {handleLimpiar()}} >
-                                        <DeleteIcon/>
+                                        <DeleteIcon sx={{ mr: 0.5 }} />
+                                        Limpiar
                                 </Button>
                             </Grid>
 
-                            <Grid item xs={6} sm={6} md={6} justifyContent="flex-end" alignItems="flex-end">
-                                <Button variant="contained" style={{ color: 'white' }}
+                            <Grid item>
+                                <Button variant="contained" sx={{ ...primaryBtnSx, color: 'white', px: 2.5 }}
                                     onClick={() => {
                                         let Aux = {
                                             Id: IdOrden,
@@ -532,7 +553,7 @@ function FormProduccionReal() {
                                         }
                                         handleButton(Aux)
                                     }}>
-                                    <Typography variant="button" fontFamily="Poppins" fontSize={18}>
+                                    <Typography variant="button" fontFamily="Poppins" fontSize={16} fontWeight={600}>
                                         Registrar Orden
                                     </Typography>
                                 </Button>
@@ -541,10 +562,11 @@ function FormProduccionReal() {
                     </Card>
                 </Grid>
             </Grid>
+            </Box>
 
             <Modal open={openModalTabla} onClose={handleCloseModalTabla}>
-                <Box sx={style}>
-                    <Typography fontFamily={'Poppins'}>Seleccione Orden: </Typography>
+                <Box sx={{ ...style, borderRadius: '12px', border: '1px solid rgba(26,72,98,0.06)' }}>
+                    <Typography fontFamily={'Poppins'} fontWeight={700} color="#1A4862" mb={1}>Seleccione Orden: </Typography>
                     <TablaOrdenes Serie={ordenes}/>
                 </Box>
             </Modal>

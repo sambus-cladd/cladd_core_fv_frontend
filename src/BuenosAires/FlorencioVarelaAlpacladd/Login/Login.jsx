@@ -1,232 +1,288 @@
-"use client"
+import { useState } from "react";
+import axios from "axios";
+import {
+  Box,
+  TextField,
+  Button,
+  CssBaseline,
+  Typography,
+  Snackbar,
+  CircularProgress,
+} from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../../AuthContext";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import LoginIcon from "@mui/icons-material/Login";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { colors, typography } from "../../../styles/alpacladdFvDesignTokens";
 
-import { useState } from "react"
-import axios from "axios"
-import { Grid, Paper, TextField, Button, CssBaseline, Typography, Box, Snackbar, InputAdornment } from "@mui/material"
-import MuiAlert from "@mui/material/Alert"
-import { useNavigate, useLocation } from "react-router-dom"
-import { useAuth } from "../../../AuthContext"
-import PersonIcon from "@mui/icons-material/Person"
-import LockIcon from "@mui/icons-material/Lock"
+const NAVY = "#1A4862";
+const NAVY_DEEP = "#122f42";
 
-// Import your images
-import fondo from "./home1.png"
-import logoalpa from "./img/PNG-NEGRO.png"
+const fieldSx = {
+  mb: 2,
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "10px",
+    fontFamily: typography.fontFamily,
+    backgroundColor: "#fff",
+    "& fieldset": {
+      borderColor: "rgba(15, 23, 42, 0.18)",
+    },
+    "&:hover fieldset": {
+      borderColor: NAVY,
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: NAVY,
+      borderWidth: "1.5px",
+    },
+  },
+  "& .MuiInputLabel-root": {
+    fontFamily: typography.fontFamily,
+    color: colors.textMuted,
+    "&.Mui-focused": { color: NAVY },
+  },
+};
 
-const LoginLabFV = () => {
-  const { login } = useAuth()
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const navigate = useNavigate()
-  const location = useLocation()
-  const from = location.state?.from?.pathname || "/"
-  const [body, setBody] = useState({ legajo: "", password: "" })
+/**
+ * Login de acceso FV — diseño Acceso (card blanca sobre navy).
+ * @param {string} [subtitle] Texto bajo el título Acceso
+ * @param {string} [dashboardPath] Destino del botón Volver
+ */
+const LoginLabFV = ({
+  subtitle = "Iniciar sesión para acceder al módulo",
+  dashboardPath = "/BuenosAires/FlorencioVarela/AlpacladdHome",
+}) => {
+  const { login } = useAuth();
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/BuenosAires/FlorencioVarela/Laboratorio";
+  const [body, setBody] = useState({ legajo: "", password: "" });
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false)
-  }
+  const handleCloseSnackbar = () => setOpenSnackbar(false);
 
   const inputChange = ({ target }) => {
-    const { name, value } = target
-    setBody({
-      ...body,
-      [name]: value,
-    })
-  }
+    const { name, value } = target;
+    setBody((prev) => ({ ...prev, [name]: value }));
+  };
 
   const onSubmit = async () => {
+    if (!body.legajo?.trim() || !body.password?.trim()) {
+      setSnackbarMessage("Completá usuario y contraseña");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const { data } = await axios.post("http://192.168.0.18:4300/auth/login", body)
-      const token = data.tokenSession
-      const rol = data.data.role
-      const usuario = data.data.usuario
-      const contrasenia = data.data.contrasenia
+      const { data } = await axios.post("http://192.168.0.18:4300/auth/login", body);
+      const token = data.tokenSession;
+      const rol = data.data.role;
+      const usuario = data.data.usuario;
+      const contrasenia = data.data.contrasenia;
 
-      login({ usuario, contrasenia, rol, token })
-      navigate(from, { replace: true })
+      login({ usuario, contrasenia, rol, token });
+      navigate(from, { replace: true });
     } catch (error) {
-      console.log('ERROR', error);
-      
+      console.log("ERROR", error);
       if (!error.response) {
-        setSnackbarMessage("Error de conexión con el servidor")
+        setSnackbarMessage("Error de conexión con el servidor");
       } else if (error.response?.status === 401) {
-        setSnackbarMessage("Usuario inautorizado")
+        setSnackbarMessage("Usuario inautorizado");
       } else {
-        setSnackbarMessage("Fallo en el login")
+        setSnackbarMessage("Fallo en el login");
       }
-      setOpenSnackbar(true)
+      setOpenSnackbar(true);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      onSubmit()
-    }
-  }
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") onSubmit();
+  };
 
   return (
-    <Grid container component="main" sx={{ height: "100vh" }}>
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: 2,
+        py: 4,
+        boxSizing: "border-box",
+        background: `radial-gradient(ellipse at center, #2c5570 0%, ${NAVY} 48%, ${NAVY_DEEP} 100%)`,
+      }}
+    >
       <CssBaseline />
-      <Grid
-        item
-        xs={false}
-        sm={4}
-        md={7}
+
+      <Box
         sx={{
-          backgroundImage: `url(${fondo})`,
-          backgroundRepeat: "no-repeat",
-          backgroundColor: (t) => (t.palette.mode === "light" ? t.palette.grey[50] : t.palette.grey[900]),
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          width: "100%",
+          maxWidth: 420,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
-      />
-      <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+      >
         <Box
           sx={{
-            my: 8,
-            mx: 4,
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            border: "2px solid rgba(255,255,255,0.85)",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
+            justifyContent: "center",
+            mb: 1.5,
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 4, mt: 10 }}>
-            <img src={logoalpa || "/placeholder.svg"} alt="Logo ALPA" style={{ height: 250, marginRight: 16 }} />
-          </Box>
-          <Box component="form" noValidate sx={{ mt: 1, width: "55%" }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="legajo"
-              label="Usuario"
-              name="legajo"
-              autoComplete="username"
-              autoFocus
-              value={body.legajo}
-              onChange={inputChange}
-              onKeyPress={handleKeyPress}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon sx={{ color: "#132752" }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "#132752",
-                    borderRadius: "28px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#132752",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#132752",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#132752",
-                },
-                mb: 2,
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Contraseña"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={body.password}
-              onChange={inputChange}
-              onKeyPress={handleKeyPress}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon sx={{ color: "#132752" }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "#132752",
-                    borderRadius: "28px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#132752",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#132752",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#132752",
-                },
-                mb: 2,
-              }}
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{
-                mt: 3,
-                mb: 2,
-                backgroundColor: "#132752",
-                borderRadius: "28px",
-                padding: "12px",
-                fontSize: "16px",
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: "0 4px 6px rgba(19, 39, 82, 0.2)",
-                "&:hover": {
-                  backgroundColor: "#0e1d3b",
-                  boxShadow: "0 6px 8px rgba(19, 39, 82, 0.3)",
-                },
-              }}
-              onClick={onSubmit}
-            >
-              Ingresar
-            </Button>
-          </Box>
+          <LockOutlinedIcon sx={{ color: "#fff", fontSize: 26 }} />
         </Box>
-      </Grid>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+
+        <Typography
+          sx={{
+            fontFamily: typography.fontFamily,
+            fontWeight: 700,
+            fontSize: { xs: "1.75rem", sm: "2rem" },
+            color: "#fff",
+            letterSpacing: "0.02em",
+            mb: 0.75,
+          }}
+        >
+          Acceso
+        </Typography>
+
+        <Typography
+          sx={{
+            fontFamily: typography.fontFamily,
+            fontWeight: 400,
+            fontSize: "0.9rem",
+            color: "rgba(255,255,255,0.88)",
+            textAlign: "center",
+            mb: 3,
+            maxWidth: 340,
+            lineHeight: 1.4,
+          }}
+        >
+          {subtitle}
+        </Typography>
+
+        <Box
+          component="form"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit();
+          }}
+          sx={{
+            width: "100%",
+            backgroundColor: "#fff",
+            borderRadius: "12px",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.28)",
+            px: { xs: 2.5, sm: 3.5 },
+            py: { xs: 3, sm: 3.5 },
+          }}
+        >
+          <TextField
+            required
+            fullWidth
+            id="legajo"
+            label="Usuario"
+            name="legajo"
+            autoComplete="username"
+            autoFocus
+            value={body.legajo}
+            onChange={inputChange}
+            onKeyDown={handleKeyDown}
+            sx={fieldSx}
+          />
+          <TextField
+            required
+            fullWidth
+            name="password"
+            label="Contraseña"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={body.password}
+            onChange={inputChange}
+            onKeyDown={handleKeyDown}
+            sx={{ ...fieldSx, mb: 2.5 }}
+          />
+
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <LoginIcon />}
+            sx={{
+              backgroundColor: NAVY,
+              color: "#fff",
+              fontFamily: typography.fontFamily,
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              borderRadius: "10px",
+              py: 1.35,
+              boxShadow: "none",
+              mb: 1.5,
+              "&:hover": {
+                backgroundColor: NAVY_DEEP,
+                boxShadow: "none",
+              },
+            }}
+          >
+            Iniciar sesión
+          </Button>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(dashboardPath)}
+            sx={{
+              fontFamily: typography.fontFamily,
+              fontWeight: 700,
+              fontSize: "0.8rem",
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              borderRadius: "10px",
+              py: 1.2,
+              color: NAVY,
+              borderColor: "rgba(26, 72, 98, 0.35)",
+              backgroundColor: "#fff",
+              "&:hover": {
+                borderColor: NAVY,
+                backgroundColor: "rgba(26, 72, 98, 0.04)",
+              },
+            }}
+          >
+            Volver al dashboard
+          </Button>
+        </Box>
+      </Box>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
         <MuiAlert elevation={6} variant="filled" severity="error" onClose={handleCloseSnackbar}>
           {snackbarMessage}
         </MuiAlert>
       </Snackbar>
+    </Box>
+  );
+};
 
-      {/* Footer */}
-      <Box
-        display={"flex"}
-        flexDirection={"column"}
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          padding: "4px 8px",
-          borderRadius: "4px",
-        }}
-      >
-        <Typography variant="caption" color="white">
-          © Automatización - La Rioja
-        </Typography>
-        <Typography variant="caption" color="white">
-          Dirección Industrial
-        </Typography>
-      </Box>
-    </Grid>
-  )
-}
-
-export default LoginLabFV
-
-
-
-
+export default LoginLabFV;

@@ -7,6 +7,22 @@ import HeaderYFooter from '../../../components/Plantilla/HeaderYFooter';
 import Autocomplete from '@mui/material/Autocomplete';
 import { putRegistrarRechazo, getVerificarRollo, getMotivosRechazos } from '../API/APIFunctions';
 import { validarLegajo } from '../Productividad/PCP/API/APIFunctions';
+import { colors, typography } from '../../../styles/alpacladdFvDesignTokens';
+
+const primaryBtnSx = {
+    background: 'linear-gradient(145deg, #2c4356, #1e2c3a)',
+    fontFamily: 'Poppins',
+    fontWeight: 600,
+    textTransform: 'none',
+    borderRadius: '10px',
+    boxShadow: 'none',
+    '&:hover': { background: '#1A4862' },
+};
+
+const fieldSx = {
+    '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Poppins' },
+    '& .MuiInputLabel-root': { fontFamily: 'Poppins' },
+};
 
 const RechazosRegistro = () => {
     const [lote, setLote] = useState('');
@@ -181,10 +197,9 @@ const RechazosRegistro = () => {
 
 
     return (
-        <HeaderYFooter titulo="RECHAZOS">
-            <Box sx={{ display: 'flex', width: { xs: '100%', md: '50%' }, justifyContent: 'center', margin: '0 auto', position: 'relative' }}>
+        <HeaderYFooter titulo="RECHAZOS" routes={[]} color="alpacladd" showMainMenu={false}>
+            <Box sx={{ display: 'flex', width: { xs: '100%', md: '55%' }, justifyContent: 'center', margin: '0 auto', position: 'relative', px: 1, py: 2 }}>
 
-                {/* Snackbar */}
                 <Snackbar
                     open={snackbarOpen}
                     autoHideDuration={4500}
@@ -194,32 +209,34 @@ const RechazosRegistro = () => {
                     <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>{snackbarMessage}</Alert>
                 </Snackbar>
 
-                {/* POPUP DE CONFIRMACION */}
-                <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
-
-                    <DialogContent>
-                        <Typography sx={{ fontSize: 25 }}>
-                            <b>Confirmar Rechazo</b>
-                        </Typography>
-                        <hr />
-                        <Typography sx={{ fontSize: 20, justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+                <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
+                    <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700 }}>
+                        Confirmar rechazo
+                    </DialogTitle>
+                    <DialogContent sx={{ pt: 2 }}>
+                        <Typography sx={{ fontFamily: 'Poppins', mt: 1 }}>
                             Registrar rechazo del rollo: <b>{`${lote}`}</b>
                         </Typography>
-                        <Typography sx={{ fontSize: 19, justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
-                            ¿Deseas confirmar?
+                        <Typography sx={{ fontFamily: 'Poppins', color: colors.textMuted, mt: 1 }}>
+                            ¿Deseás confirmar?
                         </Typography>
-                        <hr />
                     </DialogContent>
-                    <DialogActions sx={{ padding: 2, marginTop: -2 }}>
-                        <Button variant="outlined" onClick={() => setOpenConfirm(false)}>Cancelar</Button>
-                        <LoadingButton loading={loading} variant="contained" onClick={registrarRechazo}>
+                    <DialogActions sx={{ px: 2, pb: 2 }}>
+                        <Button variant="outlined" onClick={() => setOpenConfirm(false)} sx={{ fontFamily: 'Poppins', textTransform: 'none', borderRadius: '10px' }}>Cancelar</Button>
+                        <LoadingButton loading={loading} variant="contained" onClick={registrarRechazo} sx={primaryBtnSx}>
                             Registrar rechazo
                         </LoadingButton>
                     </DialogActions>
                 </Dialog>
 
-                <CardAlpa>
-                    <Grid container spacing={2} padding={2}>
+                <CardAlpa sx={{ width: '100%', mt: 0 }}>
+                    <Grid container spacing={2} padding={2.5}>
+                        <Grid item xs={12}>
+                            <Typography sx={{ ...typography.cardTitle, mb: 0.5 }}>Registro de rechazos</Typography>
+                            <Typography variant="body2" sx={{ fontFamily: typography.fontFamily, color: colors.textMuted }}>
+                                Completá los datos del rollo y el motivo del rechazo.
+                            </Typography>
+                        </Grid>
 
                         <Grid item xs={4}>
                             <Box position="relative">
@@ -229,9 +246,8 @@ const RechazosRegistro = () => {
                                     onChange={(e) => verificarRollo(e.target.value)}
                                     inputRef={inputRef}
                                     fullWidth
+                                    sx={fieldSx}
                                 />
-
-                                {/* Indicador visual */}
                                 {rolloExiste !== null && (
                                     <Box
                                         sx={{
@@ -248,22 +264,20 @@ const RechazosRegistro = () => {
                         <Grid item xs={4}>
                             <TextField label="Articulo" value={articuloTerminado}
                                 onChange={(e) => setArticuloTerminado(e.target.value.toUpperCase())}
-                                onKeyDown={handleEnter} fullWidth />
+                                onKeyDown={handleEnter} fullWidth sx={fieldSx} />
                         </Grid>
 
                         <Grid item xs={4}>
                             <TextField label="Metros" value={metros}
                                 onChange={(e) => setMetros(e.target.value)}
-                                onKeyDown={handleEnter} fullWidth />
+                                onKeyDown={handleEnter} fullWidth sx={fieldSx} />
                         </Grid>
 
-                        {/* Tipo Rechazo */}
                         <Grid item xs={12}>
                             <Grid container spacing={2} justifyContent="center">
-
                                 <Grid item xs={4}>
                                     <TextField select label="Tipo de Rechazo" value={tipoRechazo}
-                                        onChange={(e) => setTipoRechazo(e.target.value)} fullWidth>
+                                        onChange={(e) => setTipoRechazo(e.target.value)} fullWidth sx={fieldSx}>
                                         <MenuItem value="produccion">Producción</MenuItem>
                                         <MenuItem value="calidad">Calidad - Laboratorio</MenuItem>
                                     </TextField>
@@ -272,7 +286,7 @@ const RechazosRegistro = () => {
                                 {tipoRechazo === 'produccion' && (
                                     <Grid item xs={4}>
                                         <TextField select label="Rechazo Planta" value={rechazoPlanta}
-                                            onChange={(e) => setRechazoPlanta(e.target.value)} fullWidth>
+                                            onChange={(e) => setRechazoPlanta(e.target.value)} fullWidth sx={fieldSx}>
                                             <MenuItem value="15">15</MenuItem>
                                             <MenuItem value="16">16</MenuItem>
                                             <MenuItem value="17">17</MenuItem>
@@ -283,7 +297,7 @@ const RechazosRegistro = () => {
                                 {tipoRechazo === 'calidad' && (
                                     <Grid item xs={4}>
                                         <TextField select label="Rechazo Calidad" value={rechazoCalidad}
-                                            onChange={(e) => setRechazoCalidad(e.target.value)} fullWidth>
+                                            onChange={(e) => setRechazoCalidad(e.target.value)} fullWidth sx={fieldSx}>
                                             <MenuItem value="13">13</MenuItem>
                                             <MenuItem value="14">14</MenuItem>
                                         </TextField>
@@ -299,7 +313,6 @@ const RechazosRegistro = () => {
                                 getOptionLabel={(option) => {
                                     if (!option) return "";
                                     if (typeof option === "string") return option;
-
                                     return `${option.codigo_falla || ""} - ${option.descripcion || ""}`;
                                 }}
                                 value={descripcion || null}
@@ -319,12 +332,10 @@ const RechazosRegistro = () => {
                                 }}
                                 onInputChange={(event, newInputValue) => {
                                     setDescripcionInput(newInputValue);
-
                                     if (newInputValue === "") {
                                         setDescripcion(null);
                                         return;
                                     }
-
                                     setDescripcion({
                                         descripcion: newInputValue,
                                         codigo_falla: null,
@@ -336,6 +347,7 @@ const RechazosRegistro = () => {
                                         {...params}
                                         label="Motivo del rechazo"
                                         fullWidth
+                                        sx={fieldSx}
                                     />
                                 )}
                             />
@@ -343,38 +355,48 @@ const RechazosRegistro = () => {
 
                         <Grid item xs={12}>
                             <Box display="flex" gap={2}>
-                                <Button variant="outlined" startIcon={<DeleteIcon />} onClick={limpiarCampos} sx={{ flex: 1 }}>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={limpiarCampos}
+                                    sx={{ flex: 1, fontFamily: 'Poppins', textTransform: 'none', borderRadius: '10px' }}
+                                >
                                     Limpiar
                                 </Button>
-                                <LoadingButton loading={loading} variant="contained"
-                                    onClick={validarYConfirmar} sx={{ flex: 1 }}
-                                    disabled={rolloExiste === false || rolloExiste === null}>
-                                    Registrar Rechazo
+                                <LoadingButton
+                                    loading={loading}
+                                    variant="contained"
+                                    onClick={validarYConfirmar}
+                                    sx={{ flex: 1, ...primaryBtnSx }}
+                                    disabled={rolloExiste === false || rolloExiste === null}
+                                >
+                                    Registrar rechazo
                                 </LoadingButton>
                             </Box>
                         </Grid>
-
                     </Grid>
                 </CardAlpa>
             </Box>
-            <Dialog open={mostrarDialogOperario}>
+            <Dialog open={mostrarDialogOperario} PaperProps={{ sx: { borderRadius: '12px' } }}>
+                <DialogTitle sx={{ background: 'linear-gradient(145deg, #2c4356, #1e2c3a)', color: '#fff', fontFamily: 'Poppins', fontWeight: 700 }}>
+                    Responsable del rechazo
+                </DialogTitle>
                 <DialogContent>
-                    <Typography sx={{ fontSize: 20, fontWeight: "bold" }}>Registrar Responsable del rechazo</Typography>
-                    <hr />
                     <TextField
-                        label="Legajo Operario"
+                        label="Legajo operario"
                         fullWidth
                         value={legajo}
                         onChange={(e) => setLegajo(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && confirmarResponsable()}
-                        sx={{ marginTop: 1 }}
+                        sx={{ ...fieldSx, mt: 2 }}
                     />
                 </DialogContent>
-                <DialogActions>
-                    <Button variant="outlined" color="error" onClick={() => setMostrarDialogOperario(false)}>
+                <DialogActions sx={{ px: 2, pb: 2 }}>
+                    <Button variant="outlined" color="error" onClick={() => setMostrarDialogOperario(false)} sx={{ fontFamily: 'Poppins', textTransform: 'none' }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" onClick={confirmarResponsable}>
+                    <Button variant="contained" onClick={confirmarResponsable} sx={primaryBtnSx}>
                         Confirmar
                     </Button>
                 </DialogActions>

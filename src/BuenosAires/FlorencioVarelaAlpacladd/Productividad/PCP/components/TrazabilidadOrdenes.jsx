@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import {
   TextField, Button, Grid, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, Typography
+  DialogActions, Typography, Box
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { getOrdenPorRollo, getResponsables } from "../API/APIFunctions";
+import {
+  primaryBtnSx, secondaryBtnSx, fieldSx, sectionTitleSx, sectionMutedSx,
+  filterBarSx, tableWrapSx, dialogTitleSx, dataGridHeaderSx, colors
+} from "./pcpUiStyles";
 
 const TrazabilidadOrdenes = () => {
   const [rollo, setRollo] = useState("");
@@ -22,7 +26,6 @@ const TrazabilidadOrdenes = () => {
     setLoading(true);
     try {
       const response = await getOrdenPorRollo(rollo);
-      console.log("RESPUESTA", response);
       if (response.success) {
         const withIds = response.data.map((item, index) => ({
           ...item,
@@ -51,56 +54,55 @@ const TrazabilidadOrdenes = () => {
     setOrdenes([]);
   };
 
- const handleVerResponsables = async (idOrden) => {
-  try {
-    const response = await getResponsables(idOrden);
-
-    if (response.success && response.data?.responsable) {
-      const parsed = Array.isArray(response.data.responsable)
-        ? response.data.responsable
-        : JSON.parse(response.data.responsable);
-
-      setResponsablesSeleccionados(parsed || []);
-    } else {
+  const handleVerResponsables = async (idOrden) => {
+    try {
+      const response = await getResponsables(idOrden);
+      if (response.success && response.data?.responsable) {
+        const parsed = Array.isArray(response.data.responsable)
+          ? response.data.responsable
+          : JSON.parse(response.data.responsable);
+        setResponsablesSeleccionados(parsed || []);
+      } else {
+        setResponsablesSeleccionados([]);
+      }
+      setOpenModal(true);
+    } catch (error) {
+      console.error("Error al obtener responsables:", error);
       setResponsablesSeleccionados([]);
+      setOpenModal(true);
     }
-
-    setOpenModal(true);
-  } catch (error) {
-    console.error("Error al obtener responsables:", error);
-    setResponsablesSeleccionados([]);
-    setOpenModal(true);
-  }
-};
-
+  };
 
   const columns = [
     { field: "rollo", headerName: "Rollo", flex: 0.8 },
     { field: "orden", headerName: "Orden", flex: 0.6 },
-    { field: "hora_inicio_real", headerName: "Inicio Real", flex: 1,
-      valueFormatter: ({ value }) => formatDate(value),
+    {
+      field: "hora_inicio_real",
+      headerName: "Inicio Real",
+      flex: 1,
+      valueFormatter: (params) => formatDate(params.value),
     },
-    { field: "hora_fin_real", headerName: "Fin Real", flex: 1,
-      valueFormatter: ({ value }) => formatDate(value),
+    {
+      field: "hora_fin_real",
+      headerName: "Fin Real",
+      flex: 1,
+      valueFormatter: (params) => formatDate(params.value),
     },
-    { field: "fecha_registro_real", headerName: "Fecha Registro", flex: 0.8,
-      valueFormatter: ({ value }) =>
-        value ? dayjs(value).format("DD/MM/YYYY") : "",
-    },
-    { field: "metros_por_rollo", headerName: "Metros", flex: 0.6,
-      valueFormatter: (params) =>
-        params.value ? parseInt(params.value, 10) : "",
-    },
-    { field: "horas_total_real", headerName: "Hs.Total", flex: 0.6 },
-    { field: "maquina_proceso", headerName: "Maq.Proc.", flex: 1 },
-    { field: "proceso", headerName: "Proceso", flex: 1 },
-    { field: "color", headerName: "Color", flex: 0.8 },
-    { field: "articulo", headerName: "Articulo", flex: 0.8 },
-    { field: "maquina", headerName: "Máquina", flex: 0.8 },
-    { field: "responsables", headerName: "Responsables", flex: 0.8,
+    { field: "maquina", headerName: "Máquina", flex: 0.7 },
+    { field: "proceso", headerName: "Proceso", flex: 0.9 },
+    { field: "articulo", headerName: "Artículo", flex: 0.9 },
+    {
+      field: "acciones",
+      headerName: "Responsables",
+      flex: 0.9,
+      sortable: false,
       renderCell: (params) => (
-        <Button variant="outlined" size="small"
-          onClick={() => handleVerResponsables(params.row.id_orden)} >
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => handleVerResponsables(params.row.id_orden)}
+          sx={{ ...secondaryBtnSx, py: 0.25 }}
+        >
           Ver
         </Button>
       ),
@@ -108,62 +110,115 @@ const TrazabilidadOrdenes = () => {
   ];
 
   return (
-    <Paper sx={{ padding: 2 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={7} sm={9}>
-          <TextField label="Número de Rollo" variant="outlined" fullWidth value={rollo}
-            onChange={(e) => setRollo(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
-          />
-        </Grid>
+    <Box sx={{ px: { xs: 1, md: 1.5 }, pb: 2 }}>
+      <Typography sx={sectionTitleSx}>Trazabilidad de órdenes</Typography>
+      <Typography sx={sectionMutedSx}>
+        Buscá por número de rollo para ver el historial de producción
+      </Typography>
 
-        <Grid item xs={2.5} sm={1.5}>
-          <Button variant="contained" color="primary" onClick={handleBuscar} fullWidth disabled={loading} >
-            {loading ? "Buscando..." : "Buscar"}
-          </Button>
+      <Box sx={filterBarSx}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={8} md={9}>
+            <TextField
+              label="Número de rollo"
+              variant="outlined"
+              fullWidth
+              size="small"
+              value={rollo}
+              onChange={(e) => setRollo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+              sx={fieldSx}
+            />
+          </Grid>
+          <Grid item xs={6} sm={2} md={1.5}>
+            <Button
+              variant="contained"
+              onClick={handleBuscar}
+              fullWidth
+              disabled={loading}
+              sx={primaryBtnSx}
+            >
+              {loading ? "…" : "Buscar"}
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={2} md={1.5}>
+            <Button variant="outlined" onClick={handleLimpiar} fullWidth sx={secondaryBtnSx}>
+              Limpiar
+            </Button>
+          </Grid>
         </Grid>
+      </Box>
 
-        <Grid item xs={2.5} sm={1.5}>
-          <Button variant="outlined" color="primary" onClick={handleLimpiar} fullWidth >
-            Limpiar
-          </Button>
-        </Grid>
-      </Grid>
-
-      <div style={{ height: 420, width: "100%", marginTop: 20 }}>
-        <DataGrid rows={ordenes || []} columns={columns} pageSize={5} rowsPerPageOptions={[5, 10, 20]}
-          getRowId={(row) => row.uid} disableColumnMenu autoHeight={false}
+      <Box sx={{ ...tableWrapSx, height: 440 }}>
+        <DataGrid
+          rows={ordenes || []}
+          columns={columns}
+          pageSize={5}
+          rowsPerPageOptions={[5, 10, 20]}
+          getRowId={(row) => row.uid}
+          disableColumnMenu
           sx={{
-            "& .MuiDataGrid-root": { border: "none" },
-            "& .MuiDataGrid-columnHeaders": { fontSize: "0.85rem", fontWeight: "bold" },
-            "& .MuiDataGrid-cell": { fontSize: "0.8rem", whiteSpace: "normal", wordWrap: "break-word" },
-            "& .MuiDataGrid-virtualScroller": { overflowX: "hidden !important" },
+            border: "none",
+            ...dataGridHeaderSx,
+            "& .MuiDataGrid-cell": {
+              fontFamily: "Poppins",
+              fontSize: "0.8rem",
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+            },
           }}
         />
-      </div>
+      </Box>
 
-      {/* Pop up responsables*/}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Responsables de la Orden</DialogTitle>
-        <DialogContent dividers>
+      <Dialog
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "12px" } }}
+      >
+        <DialogTitle sx={dialogTitleSx}>Responsables de la orden</DialogTitle>
+        <DialogContent dividers sx={{ pt: 2 }}>
           {responsablesSeleccionados.length > 0 ? (
             responsablesSeleccionados.map((r, i) => (
-              <Paper key={i} sx={{ p: 1.5, mb: 1, backgroundColor: "#f9f9f9" }}>
-                <Typography><b>Legajo:</b> {r.operario}</Typography>
-                <Typography><b>Nombre:</b> {r.nombre}</Typography>
-                <Typography><b>Turno:</b> {r.turno}</Typography>
-                <Typography><b>Fecha:</b> {dayjs(r.fecha).format("DD/MM/YYYY")}</Typography>
+              <Paper
+                key={i}
+                elevation={0}
+                sx={{
+                  p: 1.5,
+                  mb: 1,
+                  borderRadius: "10px",
+                  border: "1px solid rgba(26,72,98,0.08)",
+                  backgroundColor: "rgba(26,72,98,0.03)",
+                }}
+              >
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "0.9rem" }}>
+                  <b style={{ color: colors.brand }}>Legajo:</b> {r.operario}
+                </Typography>
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "0.9rem" }}>
+                  <b style={{ color: colors.brand }}>Nombre:</b> {r.nombre}
+                </Typography>
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "0.9rem" }}>
+                  <b style={{ color: colors.brand }}>Turno:</b> {r.turno}
+                </Typography>
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "0.9rem" }}>
+                  <b style={{ color: colors.brand }}>Fecha:</b> {dayjs(r.fecha).format("DD/MM/YYYY")}
+                </Typography>
               </Paper>
             ))
           ) : (
-            <Typography>No hay responsables registrados.</Typography>
+            <Typography sx={{ fontFamily: "Poppins", color: colors.textMuted }}>
+              No hay responsables registrados.
+            </Typography>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenModal(false)}>Cerrar</Button>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button onClick={() => setOpenModal(false)} sx={primaryBtnSx} variant="contained">
+            Cerrar
+          </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 };
 

@@ -1,22 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Card, CardContent, Typography } from '@mui/material';
-import axios from 'axios';
+import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
 import { getResumenRutinas } from '../../API/APIFunctions';
-const CustomCard = ({ title, number, estado }) => (
-  <Card sx={{
-    textAlign: 'center',
-    borderRadius: '10px',
-    boxShadow: '1px 1px 2px 3px rgba(0, 0, 0, 0.4)',
-    paddingTop: 0,
-    marginTop: '20px',
-    height: estado ? '150px' : '200px',
-    width: estado ? '100px' : '250px',
-  }}>
-    <CardContent>
-      <Typography variant={estado ? "h2" : "h1"} sx={{ color: '#008FFB' }}>{number}</Typography>
-      <Typography variant="h5" fontFamily='Poppins' fontStyle='italic'>{title}</Typography>
+import { colors, typography, shadows } from '../../../../styles/alpacladdFvDesignTokens';
+
+const KpiCard = ({ title, number, compact = false }) => (
+  <Card
+    elevation={0}
+    sx={{
+      textAlign: 'center',
+      borderRadius: '12px',
+      boxShadow: shadows.status,
+      border: '1px solid rgba(26, 72, 98, 0.06)',
+      backgroundColor: '#fff',
+      height: '100%',
+      minHeight: compact ? 110 : 140,
+      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: shadows.statusHover,
+      },
+    }}
+  >
+    <CardContent sx={{ py: compact ? 1.5 : 2, px: 1.5 }}>
+      <Typography
+        sx={{
+          color: colors.brand,
+          fontFamily: typography.fontFamily,
+          fontWeight: 700,
+          fontSize: compact ? '1.6rem' : '2.2rem',
+          lineHeight: 1.1,
+        }}
+      >
+        {number}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: typography.fontFamily,
+          color: colors.textMuted,
+          fontWeight: 600,
+          fontSize: compact ? '0.7rem' : '0.85rem',
+          mt: 0.75,
+          textTransform: 'uppercase',
+          letterSpacing: '0.02em',
+        }}
+      >
+        {title}
+      </Typography>
     </CardContent>
   </Card>
+);
+
+const SectionTitle = ({ children }) => (
+  <Typography
+    sx={{
+      fontFamily: typography.fontFamily,
+      fontWeight: 700,
+      color: colors.brand,
+      fontSize: '0.95rem',
+      mb: 1.5,
+      mt: 1,
+    }}
+  >
+    {children}
+  </Typography>
 );
 
 const BalanceLaboratorio = () => {
@@ -32,90 +78,74 @@ const BalanceLaboratorio = () => {
         setFinalizadas(response.data[1][0]);
         setEstado(response.data[2][0]);
       }
-
     } catch (error) {
       console.error(error);
     }
-
   }
+
   useEffect(() => {
     fetchResumenRutinas();
-    const intervalId = setInterval(() => {
-      fetchResumenRutinas();
-    }, 60000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
+    const intervalId = setInterval(fetchResumenRutinas, 60000);
+    return () => clearInterval(intervalId);
   }, []);
-  const displayNumber = (value) => {
-    return value !== null && value !== undefined ? value : "?";
-  };
+
+  const displayNumber = (value) => (value !== null && value !== undefined ? value : '?');
+
+  const etapas = [
+    { title: 'ENT', value: estado.rutinas_entrada },
+    { title: 'ING', value: estado.rutinas_ingreso },
+    { title: 'LAV', value: estado.rutinas_lavado },
+    { title: 'MAR', value: estado.rutinas_marcado },
+    { title: 'MED', value: estado.rutinas_medicion },
+    { title: 'REP', value: estado.rutinas_reposo },
+  ];
 
   return (
-    <Grid container direction="row" alignItems="center" spacing={0}>
-      {/* Creadas 100 */}
-      <Grid item xs={12}>
-        <Grid container justifyContent="center" spacing={0} paddingTop={1}>
-          <Grid item>
-            <CustomCard title="RUTINAS CREADAS" number={balance.rutinas_finalizadas ? (balance.rutinas_finalizadas + balance.rutinas_en_proceso) : "?"} />
-          </Grid>
+    <Box sx={{ px: { xs: 1, md: 2 }, pb: 3 }}>
+      <Typography sx={{ ...typography.cardTitle, mb: 0.5 }}>Balance de laboratorio</Typography>
+      <Typography sx={{ ...typography.muted, fontSize: '0.85rem', mb: 2.5 }}>
+        Resumen en vivo de rutinas creadas, resultados y etapas en proceso
+      </Typography>
+
+      <SectionTitle>Resumen general</SectionTitle>
+      <Grid container spacing={2} justifyContent="center" mb={2}>
+        <Grid item xs={12} sm={6} md={4}>
+          <KpiCard
+            title="Rutinas creadas"
+            number={
+              balance.rutinas_finalizadas != null
+                ? balance.rutinas_finalizadas + balance.rutinas_en_proceso
+                : '?'
+            }
+          />
+        </Grid>
+        <Grid item xs={6} sm={3} md={4}>
+          <KpiCard title="Finalizadas" number={displayNumber(balance.rutinas_finalizadas)} />
+        </Grid>
+        <Grid item xs={6} sm={3} md={4}>
+          <KpiCard title="En proceso" number={displayNumber(balance.rutinas_en_proceso)} />
         </Grid>
       </Grid>
 
-      {/* Finalizadas 40 y Proceso 60 */}
-      <Grid item xs={12}>
-        <Grid container justifyContent="space-around" spacing={0} >
-          <Grid item>
-            <CustomCard title="FINALIZADAS" number={displayNumber(balance.rutinas_finalizadas)} />
-          </Grid>
-          <Grid item>
-            <CustomCard title="EN PROCESO" number={displayNumber(balance.rutinas_en_proceso)} />
-          </Grid>
+      <SectionTitle>Resultados finalizados</SectionTitle>
+      <Grid container spacing={2} justifyContent="center" mb={2}>
+        <Grid item xs={6} sm={4} md={3}>
+          <KpiCard title="Conforme" number={displayNumber(finalizadas.finalizadas_conforme)} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={3}>
+          <KpiCard title="No conforme" number={displayNumber(finalizadas.finalizadas_no_conforme)} />
         </Grid>
       </Grid>
 
-      <Grid item xs={6} marginBottom={2}>
-        <Grid container justifyContent="center" spacing={2}>
-          <Grid item>
-            <CustomCard title="CONFORME" number={displayNumber(finalizadas.finalizadas_conforme)} />
+      <SectionTitle>Etapas en proceso</SectionTitle>
+      <Grid container spacing={1.5}>
+        {etapas.map((e) => (
+          <Grid item xs={4} sm={2} key={e.title}>
+            <KpiCard title={e.title} number={displayNumber(e.value)} compact />
           </Grid>
-          <Grid item>
-            <CustomCard title="NO CONFORME" number={displayNumber(finalizadas.finalizadas_no_conforme)} />
-          </Grid>
-        </Grid>
+        ))}
       </Grid>
-
-      {/* Ing, Ent, Lav, etc. bajo Proceso */}
-      <Grid item xs={6} marginBottom={2}>
-        <Grid container >
-          <Grid item xs={12}>
-            <Grid container direction={"row"} columnSpacing={1}>
-              <Grid item ={2}>
-                <CustomCard title="ENT" number={displayNumber(estado.rutinas_entrada)} estado />
-              </Grid>
-              <Grid item ={2}>
-                <CustomCard title="ING" number={displayNumber(estado.rutinas_ingreso)} estado />
-              </Grid>
-              <Grid item ={2}>
-                <CustomCard title="LAV" number={displayNumber(estado.rutinas_lavado)} estado />
-              </Grid>
-
-              <Grid item ={2}>
-                <CustomCard title="MAR" number={displayNumber(estado.rutinas_marcado)} estado />
-              </Grid>
-              <Grid item ={2}>
-                <CustomCard title="MED" number={displayNumber(estado.rutinas_medicion)} estado />
-              </Grid>
-              <Grid item ={2}>
-                <CustomCard title="REP" number={displayNumber(estado.rutinas_reposo)} estado />
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-
-    </Grid>
+    </Box>
   );
 };
 

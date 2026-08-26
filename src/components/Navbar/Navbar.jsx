@@ -21,8 +21,21 @@ import { useNavigate } from "react-router-dom";
 
 // Imágenes
 import CladdCore from "../../assets/Images/CLADDCORE.png";
+import { colors } from "../../styles/alpacladdFvDesignTokens";
 
-const Navbar = ({ Titulo, Routes, color }) => {
+const menuButtonSx = {
+  color: "white",
+  fontFamily: '"Poppins", sans-serif',
+  fontSize: "0.8rem",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    color: colors.goldAccent,
+    transform: "scale(1.05)",
+  },
+};
+
+const Navbar = ({ Titulo, Routes = [], color, showDesktopRoutes = true }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -39,39 +52,56 @@ const handleMenuClose = () => {
   setSubmenuItems([]);
 };
 
-  const handleNavigation = (href) => {
+  const handleNavigation = (href, target = "_self") => {
+    if (!href) return;
     if (href.startsWith("http")) {
-      window.open(href, "_blank");
+      if (target === "_blank") {
+        window.open(href, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = href;
+      }
     } else {
       navigate(href);
     }
     setDrawerOpen(false);
+    handleMenuClose();
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: getColor(color) }}>
+    <AppBar position="static" elevation={0} sx={{ backgroundColor: getColor(color) }}>
       {/* Desktop Navbar */}
       <Toolbar
+        variant="dense"
         sx={{
-          justifyContent: "space-between",
+          justifyContent: showDesktopRoutes ? "space-between" : "center",
           display: { xs: "none", md: "flex" },
+          minHeight: { md: showDesktopRoutes ? 52 : 56 },
+          maxHeight: { md: showDesktopRoutes ? 52 : 56 },
+          py: 0,
+          px: { md: 2 },
         }}
       >
         <Typography
-          variant="h3"
+          component="div"
           sx={{
-            fontFamily: "Poppins",
+            fontFamily: '"Poppins", sans-serif',
             fontWeight: 700,
-            color: "#ffffff",
-            letterSpacing: "0.1rem",
-            flexGrow: 1,
+            color: colors.white,
+            letterSpacing: showDesktopRoutes ? { xs: "0.05rem", md: "0.1rem" } : "0.14em",
+            flexGrow: showDesktopRoutes ? 1 : 0,
             textAlign: "center",
+            textTransform: !showDesktopRoutes && color === "alpacladd" ? "uppercase" : "none",
+            fontSize: showDesktopRoutes
+              ? { md: "clamp(1.15rem, 1.8vw, 1.35rem)" }
+              : { md: "clamp(1.45rem, 2.6vw, 1.85rem)" },
+            lineHeight: 1.12,
           }}
         >
           {Titulo}
         </Typography>
 
-        {/* Menú de escritorio */}
+        {/* Menú de escritorio (oculto si el menú va en cápsula bajo el AppBar) */}
+        {showDesktopRoutes ? (
         <Box>
   {Routes.map((route) =>
     route.children ? (
@@ -79,17 +109,7 @@ const handleMenuClose = () => {
         <Button
           color="inherit"
           onClick={(e) => handleMenuOpen(e, route.children)}
-          sx={{
-            color: "white",
-            fontFamily: "Poppins",
-            fontSize: "0.8rem",
-            transition: "all 0.3s ease",
-            "&:hover": {
-              backgroundColor: "rgba(255,255,255,0.2)",
-              color: "#FFD700",
-              transform: "scale(1.05)",
-            },
-          }}
+          sx={menuButtonSx}
         >
           {route.name}
         </Button>
@@ -98,13 +118,19 @@ const handleMenuClose = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl) && submenuItems.length > 0}
           onClose={handleMenuClose}
+          PaperProps={{ sx: { minWidth: 200 } }}
         >
           {submenuItems.map((sub) => (
             <MenuItem
               key={sub.key}
               onClick={() => {
-                handleNavigation(sub.route);
-                handleMenuClose();
+                handleNavigation(sub.route, sub.target);
+              }}
+              sx={{
+                fontFamily: '"Poppins", sans-serif',
+                fontSize: "0.85rem",
+                color: colors.textSlate,
+                "&:hover": { backgroundColor: "rgba(26,72,98,0.08)", color: colors.tabSelected },
               }}
             >
               {sub.name}
@@ -116,48 +142,48 @@ const handleMenuClose = () => {
       <Button
         key={route.key}
         onClick={() => handleNavigation(route.route)}
-        sx={{
-          color: "white",
-          fontFamily: "Poppins",
-          fontSize: "0.8rem",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            backgroundColor: "rgba(255,255,255,0.2)",
-            color: "#FFD700",
-            transform: "scale(1.05)",
-          },
-        }}
+        sx={menuButtonSx}
       >
         {route.name}
       </Button>
     )
   )}
 </Box>
+        ) : null}
 
       </Toolbar>
 
       {/* Mobile Navbar */}
       <Toolbar
+        variant="dense"
         sx={{
           display: { xs: "flex", md: "none" },
           justifyContent: "space-between",
+          minHeight: 52,
+          maxHeight: 52,
+          py: 0,
         }}
       >
         <IconButton
           edge="start"
           color="inherit"
+          size="small"
           onClick={() => setDrawerOpen(true)}
         >
           <MenuIcon />
         </IconButton>
         <Typography
-          variant="h6"
+          component="div"
           sx={{
-            fontFamily: "Poppins",
+            fontFamily: '"Poppins", sans-serif',
             fontWeight: 700,
-            color: "white",
+            color: colors.white,
+            letterSpacing: "0.08em",
             flexGrow: 1,
             textAlign: "center",
+            textTransform: !showDesktopRoutes && color === "alpacladd" ? "uppercase" : "none",
+            fontSize: "clamp(1.05rem, 3.5vw, 1.35rem)",
+            lineHeight: 1.12,
           }}
         >
           {Titulo}
@@ -170,7 +196,7 @@ const handleMenuClose = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
       >
-        <Box sx={{ width: 250, textAlign: "center", pt: 2 }}>
+        <Box sx={{ width: 250, textAlign: "center", pt: 2, fontFamily: '"Poppins", sans-serif' }}>
           <img
             src={CladdCore}
             alt="Logo CladdCore"
@@ -188,7 +214,7 @@ const handleMenuClose = () => {
           <ListItemButton
             key={sub.key}
             sx={{ pl: 4 }}
-            onClick={() => handleNavigation(sub.route)}
+            onClick={() => handleNavigation(sub.route, sub.target)}
           >
             <ListItemText primary={sub.name} />
           </ListItemButton>
@@ -212,23 +238,12 @@ const handleMenuClose = () => {
 };
 
 function getColor(colorName) {
-  const colors = {
+  const map = {
     cladd: "#45474e",
     enod: "#4C7766",
-    alpacladd: "#1A4862",
+    alpacladd: colors.brand,
   };
-  return colors[colorName] || colors.cladd;
+  return map[colorName] || map.cladd;
 }
-
-Navbar.defaultProps = {
-  Routes: [
-    {
-      name: " ",
-      key: " ",
-      route: " ",
-      target: " ",
-    },
-  ],
-};
 
 export default Navbar;
