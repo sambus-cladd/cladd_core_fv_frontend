@@ -62,6 +62,12 @@ const routes = [
     children: terminacionSubRoutes,
   },
   {
+    name: "INVENTARIO TELA CRUDA",
+    key: "InventarioTelaCruda",
+    route: "http://192.168.40.95:4005/LaRioja/Alpacladd/Productividad/InventarioTelaCruda",
+    target: "_blank",
+  },
+  {
     name: "PRODUCTIVIDAD",
     key: "Productividad",
     children: productividadSubRoutes,

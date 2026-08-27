@@ -11,6 +11,7 @@ import { getEstadoRollos } from './API/APIFunctions';
 import { getStockTerminadoFV } from './API/APIFunctions';
 import { colors, gradients, shadows, typography, formatKmEntero } from '../../styles/alpacladdFvDesignTokens';
 
+const INVENTARIO_TELA_CRUDA_URL = "http://192.168.40.95:4005/LaRioja/Alpacladd/Productividad/InventarioTelaCruda";
 
 const AlpacladdHomeFV = () => {
 
@@ -161,13 +162,27 @@ const AlpacladdHomeFV = () => {
         <Box sx={{ px: 1.25, pt: { xs: 1.75, sm: 2.25, md: 2.5 }, pb: 0.35, flexShrink: 0 }}>
           <Grid container spacing={1.35} alignItems="flex-start">
             <Grid item xs={12} sm={6} md={3}>
-              <InventarioSeccionCard
-                variant="cruda"
-                title="Inventario tela cruda"
-                largoTotal={deposito?.largoTotal || 0}
-                largoCrudo={deposito?.largoCrudo || 0}
-                largoDenim={deposito?.largoDenim || 0}
-              />
+              <Box
+                onClick={() => window.open(INVENTARIO_TELA_CRUDA_URL, "_blank", "noopener,noreferrer")}
+                sx={{
+                  cursor: "pointer",
+                  height: "100%",
+                  borderRadius: "14px",
+                  transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: shadows.statusHover,
+                  },
+                }}
+              >
+                <InventarioSeccionCard
+                  variant="cruda"
+                  title="Inventario tela cruda"
+                  largoTotal={deposito?.largoTotal || 0}
+                  largoCrudo={deposito?.largoCrudo || 0}
+                  largoDenim={deposito?.largoDenim || 0}
+                />
+              </Box>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <InventarioSeccionCard

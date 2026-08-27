@@ -7,10 +7,12 @@ import OpacityIcon from "@mui/icons-material/Opacity";
 import InsightsIcon from "@mui/icons-material/Insights";
 import FactoryIcon from "@mui/icons-material/Factory";
 import BuildIcon from "@mui/icons-material/Build";
+import InventoryIcon from "@mui/icons-material/Inventory";
 import { tabsBand, tabsCapsule, colors } from "../../../styles/alpacladdFvDesignTokens";
 
 const MENU_ICON_BY_KEY = {
   Home: <HomeIcon sx={{ fontSize: 24 }} />,
+  InventarioTelaCruda: <InventoryIcon sx={{ fontSize: 24 }} />,
   Laboratorio: <ScienceIcon sx={{ fontSize: 24 }} />,
   Calidad: <OpacityIcon sx={{ fontSize: 24 }} />,
   TERMINACION: <FactoryIcon sx={{ fontSize: 24 }} />,
@@ -63,7 +65,7 @@ const labelSx = {
   fontSize: { xs: "0.68rem", sm: "0.74rem", md: "0.8rem" },
   textAlign: "center",
   lineHeight: 1.2,
-  maxWidth: 150,
+  whiteSpace: "nowrap",
 };
 
 function LeafMenuItem({ route, active, onNavigate }) {

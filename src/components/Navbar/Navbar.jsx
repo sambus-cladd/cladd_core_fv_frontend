@@ -141,7 +141,7 @@ const handleMenuClose = () => {
     ) : (
       <Button
         key={route.key}
-        onClick={() => handleNavigation(route.route)}
+        onClick={() => handleNavigation(route.route, route.target)}
         sx={menuButtonSx}
       >
         {route.name}
@@ -223,7 +223,7 @@ const handleMenuClose = () => {
     ) : (
       <ListItemButton
         key={route.key}
-        onClick={() => handleNavigation(route.route)}
+        onClick={() => handleNavigation(route.route, route.target)}
       >
         <ListItemText primary={route.name} />
       </ListItemButton>
