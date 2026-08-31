@@ -14,7 +14,6 @@ import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import MensajeDialog from '../../../components/Plantilla/MensajeDialog';
 import HeaderYFooter from '../../../components/Plantilla/HeaderYFooter';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { validarDatosMuestras } from '../API/APIFunctions';
 import MensajeDialogConfirm from '../../../components/Plantilla/MensajeDialogConfirm';
 
 const options = ['Crudo', 'Lavado Potencial', 'Quick Wash', 'Terminado', 'Reprueba', 'Stock (sin lab.)', 'Personalizado', 'Boill Off'];
@@ -425,34 +424,7 @@ function RegistrarMuestra() {
   }
   const continuarRegistro = async () => {
     setLoading(true);
-    try {
-      const resp = await validarDatosMuestras(rollo);
-      const data = resp.data;
-
-      if (!data.valido) {
-        setPopupValidacion({
-          open: true,
-          mensaje: `${data.motivo} ¿Desea continuar registrando la muestra de todas formas?`,
-          confirmar: async () => {
-            setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
-            await registrarMuestras();
-          },
-          cancelar: () => {
-            setPopupValidacion({ open: false, mensaje: "", confirmar: null, cancelar: null });
-            setLoading(false);
-          }
-        });
-        setLoading(false);
-        return;
-      }
-
-      await registrarMuestras();
-    } catch (error) {
-      setMensaje("Error validando el rollo");
-      setTipo("error");
-      setIsOpen(true);
-      setLoading(false);
-    }
+    await registrarMuestras();
   };
 
   const handleClick = async () => {
