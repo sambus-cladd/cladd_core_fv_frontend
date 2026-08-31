@@ -95,7 +95,7 @@ function FormularioGantPcp() {
         const CargaMaquinas = async () => {
             try {
                 const response = await GetTABLAMAQUINAS();
-                setMaquinaProc(response.Dato);
+                setMaquinaProc(Array.isArray(response?.Dato?.[0]) ? response.Dato[0] : response?.Dato ?? []);
                 // console.log("Maquinas procesos : ", response.Dato);
 
             } catch (error) {
@@ -111,7 +111,7 @@ function FormularioGantPcp() {
         const CargaCodMaquinas = async () => {
             try {
                 const response = await GetTABLACODMAQUINAS();
-                setCodMaquinas(response.Dato);
+                setCodMaquinas(Array.isArray(response?.Dato?.[0]) ? response.Dato[0] : response?.Dato ?? []);
                 // console.log("Codigo Maquinas: ", response.Dato);
 
             } catch (error) {
@@ -127,10 +127,11 @@ function FormularioGantPcp() {
         const CargaProcesos = async () => {
             try {
                 const response = await GetTABLAPROCESOS();
-                const lineaColor = response.Dato.find(p => p.proceso === 'LINEA COLOR');
+                const lista = Array.isArray(response?.Dato?.[0]) ? response.Dato[0] : response?.Dato ?? [];
+                const lineaColor = lista.find(p => p.proceso === 'LINEA COLOR');
                 const colores = lineaColor ? lineaColor.color.split(',') : [];
                 setColores(colores)
-                setProcesos(response.Dato)
+                setProcesos(lista)
                 // console.log("Procesos: ", response.Dato);
             } catch (error) {
                 console.error("Error al obtener los procesos:", error);
@@ -145,7 +146,7 @@ function FormularioGantPcp() {
             filterProcMaq(Maquina);
             filterProc();
         }
-    }, [Maquina]);
+    }, [Maquina, procesos, maquinasproc]);
 
     const filterProcMaq = (CodMaquina) => {
         const procesomaq = maquinasproc.filter(m => m.cod_maquina === CodMaquina);
@@ -580,7 +581,7 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {Array.isArray(codmaquinas[0]) ? codmaquinas[0].map((maquina, index) => (
+                                    {codmaquinas.map((maquina, index) => (
                                         <MenuItem
                                             key={index}
                                             value={maquina.cod_maquina}
@@ -588,7 +589,7 @@ function FormularioGantPcp() {
                                         >
                                             {maquina.cod_maquina}
                                         </MenuItem>
-                                    )) : null}
+                                    ))}
                                 </TextField>
                             </Grid>
 
@@ -609,11 +610,11 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {Array.isArray(maquinasprocfil[0]) ? maquinasprocfil[0].map((maquina, index) => (
+                                    {maquinasprocfil.map((maquina, index) => (
                                         <MenuItem key={index} value={maquina.proceso}>
                                             {maquina.proceso}
                                         </MenuItem>
-                                    )) : null}
+                                    ))}
                                 </TextField>
                             </Grid>
 
@@ -685,11 +686,11 @@ function FormularioGantPcp() {
                                             <MenuItem value="">
                                                 <em>Seleccionar:</em>
                                             </MenuItem>
-                                            {Array.isArray(procesosfil[0]) ? procesosfil[0].map((proceso, index) => (
+                                            {procesosfil.map((proceso, index) => (
                                                 <MenuItem key={index} value={proceso.proceso}>
                                                     {proceso.proceso}
                                                 </MenuItem>
-                                            )) : null}
+                                            ))}
                                         </TextField>
                                     </Grid>
 
