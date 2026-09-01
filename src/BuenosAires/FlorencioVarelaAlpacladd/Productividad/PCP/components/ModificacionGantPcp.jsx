@@ -18,7 +18,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 
-import { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp } from '../API/APIFunctions'
+import { PutModificacionGantFV, GetTABLAMAQUINAS, GetTABLAPROCESOS, GetTABLACODMAQUINAS, GetProdxOrden, DeleteOrdenPcp, GetDatosGantFV } from '../API/APIFunctions'
 import { set } from 'date-fns';
 import { pcpCardSx, primaryBtnSx, fieldSx, dialogTitleSx } from './pcpUiStyles';
 
@@ -34,6 +34,9 @@ function FormularioGantPcp() {
     const [colores, setColores] = useState([]);
     const [ordenes, setOrdenes] = useState([]);
     const [openModalTabla, setOpenModalTabla] = useState(false);
+    const maquinasGiroLento = ["GL1", "GL2", "GL3", "GL4", "GL5", "GL6", "GL7"];
+    const [gantRows, setGantRows] = useState([]);
+    const [maquinasGiroLentoOcupadas, setMaquinasGiroLentoOcupadas] = useState([]);
 
     const [InicioHora, setInicioHora] = useState(null);
     const [FinHora, setFinHora] = useState(null);
@@ -142,6 +145,19 @@ function FormularioGantPcp() {
     /* --- FIN TABLA PROCESOS --- */
 
     useEffect(() => {
+        const cargarDatosGant = async () => {
+            try {
+                const response = await GetDatosGantFV();
+                const datos = Array.isArray(response?.Dato?.[0]) ? response.Dato[0] : response?.Dato ?? [];
+                setGantRows(Array.isArray(datos) ? datos : []);
+            } catch (error) {
+                console.error("Error al obtener datos del Gantt:", error);
+            }
+        };
+        cargarDatosGant();
+    }, []);
+
+    useEffect(() => {
         if (Maquina) {
             filterProcMaq(Maquina);
             filterProc();
@@ -163,6 +179,37 @@ function FormularioGantPcp() {
             setProcesosFil(procesos);
         }
     };
+
+    const filtrarMaquinasGiroLentoDisponibles = () => {
+        if (!InicioHora || !HorasT) return;
+
+        const fechaInicio = dayjs(InicioHora);
+        const fechaFin = fechaInicio.add(Number(HorasT), 'hour');
+
+        const ocupadas = gantRows
+            .filter(row => {
+                if (IdOrdenPcp && String(row.id) === String(IdOrdenPcp)) return false;
+                if (!row.hora_inicio || !row.hora_fin) return false;
+
+                const inicioRow = dayjs(row.hora_inicio);
+                const finRow = dayjs(row.hora_fin);
+
+                return maquinasGiroLento.includes(row.maquina_proceso) &&
+                    fechaInicio.isBefore(finRow) &&
+                    fechaFin.isAfter(inicioRow);
+            })
+            .map(row => row.maquina_proceso);
+
+        setMaquinasGiroLentoOcupadas(ocupadas);
+    };
+
+    useEffect(() => {
+        if (Maquina === "GIRO LENTO") {
+            filtrarMaquinasGiroLentoDisponibles();
+        } else {
+            setMaquinasGiroLentoOcupadas([]);
+        }
+    }, [InicioHora, HorasT, gantRows, Maquina, IdOrdenPcp]);
 
     //INICIO - BOTON REGISTRAR
     const handleButton = async (datos) => {
@@ -576,6 +623,11 @@ function FormularioGantPcp() {
                                     onChange={(event) => {
                                         const maquina = event.target.value
                                         setMaquina(maquina);
+                                        if (maquina === "GIRO LENTO") {
+                                            setHoraT(12);
+                                        }
+                                        setMaquinaProceso("");
+                                        setProceso("");
                                     }}
                                 >
                                     <MenuItem value="">
@@ -610,11 +662,22 @@ function FormularioGantPcp() {
                                     <MenuItem value="">
                                         <em>Seleccionar:</em>
                                     </MenuItem>
-                                    {maquinasprocfil.map((maquina, index) => (
-                                        <MenuItem key={index} value={maquina.proceso}>
-                                            {maquina.proceso}
-                                        </MenuItem>
-                                    ))}
+                                    {Maquina === "GIRO LENTO"
+                                        ? maquinasGiroLento.map((gl) => (
+                                            <MenuItem
+                                                key={gl}
+                                                value={gl}
+                                                disabled={maquinasGiroLentoOcupadas.includes(gl)}
+                                            >
+                                                {gl} {maquinasGiroLentoOcupadas.includes(gl) ? "(Ocupada)" : ""}
+                                            </MenuItem>
+                                        ))
+                                        : maquinasprocfil.map((maquina, index) => (
+                                            <MenuItem key={index} value={maquina.proceso}>
+                                                {maquina.proceso}
+                                            </MenuItem>
+                                        ))
+                                    }
                                 </TextField>
                             </Grid>
 
