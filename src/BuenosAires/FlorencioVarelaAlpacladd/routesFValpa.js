@@ -68,6 +68,12 @@ const routes = [
     target: "_blank",
   },
   {
+    name: "QUIMICOS",
+    key: "QuimicosFV",
+    route: "http://192.168.0.18:5192/",
+    target: "_blank",
+  },
+  {
     name: "PRODUCTIVIDAD",
     key: "Productividad",
     children: productividadSubRoutes,
